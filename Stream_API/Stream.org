@@ -1,0 +1,29 @@
+Java não é uma linguagem nativamente funcional (AP:não incorporava o paradigma de programação funcional), mas esses princípios da programação funcional foram acrescidos a partir do Java 8, com a adição da stream API.
+
+
+Expressões lambdas (foco na função) e Streams usam o paradigma funcional (em oposição ao paradigma de orientação à objetos).
+--------------------------------------------
+
+
+Assim como o "forEach" é uma função terminadora, o "reduce" também é uma função terminadora - de modo que para esses dois não podemos continuar operando sobre a stream.
+
+------------------------------------------
+
+* Modos de percorrer uma lista
+		List<String> aprovados = Arrays.asList("Lu", "Gui", "Luca", "Ana");
+** foreach
+		System.out.println("Usando o foreach...");
+		for(String nome: aprovados) {
+			System.out.println(nome);
+		}
+** Iterator		
+		System.out.println("\nUsando Iterator...");
+		Iterator<String> iterator = aprovados.iterator();
+		while(iterator.hasNext()) { ///iterator.hasNext() retorna true toda vez que existe um próximo elemento
+			System.out.println(iterator.next());
+		}
+** Stream		
+		System.out.println("\nUsando Stream...");
+		Stream<String> stream = aprovados.stream();
+		stream.forEach(System.out::println); // Laço interno!!!
+	}

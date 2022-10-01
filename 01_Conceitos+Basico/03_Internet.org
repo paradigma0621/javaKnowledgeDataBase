@@ -1,0 +1,41 @@
+* Internet
+** WWW (ler o texto corrido, o final de um tópico desse grupo se liga com o *** do grupo seguinte)
+E disse Tim Bernes-Lee: “Que haja a World Wide Web“.
+
+Era 1989, embora a internet já existisse, seu potencial ainda não era aproveitado.
+
+*** URL (Uniform Resource Locators)
+Foi criada, então, a World Wide Web, um sistema de informação que, além de trazer a identificação única de recursos (Uniform Resource Locators – URL), possibilitou a ligação destes através de hipertextos.
+
+*** HTML (Hypertext Markup Language)
+Os recursos disponíveis na Web podem ser de qualquer tipo de mídia, porém, as chamadas web pages eram escritas em um formato específico: o Hypertext Markup Language (HTML), linguagem de marcação que possibilita a ligação entre diferentes páginas através dos hiperlinks, criando, então, a verdadeira teia de páginas na internet.
+
+*** HTTP (Hypertext Transfer Protocol)
+Mas, pra isso tudo funcionar, era necessário um protocolo de comunicação.
+
+Foi quando surgiu o Hypertext Transfer Protocol (HTTP), muito conhecido hoje em dia.
+
+O interessante é que, na época, ele só era usado para transportar HTML. Bem diferente de hoje em dia, não é mesmo?
+
+*** RPC (Remote Procedure Call)
+Até então, eram usados outros protocolos de comunicação para transportar diferentes tipos de dados através do Remote Procedure Call (RPC), onde eram requisitados serviços de outras máquinas a fim de conseguir algum recurso em uma rede sem saber, necessariamente, detalhes dessa rede.
+
+*** Webservices
+Foi em 1998 que Dave Winer resolveu juntar a Web com os Services existentes, criando os webservices. Sendo o primeiro deles, o XML-RPC.
+
+Um Web service é uma tecnologia que permite a comunicação independente entre aplicações, sem depender de linguagens ou sistemas operacionais.
+
+No geral, essa comunicação acontece através de arquivos em formato XML. Sendo assim, independente da linguagem, tudo é traduzido para XML. Entre eles, o *XML-RPC*, criado em cima do protocolo *HTTP*.
+
+**** SOAP (Simple Object Access Protocol)
+Depois de certo tempo, o XML-RPC foi batizado com outro nome: Simple Object Access Protocol (SOAP).
+
+*Sendo classificado, então, como um protocolo de comunicação que fazia uso, em seus protocolos de mais baixo nível, do HTTP.*
+
+Este protocolo era poderoso em termos de capacidade de exposição dos dados aos interessados. Mas, apesar do nome, não tem nada de simples.
+
+Em pouco tempo, o SOAP tornou-se um padrão de mercado e era utilizado majoritariamente entre as organizações.
+
+**** REST (Representational State Transfer)
+Mas, precisávamos de uma solução melhor e mais simples. Foi aí que entraram as Web Application Programming Interfaces (APIs) e o Representational State Transfer (REST).
+

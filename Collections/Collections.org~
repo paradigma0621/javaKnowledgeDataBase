@@ -1,0 +1,411 @@
+* Visão Geral
+Set:
+	- Não ordenado (por padrão)
+	- Não indexado
+	- Não aceita repetição
+
+List:
+	- Indexada
+	- Aceita repetição
+
+Map: (meio que uma mistura de um Set e de um List)
+	- Chave/valor
+	- Chave não aceita repetição (exemplo: CPF)
+	- Valor aceita repetição (exemplo nome da pessoa)
+		
+Queue:
+	- Implementa fila
+	- First in/first out (FIFO)
+
+Stack:
+	- Implementa pilha (stack)
+	- Last in/first out (LIFO)
+-------------
+Obs: Collections não suporta tipos primitivos
+--------------------------------------------------------
+
+	As collections tem uma grande vantagem em relação aos Arrays pois é uma estrutura dinâmica: elas crescem à medida que são adicionados novos elementos.
+	
+	
+* Set
+** Transformar um Set num array
+Long[] personsIds = allPersonsValid.toArray(new Long[allPersonsValid.size()]);
+
+** outros
+Vamos trabalhar com HashSet
+
+- Pode ser heterogêneo (mais de um tipo de dados)
+- Pode ser homogêneo (um único tipo de dados)
+- Não aceita objetos duplicados (quando tentamos adicionar um elemento que já existe ele simplesmente ignora).
+- Pode ser ordenado (a princípio não fica ordenado nem em ordem de adição, nem em ordem alfabética).
+- Não é indexado (não existe uma forma de pegar por exemplo o elemento de índice 2, ou "x")
+		 (AP???): Em nenhum tipo de Set é possível executar o comando: //return lista.indexOf(u);) (??)
+
+
+------------------
+Obs: se escrever Hashset ele não reconhece (é case sensitive, tem que escrever: HashSet).
+
+HashSet conjunto = new HashSet(); //declaração de conjunto heterogêneo)
+
+conjunto.add(1.2);
+conjunto.add(true);
+conjunto.add("Teste");
+conjunto.add(1);
+conjunto.add('x');
+//quando se faz o add ele retorna um boolean indicando se conseguiu ou não adicionar (true=adicionou, false =não adicionou (o que ocorre quando já tem alguém igual ao argumento passado)).
+
+Obs: Collections não suporta tipos primitivos. O que o java faz quando:
+conjunto.add(1.2);
+é converter o "1.2" para uma classe Double, o bool para o Boolean, int para Integer, ...
+-----------------------
+
+conjunto.size() //retorna número de elementos
+conjunto.remove("Teste") (tenta remover o elemento e depoi retorna boolean se conseguiu ou não)
+conjunto.contains(1.2) (retorna boolean se contem o elemento "1.2")
+
+System.out.println(conjunto); //mostra elementos na tela
+
+conjunto.clear(); //limpa o conteúdo do conjunto
+------------------------
+=========================================================
+Set nums = new HashSet();
+nums.add(1);
+nums.add(2);
+nums.add(3);
+System.out.println(nums); //mostra elementos na tela
+
+conjuto.addAll(nums); //adicionou todos os elementos de conjunto dentro de nums (faz a união dos conjuntos)
+
+conjuto.retainAll(nums); //faz a intersecção dos conjuntos
+--------------------------------
+No video da Udemy deu uns warnings do Eclipse para o código apresentado - no meu netbeans não deu esses warnings. Mas se futuramente eu usar o eclipse e os der, adicionar imediatamente acima do método main:
+@SuppressWarnings({ "rawtypes", "unchecked" }).
+
+Se eu fizesse por exemplo: Set<String> lista = new Hashset<String>();
+Com isso a lista passa a aceitar apenas valores do tipo String, e não passa a dar os warnings mencionado acima.
+-------
+ Set<String> lista = new HashSet<String>() //que é igual a linha abaixo. Aqui ele usa generics
+ Set<String> lista = new HashSet<>();
+"<>": Operador Diamond -> ele só vai permitir valores do tipo String
+(declara "chamando" de um lado Set e do outro HashSet por conta do polimorfismo)
+----
+ Set<String> lista = new Hashset(); //Lista que aceita qualquer tipo de valor
+---------
+Para manter a ordem em que foram adicionados os elementos:
+ Set<String> lista = new LinkedHashSet<>(); //Lista que respeita ordem de inserção
+
+-----
+ Set<String> lista = new TreeSet<>(); //Respeita a ordem do menor pro maior (número), ou a ordem alfabética (String)
+ou
+ TreeSet<String> lista = new TreeSet<>();
+ou
+SortedSet<String> lista = new TreeSet<>();
+
+
+LinkedHashSet garante ordem de inclusão no adicionamento do elementos.
+(o TreeSet, por exemplo, precisa ter um comparable para determinar a ordenação dos elementos)
+
+	
+* List 
+List:
+-----
+	- Pode ser heterogêneo
+	- Pode ser homogêneo
+	- Aceita objetos duplicados
+	- É ordenado
+	- É indexado
+
+-----------------------------------------------
+main(){
+	ArrayList<Usuario> lista = new ArrayList<>();
+	//O que é igual a: List<Usuario> lista = new ArrayList<>();, mas nos exemplo da Udemy foram utilizadas a
+ definição de lista acima: ArrayList<Usuario> lista = new ArrayList<>(); ... mesmo porque se eu usar List<Usuario>... 
+ele faz 2 imports: um da List e outra da ArrayList. Depois mais pra frente na resolução de um desafio o professor da 
+Udemy usou: List<Usuario> lista = new ArrayList<>(); mesmo ele fazendo 2 imports.
+
+	Usuario u1 = new Usuario("Ana");
+
+	lista.add(u1);
+	lista.add(new Usuario("Carlos"));
+	lista.add(new Usuario("Lia"));
+	lista.add(new Usuario("Bia"));
+	(...)
+
+for (Usuario u: lista)
+	System.out.println(u.nome); //Observar que a ordem de inserção é mantida
+}
+//Em outro arquivo a classe:
+public class Usuario {
+
+	String nome;
+
+
+
+//**** OBS: TUDO QUE É APRESENTADO AQUI LEVA EM CONSIDERAÇÃO QUE TANTO HASHCODE QUANTO EQUALS ESTEJAM DEFINIDAS DENTRO DA CLASSE USUARIO*****
+
+	... hashcode... {...}
+	...equals...{... }
+}
+------------------------------
+	System.out.println(lista.get(3).nome); //mostra o nome do 3o elemento da lista (o que não é possível no Set, que não é indexado)
+---------
+	lista.remove(1); //ele remove e retorna o usuário, de modo que eu posso fazer um println nele, como abaixo:
+	System.out.println("Foi removido o usuario:" + lista.remove(1).nome);
+---------
+System.out.println(lista.remove(new Usuario("Manu"))); //se existir essa usuaria ele imprime "true" na tela
+-----------
+System.out.println("Tem? " + lista.contains(new Usuario("Lia"))); //se existir essa usuaria ele imprime "Tem? true" na tela
+---------
+
+Para alterar valor de uma ArrayList:
+        List<String> movimentos = new ArrayList<>();
+        movimentos.add("abc");
+        movimentos.add("def");
+        movimentos.add("ghi");
+        movimentos.set(1,"jkl");  //Muda o valor do índice 1 = 2o elemento
+
+        for(String mov: movimentos)      System.out.println(mov);
+
+* Queue (Fila)
+Queue<String> fila = new LinkedList<String>();
+//ou, o que da na mesma: Queue<String> fila = new LinkedList<>();
+fila.add("Ana");
+
+fila.offer("Bia"); //offer é usado quando tivermos uma restrição de tamanho para fila. Enquanto add retorna erro caso não tenha mais espaço na fila, o offer retorna false caso não haja mais espaço na fila. Ou seja: o comportamento de add difere de offer quando a fila está cheia.
+
+fila.add("Carlos");
+fila.offer("Daniel");
+fila.offer("Rafaela");
+fila.offer("Gui");
+
+System.out.println(fila.peek()); //mostra o primeiro elemento da fila
+System.out.println(fila.peek()); //continua mostrando o mesmo primeiro elemento da fila (igual ao acima, ou seja: ele não remove o elemento).
+//Obs: com peek, caso a fila esteja vazia ele retorna null
+----
+System.out.println(fila.element()); //mostra o primeiro elemento da fila
+System.out.println(fila.element()); //continua mostrando o mesmo primeiro elemento da fila (igual ao acima, ou seja: ele não remove o elemento).
+//Obs: com element, caso a fila esteja vazia ele retorna erro
+//Ou seja: a diferença do comportamento entre peek e element ocorre quando a fila está vazia
+
+----------------------
+fila.size();
+fila.clear();
+fila.isEmpty();
+fila.contains(...);
+---------------------
+System.out.println(fila.poll()); //mostra o primeiro elemento da fila, removendo o elemento. Se a fila estiver vazia ele retorna null
+---------------------
+System.out.println(fila.remove()); //mostra o primeiro elemento da fila, removendo o elemento. Se a fila estiver vazia ele joga uma exceção (erro).
+//Ou seja: a diferença do comportamento entre poll e remove ocorre quando a fila está vazia
+---------------------------
+
+for (String elemento: elementos) {
+	System.out.println(elemento);
+}
+
+
+* Stack (Pilha)
+
+	Last in, first out.
+
+Deque<String> livros = new ArrayDeque<String>();  //Lê-se: dêkiu
+//ou, o que da na mesma:
+Deque<String> livros = new ArrayDeque<>();
+--------------
+livros.add("O Pequeno Principe"); //retorna um bool
+livros.push("Don Quixote"); //não retorna nada
+livros.push("O Hobbit");
+
+System.out.println(livros.peek()); //resulta = O Hobbit
+System.out.println(livros.element()); //resulta = O Hobbit
+//peek: pega o topo da pilha. Se não tiver nenhum elemento retorna nulo
+//element: pega o topo da pilha. Se não tiver nenhum elemento retorna exceção
+
+System.out.println(livros.poll()); //remove O Hobbit (=remove o topo da pilha)
+System.out.println(livros.poll()); //remove Don Quixote
+System.out.println(livros.poll()); //remove o Pequeno...
+System.out.println(livros.poll()); //retorna null
+System.out.println(livros.remove()); //retorna exceção
+//Ou seja: podemos usar tanto poll como remove para remover elementos da pilha, mas se a pilha estiver vazia, poll retorna null, enquanto remove() retorna exceção. Obs: podemos usar também pop() para remover elementos da pilha, que também retorna exceção caso a pilha esteja vazia:
+	System.out.println(livros.pop()); 
+
+--------------------
+livros.size();
+livros.clear();
+livros.isEmpty();
+livros.contains(...);
+--------------------
+
+for (String livro: livros) {
+	System.out.println(livro);
+}
+
+	
+* Map
+Map<Integer, String> usuarios = new HashMap<Integer, String>();
+//ou, o que é igual:
+Map<Integer, String> usuarios = new HashMap<>();
+
+usuarios.put(1,"Roberto"); //tanto adiciona, se não existir, e vai substituir caso já exista
+usuarios.put(1,"Ricardo"); //alterou a entrada acima
+System.out.println(usuarios.size());
+
+usuarios.put(2,"Ailton");
+usuarios.put(3,"Rafaela");
+usuarios.put(4,"Rebeca"); 
+System.out.println(usuarios.isEmpty());
+
+System.out.println(usuarios.keySet()); //coluna das chaves - retorna todas as chaves (mas não amostra ordenadamente)
+
+System.out.println(usuarios.values()); //coluna dos valores - retorna todos os valores
+
+System.out.println(usuarios.entrySet()); //amostra tanto as chaves como os valores ao mesmo tempo
+
+System.out.println(usuarios.containsKey(3)); //amostra true
+
+System.out.println(usuarios.containsValue("Ricardo")); //amostra true
+
+System.out.println(usuarios.get(4)); //pega não a partir do indice, mas sim do valor que colocamos na chave
+------------------------------
+for (int chave: usuarios.keySet()) {
+	System.out.println(chave);
+}
+
+for (String valor: usuarios.values()) {
+	System.out.println(valor);
+}
+
+for (Entry<Integer, String> registro: usuarios.entrySet()) { //"Entry" importado do java.util.Map
+	System.out.print(registro.getKey() + " ");
+	System.out.println(registro.getValue());
+}
+-----------------------------------------
+System.out.println(usuarios.remove(4, "Gui")); //se houver um Gui correspondendo à chave 4 ele remove e retorna true
+System.out.println(usuarios.remove(1)); //remove a chave 1
+** ParallelStrem do map, sem criar variáveis intermediárias
+mapAllPersons.keySet().parallelStream().forEach(personId -> {
+...
+});
+
+** Converter Map
+*** Convert Map to List using Two Lists
+Since Maps are two-dimensional collections, while Lists are one-dimensional collections - the other approach would be to convert a Map to two Lists, one of which will contain the Map's keys, while the other would contain the Map's values.
+
+Thankfully, we can easily access the keys and values of a map through the keySet() and values() methods.
+
+The keySet() method returns a Set of all the keys, which is to be expected, since keys have to be unique. Due to the flexibility of Java Collections - we can create a List from a Set simply by passing a Set into a List's constructor.
+
+The values() method returns a Collection of the values in the map, and naturally, since a List implements Collection, the conversion is as easy as passing it in the List's constructor:
+
+List<Integer> keyList = new ArrayList(students.keySet());
+List<String> valueList = new ArrayList(students.values());
+
+System.out.println("Key List: " + keyList);
+System.out.println("Value List: " + valueList);
+This results in:
+
+Key List: [256, 115, 132]
+Value List: [Amy, Young, James]
+
+*** Convert Map to List with Collectors.toList() and Stream.map()
+We'll stream() the keys and values of a Map, and then collect() them into a List:
+
+List<Integer> keyList = students.keySet().stream().collect(Collectors.toList());
+System.out.println("Key list: " + keyList);
+
+List<String> valueList = students.values().stream().collect(Collectors.toList());
+System.out.println("Value list: " + valueList);
+*** Convert Map to Map
+Map<String, Integer> map = new HashMap<>();
+Map<Integer, String> swapped = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+*** Collection to map
+
+final Collection<ScheduleShiftDto> shifts = scheduleShiftDao.findBySchedules(customerId, schTr);
+final Map<Long, List<ScheduleShiftDto>> mapScheduleShifts = shifts.stream().collect(Collectors.groupingBy(scheduleShift -> scheduleShift.getScheduleId()));
+
+*** transformar os values() de um map num array
+PersonDto[] person = mapAllPersons.values().toArray(new PersonDto[mapAllPersons.values().size()]);
+
+** varrer um Map inteiro
+*** modo 1 *** modo 2
+			final Iterator<Map.Entry<PersonDto, ScheduleTransferDto>> it0 = scheduleTransferByPerson.entrySet().iterator();
+			while (it0.hasNext()) {
+				final Map.Entry<PersonDto, ScheduleTransferDto> next = it0.next(); //TODO Borsatto - está perdendo o primeiro elemento?
+				final ScheduleTransferDto scheduleTransfer = next.getValue();
+				if (scheduleTransfer.getScheduleId() != null)
+					schTr.add(scheduleTransfer.getScheduleId());
+			}
+
+*** modo 2 (varrer values)	
+//obs:Map  scheduleTransferByPerson<PersonDto, ScheduleTransferDto>
+scheduleTransferByPerson.values().forEach(scheduleTransfer -> {
+				if (scheduleTransfer.getScheduleId() != null)
+					schTr.add(scheduleTransfer.getScheduleId());
+			});
+
+** stream interessante
+		final Map<Long, Map<Date, Long>> mapPersonIdByMapReferenceDateMarkingsCount = clockings
+
+				.stream()
+
+				.filter(clockingDto -> personsIds.contains(clockingDto.getPersonId()))
+
+				.collect(Collectors.groupingBy(ClockingDto::getPersonId, Collectors.groupingBy(ClockingDto::getReferenceDate, Collectors.mapping(ClockingDto::getReferenceDate, Collectors.counting()))));
+
+
+
+outra
+(obs: final List<PersonDto> allPersons )
+
+		final Map<Long, PersonDto> groupByPersonId = allPersons
+
+				.stream()
+
+				.collect(Collectors.toMap(PersonDto::getId, p -> p));
+
+* Fazer collect
+
+      final Set<Long> personIdsToSendTemplates = Stream.of(personLinkedToWorkplaceDevice, personReplacementLinkedToWorkplaceDevice, personIdsLinkedToPersonDevice)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+* The Map.computeIfAbsent() Method
+(fonte: https://www.baeldung.com/java-map-computeifabsent)
+** 2. Map.computeIfAbsent Method
+Let's start by looking at the signature of computeIfAbsent:
+
+default V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction)
+
+The computeIfAbsent method takes two parameters. The first parameter is the key and the second parameter is the mappingFunction. It's important to know that mapping function is only called if the mapping is not present.
+
+** 2.1. Key Related to a Non-Null Value
+Firstly, it checks if the key is present in the map. If the key is present and a non-null value is related to the key, then it returns that value:
+
+Map<String, Integer> stringLength = new HashMap<>();
+stringLength.put("John", 5);
+assertEquals((long)stringLength.computeIfAbsent("John", s -> s.length()), 5);
+
+As we see, the key “John” has a non-null mapping present, it returns the value 5. If our mapping function were used, we'd expect the function to return the length of 4.
+
+** 2.2. Using the Mapping Function to Compute the Value
+Furthermore, if the key is not present in the map or null value is related to the key, then it attempts to compute the value using the given mappingFunction. Also, it enters the calculated value into the map unless the calculated value is null.
+
+Let's take a look at the usage of the mappingFunction in the computeIfAbsent method:
+
+Map<String, Integer> stringLength = new HashMap<>();
+assertEquals((long)stringLength.computeIfAbsent("John", s -> s.length()), 4);
+assertEquals((long)stringLength.get("John"), 4);
+
+Since the key “John” is not present, it computes the value by passing the key as a parameter to the mappingFunction.
+
+** Exemplo de uso (fonte: Microserviço Report do Nexti Web)
+		namedParameterJdbcTemplate.query(query.toString(), parameterSource, rs -> {
+			final AbsenceDto dto = new AbsenceDto();
+			dto.setId(rs.getLong("id"));
+			dto.setPersonId(rs.getLong("personId"));
+			dto.setAbsenceSituationId(rs.getLong("situationId"));
+			dto.setAbsenceSituationName(rs.getString("situationName"));
+			dto.setNote(rs.getString("note"));
+
+			map.computeIfAbsent(dto.getPersonId(), list -> new ArrayList<>()).add(dto);
+		});

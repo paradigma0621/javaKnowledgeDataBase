@@ -1,0 +1,75 @@
+* Notes
+** Remember that just because something is marked Optional doesn’t guarantee that the caller will not pass null.
+
+** What to use for Collections? null or Optional?
+- *For Collections we neither use Null nor Optionals.*
+
+Methods that return Collection type must never return a nullable object either as direct null or wrapped in an Optional.
+
+Return a filled collection (List, Map, Set, etc) if values are available
+Return an empty collection if no values are available.
+Or, optionally throw an exception if the method was supposed to return at least one item.
+*** example (Recommended usage)
+#+BEGIN_SRC java
+// Returning Optional
+public Optional<User> findUserById(int id){
+  if(id > 0){
+    return Optional.ofNullable(user);
+  }else{
+    return Optional.empty();
+  }
+}
+
+// Returning List
+public List<User> findActiveForState(@NonNull String state){
+  if(state.isEmpty()){
+    return Collecions.emptyList();
+  }else{
+    return retrieved list;
+  }
+}
+
+// Return Null
+private User getAdmin(){
+  if(authorised){
+    return user;
+  }else{
+    return null;
+  }
+}
+#+END_SRC
+
+
+
+
+*** example not recommended
+#+BEGIN_SRC java
+// DO NOT USE THOSE BELLOW
+// Null lists are incorrect
+public List<User> getllUser(){
+  return null;
+}
+
+// DO NOT USE THOSE BELLOW
+// Optionals as arguments are not good
+public void save(Optional<User> user){
+  if(user.isPresent()){
+    save(user.get);
+  }
+}
+#+END_SRC
+
+* Usos em meus códigos
+
+** Set<String>allDevicesNotRepeatedAsList.addAll(allDevicesNotRepeated<List>); (Se allDevicesNotRepeatedAsList for null dá nullpointer)
+ acredito que aqui seja passível de um Optional por caso venha nulo essa lista, pode causar um null pointer no método addAll. Exemplo:
+*** antes
+	Set<String> allDevicesNotRepeated = getAllDevicesVinculatedToAPerson(personId);
+ 	List<String> allDevicesNotRepeatedAsList = new ArrayList<>();
+	allDevicesNotRepeatedAsList.addAll(allDevicesNotRepeated);
+
+*** depois
+//Só mudou  a primeira linha de baixo
+Set<String> allDevicesNotRepeated = 	 Optional.ofNullable(getAllDevicesVinculatedToAPerson(personId)).orElse(new HashSet());
+ 	List<String> allDevicesNotRepeatedAsList = new ArrayList<>();
+	allDevicesNotRepeatedAsList.addAll(allDevicesNotRepeated);

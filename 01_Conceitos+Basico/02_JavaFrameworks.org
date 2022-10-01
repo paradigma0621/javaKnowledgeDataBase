@@ -1,0 +1,165 @@
+
+* Frameworks - Visão Geral
+** What Are Java Frameworks?
+A Java framework is software that provides an extensible and standardized way to build and deploy applications. Depending on the framework, they may include tools, compilers, libraries, and APIs.
+
+For the purposes of this article, we'll be breaking down Java frameworks into a few common use categories for application development: 
+
+*** Java Web Frameworks - Frameworks used in creating web-based Java applications.
+*Best Java Web Frameworks*
+For Java web development, developers use a variety of different frameworks to suit the needs of their application. There are numerous Spring frameworks focused on creation of web applications, some of which we'll discuss in different sections in this article.
+
+In this section, we'll look at the best Java web frameworks out there, Spring, GWT and JSF.
+
+**** 1. Spring
+Spring offers a lightweight solution for developers who want to create web applications. With modules like Spring Security focused on authentication and authorization in Java applications, and Spring Session, focused on managing session information, the Spring framework is extensible and suitable for applications at enterprise scale.
+
+Additional framework specifications, like Spring Web Flow, accommodate stateful web applications, while other specifications like Spring Web Services facilitate contract-first SOAP service development.
+
+**** 2. GWT
+The Google Web Toolkit, or GWT, helps developers to create Java applications with Javascript front-ends. It's open source, free, and includes Java API libraries, widgets, a compiler, and development server. GWT allows the underlying application to be object-oriented (since it's in Java), even if it's later compiled into Javascript. GWT has a steep learning curve, and because of that, and other options, isn't as well adopted as Spring.
+
+**** 3. JSF
+JavaServer Faces are used to simplify the creation of web-based user interfaces. Used with Java EE and on enterprise scale web applications, JSF specifications use XML files to process events and create responses. For those on the cutting edge of open source, JakartaServer Faces provide the same benefits with Jakarta EE.
+
+*** Java MVC Frameworks - Frameworks used in developing user interfaces.
+*Best Java MVC Frameworks*
+This may be a strange distinction to make, as many popular Java web frameworks already use the model-view-controller (MVC) pattern. But for this article, we wanted to look at the best Java MVC frameworks as a subset. So which Java frameworks are best for MVC-based applications?
+
+**** 1. Spring MVC
+Spring Web MVC is the original MVC implementation of the Spring framework. Because it's interface-based, it's highly customizable and because it avoids concrete inheritance and explicit dependencies, it's less-coupled, and easier to test.
+
+**** 2. Struts
+Apache Struts is an open-source alternative to Spring MVC. But, unlike Spring MVC, Struts creates a more coupled MVC structure due to dependencies. Struts 2 introduced the interceptor API, making those dependencies less of a concern. Struts also has a history of security issues, so be sure to pay attention for updates if you use it. 
+
+*** Java Cloud Frameworks - Frameworks/platforms for cloud-based Java applications.
+For developers who want to build cloud-native Java applications, it can be hard to choose between a cloud-native framework, or a more integrated solution like a PaaS or IaaS. In our recent Java developer survey, we found that for Java developers using PaaS services, most are using AWS or Azure. But we would also venture a guess that most of those developers are using Spring Cloud for AWS or Spring Cloud Azure.
+
+Although Spring Cloud, in its various versions, is arguably the most popular Java cloud framework, there are a few other cloud-native frameworks worth mentioning, including the relative newcomers in Micronaut and Quarkus.
+
+**** 1. Spring Cloud
+Spring Cloud serves as the most mature and well-adopted cloud frameworks for Java. Suitable for many different distributed application patterns, it provides a quick and reliable way to build services and applications. Perhaps more importantly, Spring Cloud integrates well with popular PaaS providers like Cloud Foundry, AWS (using Spring Cloud for AWS), and Azure (using Spring Cloud Azure).
+
+**** 2. Micronaut
+While less known and used than Spring Cloud, Micronaut is quickly making a name for itself as a polyglot, full-stack framework that lends itself well to microservice and serverless applications. The primary benefit, when compared to Spring, is that it starts up fast, and doesn't consume as much memory for large codebases.
+
+**** 3. Quarkus
+Quarkus was recently awared the 2020 Devies award for the best innovation in code frameworks and libraries -- which must mean they're doing something right. Like Micronaut, their application is tailored to GraalVM, and boasts low RSS memory -- making it perform much better than the typical cloud-native stack.
+
+*** Java ORM Frameworks - Frameworks used for object-relational mapping.
+It's important to note that each framework has strengths and weaknesses, and the frameworks we cover here today aren't necessarily the best fit for every project.
+
+*Best Java ORM Frameworks*
+Java applications often need to communicate between relational databases and object-oriented databases utilized in MVC applications. And, as you can see by the results below, more than half of the Java developers we surveyed are working with persistence technologies like Hibernate or EclipseLink.
+
+But what makes an ORM framework stand out? Let's take a closer look at a few of the best Java ORM Frameworks.
+
+**** 1. Hibernate
+Hibernate is probably the most popular ORM framework on our list. As we've talked about in previous blogs, Hibernate has issues, but does a good job of interfacing incompatible databases and does it without making developers dabble too deeply in SQL. Though open-source, Hibernate is considered scalable -- making it a popular choice for enterprise scale applications.
+
+**** 2. EclipseLink
+EclipseLink is the open source JPA implementation from the Eclipse foundation. It allows developers to bind Java classes to XML or JSON, and implement JAXB and SDO standards. While not as mature as Hibernate, EclipseLink is still a popular JPA implementation.
+* Popular Java Microservices Frameworks
+November 19, 2019  (https://www.jrebel.com/blog/popular-java-microservices-frameworks)
+By Sander Sõnajalg
+
+For every step in deploying microservices in Java, developers need to consider what's right for their application. One of the biggest decisions? Choosing the right microservices framework. In our article today, we'll give a brief overview of four popular Java microservices frameworks and discuss their relative strengths and shortcomings.
+
+Popular Java Microservices Frameworks
+From the feature-rich Spring Boot, to more niche frameworks like Dropwizard, Java microservices frameworks run the gamut of purpose and functionality. These four microservices frameworks showcase that idea, and give a good sense of what developers have at their disposal for developing Java microservices applications.
+
+The frameworks mentioned here are designed to serve as the foundation for your microservices applications, but there are other tools available for improving developer productivity even further.
+
+** 1. Spring and Spring Boot
+According to a recent Jakarta EE developer report, Spring Boot is the leading framework for building microservices applications in Java. With a reported 57% market share, there are plenty of reasons why developers choose Spring Boot for microservices applications.
+
+Spring Boot is a mature, open-source, feature-rich framework with excellent documentation and a huge community – in case you need to ask a question or run into issues.
+
+Going with the market leader, you can be pretty sure the framework has the functionality and flexibility to match your more complex use cases. Tools to address common needs are built into the framework itself (e.g. the Spring Boot Security Autoconfiguration, which provides application security out-of-box).
+
+Spring Boot follows the “opinionated configuration” philosophy, making it super-easy to get started with a default auto-wired application template. A developer can start an auto-wired application template in minutes by visiting start.spring.io.
+
+The framework propagates building your application into a JAR and running it on the embedded Tomcat server, making it a perfect combination with Docker to manage a virtualized deployment environment. As always, you can deviate from the default approach at will and customize your application as needed.
+
+Given the popularity of Spring Boot, it will be easier to find developers with previous experience with the framework. Additionally, training, commercial support and professional services are widely available – either via Pivotal itself or from numerous third party vendors.
+
+To adapt the old adage; “Nobody ever got fired for choosing Spring Boot.”
+
+** 2. Dropwizard
+Dropwizard is the open-source framework known for rapid development of RESTful web services.
+
+In addition, Dropwizard boasts high performance and ops-friendliness for microservices application development. Like Spring Boot, Dropwizard applications are packaged into fat JAR files with the Jetty application server embedded.
+
+Dropwizard integrates the tried-and-tested Java libraries into a fully functional platform: Jersey for REST, and Jackson for JSON. For templates, FreeMarker and Mustache are available for Java-based UIs. Dropwizard ships with no built-in dependency injection solution, but integrations exist for Guice and Dagger. By using Dropwizard, you sacrifice some in the flexibility, but win it back by having a well-tested combination of tools, prewired for getting your project off the ground rapidly.
+
+Dropwizard is an excellent choice for writing RESTful services, so consider it when this is most of what you need to do. Should you need to create a lot of Java-based UI, a full-blown application framework like Spring Boot might be a better choice. Alternatively, you can write the UI fully in JavaScript with frameworks like React.
+
+** 3. Eclipse MicroProfile
+The Eclipse MicroProfile aims to create a standard API for microservices in Java. You may think of it as the Java EE for microservices – MicroProfile is the API, while there are a bunch of containers providing their own implementations (like WebSphere and WebLogic are implementing the Java EE). MicroProfile brings a bunch of vendors and community organizations together to join forces and standardize the ecosystem.
+
+Key APIs in MicroProfile include CDI, JAX-RS, JSON-P, Config, Metrics and others.
+
+Part of the MicroProfile philosophy is frequent releases. The latest major release at the time of writing is MicroProfile 3 from June 2019, which is already supported by latest releases of Thorntail, Helidon, Open Liberty and WebSphere Liberty. Payara and TomEE are a currently a little behind with their support. You can see the full matrix of spec versions and implementations here. As of now, it is still unclear which implementations will dominate the ecosystem going forward.
+
+** 4. Micronaut
+Micronaut has a blazing-fast startup time, making it great for microservices -- and even better for implementing serverless functions. The fast startup is achieved by avoiding reflection-based IoC frameworks, which Spring Boot relies on heavily. With the help of GraalVM, Micronaut apps can be combined to native machine code, optimizing the startup further.
+
+Being specifically designed for these purposes, Micronaut has excellent built-in support for cloud deployment. It has out-of-box support for service discovery, Kubernetes, distributed tracing and serverless functions.
+* Java Basics: What Is Spring Boot?
+August 5, 2020
+JAVA FRAMEWORKSJAVA APPLICATION DEVELOPMENT
+By Spencer Bos
+(https://www.jrebel.com/blog/what-is-spring-boot#:~:text=Spring%20Boot%20is%20an%20open,prebuilt%20code%20within%20its%20codebase)
+
+Spring Boot is an open source, microservice-based Java web framework. The  Spring Boot framework creates a fully production-ready environment that is completely configurable using its prebuilt code within its codebase. The microservice architecture provides developers with a fully enclosed application, including embedded application servers.
+In this blog, we give an overview of Spring Boot, its benefits, and compare it against Spring MVC and Micronaut. Let's get started with a basic overview.
+
+** Spring Boot Overview
+Spring Boot is just extension of the already existing and expansive Spring frameworks, but it has some specific features that make the application easier for working within the developer ecosystem. That extension includes pre-configurable web starter kits that help facilitate the responsibilities of an application server that are required for other Spring projects.
+
+** Spring Boot Benefits
+Spring Boot has a number of features that make it a great fit for quickly developing Java applications, including auto-configuration, health checks, and opinionated dependencies.
+
+*** Benefits of Spring Boot
+
+**** Standalone Application
+Can simply build the application jar and run the application with no need to customize the deployment.
+
+**** Embedded Servers
+Comes with prebuilt Tomcat, Jetty and Undertow application servers that do not require further installation to use. This also provides faster more efficient deployments resulting to shorting restart times.
+**** Auto-Configurable
+Spring and other 3rd party frameworks will be configured automatically.
+**** Production-Like Features
+Health checks, metrics and externalized configurations.
+
+**** Starter Dependencies
+This will provide opinionated dependencies designed to simplify the build configuration. This also provides complete build tool flexibility (Maven and Gradle).
+
+*** How Does Spring Boot Work?
+Some may be asking yourselves how does Spring Boot have auto configurations and what does that really mean? It really comes down to three simple Spring Boot annotations that provide this feature:
+
+@SpringBootApplication
+@EnableAutoConfiguration
+@ComponentScan
+
+Between each one of these annotations Spring Boot is able to provide default project dependencies as well as allow for defaults to overwritten.
+
+**** @SpringBootApplication
+@SpringBootApplication is used in the entry point of the application add the class it resides in needs to have to the application main method. The annotation is needed and will provide each of the other two annotations to your Spring Boot application since the @SpringBootApplication includes both inside.
+
+**** @EnableAutoConfiguration
+The @EnableAutoConfiguration does just that it provides each of the representing class with the Automatic Configuration capability.
+
+**** @ComponentScan
+Lastly the @ComponentScan will at initialization scan all the beans and package declarations.
+
+**** Spring Starter Dependencies
+Not only does Spring Boot include annotations but it also uses Spring Starter Dependencies to ensure that your application starts with the correct dependencies and so you can hit the ground running so to speak.
+
+Many times, as an application grows larger it can be hard to properly configure project dependencies, the Spring Boot Starter plugins will help facilitate the dependency management. An example of a spring starter dependencies is the Spring Boot Starter web dependency.
+
+That can be used so that your application can have Rest Endpoints written into your application. Overall, they help streamline the development of these applications so that a team will start from a more complex point so less holes will be presented especially with larger applications.
+
+*** Is Spring Boot Free?
+The short answer is yes -- Spring Boot is free! However, most development teams will dedicate some funds to supporting Spring Boot, or migrate to fully-supported services like WebSphere and JBoss.
+

@@ -1,0 +1,63 @@
+* Completable Future
+** 8. Running Multiple Futures in Parallel 
+(fonte: https://www.baeldung.com/java-completablefuture )
+When we need to execute multiple Futures in parallel, we usually want to wait for all of them to execute and then process their combined results.
+
+The CompletableFuture.allOf static method allows to wait for completion of all of the Futures provided as a var-arg:
+
+#+BEGIN_SRC java
+CompletableFuture<String> future1  
+  = CompletableFuture.supplyAsync(() -> "Hello");
+CompletableFuture<String> future2  
+  = CompletableFuture.supplyAsync(() -> "Beautiful");
+CompletableFuture<String> future3  
+  = CompletableFuture.supplyAsync(() -> "World");
+
+CompletableFuture<Void> combinedFuture 
+  = CompletableFuture.allOf(future1, future2, future3);
+
+// ...
+
+combinedFuture.get();
+
+assertTrue(future1.isDone());
+assertTrue(future2.isDone());
+assertTrue(future3.isDone());
+#+END_SRC
+
+*** Obs
+Notice that the return type of the CompletableFuture.allOf() is a CompletableFuture<Void>. The limitation of this method is that it does not return the combined results of all Futures. Instead, we have to manually get results from Futures. Fortunately, CompletableFuture.join() method and Java 8 Streams API makes it simple:
+
+String combined = Stream.of(future1, future2, future3)
+  .map(CompletableFuture::join)
+  .collect(Collectors.joining(" "));
+
+assertEquals("Hello Beautiful World", combined);
+
+** exemplo de queries feitas em paralelo (tem que fazer o .get() depois de rodar o CompletableFuture)
+CompletableFuture<List<PersonDto>> personsList
+					= CompletableFuture.supplyAsync(() -> repo.generateWithBeanPersonsDescendantsFromInput(filter, filter.getReferenceDate()));
+CompletableFuture<List<PersonDto>> personsListReplacing
+					= CompletableFuture.supplyAsync(() -> repo.generateWithBeanPersonReplacingCandidates(filter, filter.getReferenceDate()));
+CompletableFuture.allOf(personsList, personsListReplacing);
+
+//Aqui personsList é do tipo CompletableFuture<List<PersonDto>>
+
+Set<PersonDto> set = new HashSet<PersonDto>();
+set.addAll(personsListReplacing.get());
+set.addAll(personsList.get());   //personsList.get() é do tipo List<PersonDto>
+* Paralell Stream
+** exemplo 1
+(fonte: https://stackoverflow.com/questions/2016083/what-is-the-easiest-way-to-parallelize-a-task-in-java)
+With Java8 and later you can use a parallelStream on the collection to achieve this:
+
+List<T> objects = ...;
+
+List<Result> result = objects.parallelStream().map(object -> {
+            return compute(object);
+        }).collect(Collectors.toList());
+Note: the order of the result list may not match the order in the objects list.
+
+** exemplo 2
+(fonte: https://stackoverflow.com/questions/30802463/how-many-threads-are-spawned-in-parallelstream-in-java-8)
+list.parallelStream().forEach(/** Do Something */);

@@ -1,0 +1,238 @@
+ver também: https://docs.oracle.com/javase/tutorial/information/glossary.html
+* conceitos
+** Method x Function
+*** Question
+Can someone provide a simple explanation of methods vs. functions in OOP context?
+
+*** Answer
+A method is on an object or is static in class.
+A function is independent of any object (and outside of any class).
+For Java and C#, there are only methods.
+
+** Argumento x Parâmetro (são duas coisas diferentes)
+Primeiro exemplifico, na sequência vem a explanação:
+
+void Func1(int i, bool flag = true) { //declarou dois parâmetros
+    // execução
+}
+
+void Func2(params int[] lista) { //declarou um parâmetro
+    //execução
+}
+
+void Func3(bool x, bool y) {
+    int z = 0;
+    Func1(1); //chamou com 1 argumento
+    Func1(z, x && y); //chamou com dois argumentos vindos de variável e expressão respectivamente
+    Func2(1, 2, 3); //chamou com 3 argumentos
+    Func1(flag : false, i : 2); //argumentos nomeados
+}
+
+Parâmetro é a variável que irá receber um valor em uma função (ou método) enquanto que um argumento é o valor (que pode originar de uma variável ou expressão) que você passa para a função (ou método).
+
+Você não passa parâmetros, você passa argumentos. Você recebe argumentos também, mas recebe em parâmetros. Você parametriza sua função com informações que virão posteriormente. Você argumenta com o que deseja executar uma função devidamente parametrizada.
+
+Pode haver menos ou mais argumentos para cada parâmetro já que existem parâmetros que são opcionais e outros que podem ser listas variáveis de dados. Portanto não há uma relação de um para um e a distinção entre eles é importante.
+
+Frequentemente é confundido por todos e eu mesmo admito que intercambio os termos erroneamente, mas para uma boa comunicação é importante todos saberem o correto.
+
+** assinatura de um método
+int somaValores(int v1, int v2)
+Ao que damos o nome de "Identidade do Método" (ou "Assinatura do Método") é a parte:
+ somaValores(int v1, int v2)
+Não podemos ter 2 métodos com a mesma identidade (mesmo que retornem tipos de dados diferentes).
+
+** Spring
+
+O Spring é um framework open source para a plataforma Java. Trata-se de um framework não intrusivo, baseado nos padrões de projeto inversão de controle e injeção de dependência.
+
+
+Spring é um conjunto de projetos que ajudam nós, desenvolvedores, a criar aplicações Java com simplicidade e flexibilidade.
+
+*** Spring versus Java EE
+
+O Spring não chega a ser 100% concorrente do Java EE, até mesmo porque, com Spring, você também usa tecnologias que estão dentro do Java EE.
+
+Mas há quem prefira trabalhar mais com os projetos do Spring (e claro, vai usar Java EE também)...
+
+...e há quem prefira trabalhar apenas com as especificações do Java EE, sem Spring.
+
+Minha sugestão: saia fora dessa guerrinha. Aprenda os dois!
+
+Essa é a postura de um profissional que entende que cada tecnologia tem seus benefícios diferentes.
+
+Como Spring é independente de especificação, a vantagem é que novos projetos são lançados e evoluem muito rápido.
+
+De fato, geralmente o Java EE está atrás do Spring em se tratando de evoluções na plataforma.
+
+Ao mesmo tempo, Java EE tem uma grande especificação por trás, e isso trás uma certa segurança para os desenvolvedores, a custo de uma burocracia e um pouco de demora.
+
+O que eu quero dizer é: você pode até gostar mais de uma plataforma do que da outra, mas é importante conhecer as duas.
+
+*** Spring Boot
+
+O Spring Boot é um framework Java open source que tem como objetivo facilitar esse processo em aplicações Java. Consequentemente, ele traz mais agilidade para o processo de desenvolvimento, uma vez que devs conseguem reduzir o tempo gasto com as configurações iniciais.
+
+--------
+Spring Boot is a framework that allows to easily create Spring-powered, production-grade applications and services with the absolute minimum fuss. It takes an opinionated view of the Spring platform designed to work for new and experienced users of Spring.
+
+Spring Boot makes it very easy to create a Spring-powered application with a minimum amount of work. An application created with Spring Boot can be:
+
+    Created without a single line of xml configuration,
+    Created without any requirement of an application server because Spring Boot provides an application server (Embed tomcat, jetty or undertow).
+    Largely autoconfigured with some sensible defaults and opinionated starter POMs to simplify your maven configuration,
+    Provide production-ready features such as metrics, health checks, and externalized configuration.
+
+Spring Boot consists of several (optional) modules
+
+*** Spring MVC
+
+O Spring MVC é um framework que ajuda no desenvolvimento de aplicações web. Com ele nós conseguimos construir aplicações web robustas e flexíveis. 
+
+O Spring MVC é um dos projetos do Spring, que consiste em uma solução action-based para desenvolvimento web usando o padrão MVC.
+--------
+A framework for building Java web applications based on the Model-View-Controller (MVC) pattern. It promotes flexible and decoupled code from the underlying view technologies.
+
+Spring MVC is an action-based (as opposed to component-based) web framework built on top of the Spring IOC Container. MVC stands for Model View Controller, a long standing design pattern that layers an application separating presentation concerns from business logic see Portland Pattern Repository's MVC Entry
+
+The latest stable version is 5.1.4 and was released in January 2019, and the current docs can be found in the MVC section of the Spring Reference.
+
+Spring Version 5.0 fully supports Java 9 features, this release now requires Java SE 8.
+-----------------------------------------
+
+    Spring MVC é uma estrutura MVC completa orientada a HTTP, gerenciada pela Spring Framework e baseada em Servlets. Seria equivalente ao JSF na pilha JavaEE. Os elementos mais populares nele são as classes anotadas @Controller, nas quais você implementa métodos que podem ser acessados ​​usando diferentes solicitações HTTP. Tem um equivalente @RestController para implementar APIs baseadas em REST.
+
+Portanto, o Spring MVC é uma estrutura a ser usada em aplicativos da Web e o Spring Boot é um inicializador de projeto pronto para produção baseado em Spring .
+
+*** Spring Data
+Spring Data’s mission is to provide a familiar and consistent, Spring-based programming model for data access while still retaining the special traits of the underlying data store.
+
+It makes it easy to use data access technologies, relational and non-relational databases, map-reduce frameworks, and cloud-based data services. This is an umbrella project which contains many subprojects that are specific to a given database. The projects are developed by working together with many of the companies and developers that are behind these exciting technologies.
+
+**** Um projeto de exemplo do Spring Data: Spring Data JPA
+Ele (o Spring Data JPA) é, na verdade, um projeto dentro de um outro maior que é o Spring Data. O Spring Data tem por objetivo facilitar nosso trabalho com persistência de dados de uma forma geral. E além do Spring Data JPA, ele possui vários outros projetos.
+
+O Spring Data JPA é um framework que nasceu para facilitar a criação dos nossos repositórios.
+
+Ele faz isso nos liberando de ter que implementar as interfaces referentes aos nossos repositórios (ou DAOs), e também já deixando pré-implementado algumas funcionalidades como, por exemplo, de ordenação das consultas e de paginação de registros.
+
+--- (https://blog.algaworks.com/spring-data-jpa/ ):
+Gostaria de conhecer um framework que vai mudar (pra melhor) a forma como você implementa a camada de persistência de seus projetos Java?
+
+Não importa se você trabalha com o conceito de DAO ou Repositório, a questão é que você pode ser muito mais produtivo na hora de programar sua camada de persistência se utilizar o Spring Data JPA.
+
+** JPA
+Java Persistence API é uma API padrão da linguagem Java que descreve uma interface comum para frameworks de persistência de dados. A JPA define um meio de mapeamento objeto-relacional para objetos Java simples e comuns, denominados beans de entidade.
+
+** boiler plate
+Código boilerplate ou boilerplate se refere a seções de código que devem ser incluídas em muitos lugares com pouca ou nenhuma alteração. Ele é muitas vezes usado quando se refere a linguagens que são consideradas detalhadas, onde o programador deve escrever muito código para fazer tarefas mínimas. 
+** inversão de controle
+Inversão de Controle ou Inversion of Control - conhecido pela Sigla IoC é um Pattern que prega para usarmos o controle das instancias de uma determinada classe ser tratada externamente e não dentro da classe em questão, ou seja, Inverter o controle de uma classe delegando para uma outra classe, interface, componente.
+
+** JSF
+O JavaServer Faces (JSF) é um framework de interface de usuário (IU) para aplicações Java Web. Foi projetado para facilitar significativamente a trabalhosa tarefa de escrever e manter os aplicações que são executadas em um servidor de aplicações Java e renderizar as IUs de volta a um cliente de destino.
+** JSP
+JavaServer Pages (JSP) é uma tecnologia que ajuda os desenvolvedores de software a criarem páginas web geradas dinamicamente baseadas em HTML, XML ou outros tipos de documentos. Lançada em 1999 pela Sun Microsystems, JSP é similar ao PHP, mas usa a linguagem de programação Java.
+
+Para implantar e executar JavaServer Pages, um servidor web compatível com um container servlet, como Apache Tomcat, Jetty ou Glassfish, é requerido.
+ 
+** Servlet
+Servlet (servidorzinho em tradução livre) é uma classe Java usada para estender as funcionalidades de um servidor. Apesar dos servlets poderem responder a quaisquer tipos de requisições, eles normalmente são usados para estender as aplicações hospedadas por servidores web, desta forma eles podem ser imaginados como Applets Java que rodam em servidores em vez de rodarem nos navegadores web. Estes tipos de servlets são os equivalentes Java a outras tecnologias de conteúdo Web dinâmico, como PHP e ASP.NET. 
+** injeção de dependência é um tipo de inversão de controle
+Injeção de dependência não usa a palavra chave "new".
+
+Pode ser feito através da propriedade declarada como @Autowired 
+Pode ser feito através do construtor declarado como @Autowired 
+Pode ser feito através de um método declarado como @Autowired  (o método padrão é o setter)
+
+** paradigma funcional
+
+*** código em paradigma imperativo (o java começou assim)
+public class Imperativo {
+    public static void main(String[] args) {
+        int valor = 10;
+        int resultado = valor * 3;
+        System.out.println("O resutado é :: "+resultado);
+    }
+}
+
+*** código em paradigma funcional (o java suporta hoje)
+public class Funcional {
+    public static void main(String[] args) {
+        UnaryOperator<Integer> calcularValorVezes3 = valor -> valor*3;
+        int valor = 10;
+        System.out.println("O resutado é :: "+calcularValorVezes3.apply(10));
+    }
+}
+** tipos de variáveis (tipos primitivos e tipos por referência)
+	O Java possui dois tipos de dados que são divididos em por valor (tipos primitivos) e por referência (tipos por referência). 
+	Os tipos primitivos são boolean, byte, char, short, int, long, float e double. Os tipos por referência, são classes que especificam os tipos de objeto Strings, Arrays Primitivos e Objetos.
+	As variáveis de referência são inicializadas com o valor “null” (nulo). 
+
+** variáveis de instância e variáveis de classe
+*** Uma *variável de instância* é uma variável cujo valor é específico ao objeto e não à classe. Uma variável de instância em geral possui uma valor diferente em cada objeto membro da classe.
+Se vc define a variável no corpo da classe (não de um método) e não utiliza a keyword static, essa variável é de instância. Obs: tipos primitivos também podem ser variáveis de instância.
+
+StackOverflow: variável de instância
+	Esta variável pertence ao objeto, concretamente ela só existe quando objeto é criado. Na classe ela serve apenas de planta de como criar o objeto. Em todos os métodos de instância você pode acessá-la porque internamente tem um parâmetro (this) em todos os métodos de instância já que eles recebem o objeto (geralmente por referência) sem você ver.
+	Elas só podem ser acessadas através de um objeto. Não pode ser acessada pela classe ou outra forma, tem que dizer de qual objeto você quer a variável.
+
+class Exemplo {
+    private int valor;  // Tipo primitivo poder ser variável de instância
+    public String nome;
+}
+
+*** Uma *variável de classe* é uma variável cujo valor é comum a todos os objetos membros da classe. Mudar o valor de uma variável de classe em um objeto membro automaticamente muda o valor para todos os objetos membros.
+Uma variável é considerada como de instância por "default". Para declarar uma variável de classe, acrescenta-se a palavra-chave "static". Exemplos:
+
+static int nuhmeroDeInstahnciasDestaClasse;
+static int LEFT = 1;
+
+** variável automática (variável local)
+São as variáveis dos métodos, geralmente presentes no stack (pode estar no registrador). Eles tem seu tempo de vida gerenciado automaticamente enquanto o método estiver executando. São chamadas de automáticas por isso.
+
+class Exemplo {
+    public static int total;
+    private int valor;
+    public string nome;
+    public string Metodo(int parametro) => (total + valor + parametro).ToString() + nome;
+}
+
+Note que parâmetros são variáveis locais, a diferença é só a inicialização que é feita na chamada do método.
+
+** Diferença entre "Atributo" e "Variável de Instância"???
+
+Informalmente os termos são quase intercambiáveis mesmo. Até certo ponto.
+
+O termo atributo é amplamente difundido em linguagens de modelagem como UML. E é comum os programadores Java se referir às variáveis como atributos do objeto, mas formalmente não são. O termo sequer consta da documentação.
+
+Onde está lendo atributo, comece ler campo, porque é isto que está dizendo quando falamos em linguagens de programação. Para as linguagens atributo é outra coisa não relacionada com o que está sendo falado aqui. É a estória da mentira repetida tantas vezes que passou "ser verdade".
+
+Raramente usa-se o termo campo na comunidade Java, mas ele está presente na documentação.
+
+Algumas pessoas preferem o uso de "variáveis de instância" para evitar confusão com outras coisas que podem usar o termo "atributo".
+
+Se são variáveis de instância elas estarão presentes em cada objeto desta classe. Já variáveis de classe são os campos que estão presentes na própria classe e são compartilhados por todos objetos dela.
+
+Estritamente falando, campo é um termo mais geral, assim como "membro" que inclui os campos e métodos da classe.
+
+Um campo pode pertencer à classe ou à instância. Um campo sempre usa uma variável (ou constante) como mecanismo (nunca vi diferente). Então existem variáveis de instância (pertence ao objeto) e variáveis de classe (pertence à classe).
+
+
+
+> Como isso influencia durante o processo de programação?
+
+Na programação em si influencia nada, influencia o processo de comunicação. Todos envolvidos precisam entender do que está se falando. Se as pessoas não entendem do que está se falando elas não executarão corretamente, ou o farão por coincidência, por isso eu bato tanto na tecla de usar os termos corretos, isso influencia no resultado final. Alguns acham que é teoria boba, mas afeta a prática sem a pessoa perceber.
+
+Se deseja que crie uma coisa e escreve outra, aí a pessoa que recebeu a informação usa um método que não resolve o problema, a culpa é sua que não usou o termo correto. Se ela criar um campo estático também foi falha de comunicação. Se usar a terminologia corretamente, dentro do contexto, e a pessoa usar errado, a culpa é dela que não sabe o termo correto.
+
+Muitos livros, blogs, e outras fontes usam o termo sem pensar na necessidade da precisão e no contexto que está sendo usado. Em muitos casos, pode não causar confusão, em outros causam mesmo.
+** Campo
+Campo - Uma parte do objeto que guarda estado dele. Essencialmente é uma variável.
+
+*** exemplo de uso dentro da Nexti
+Class XUZ {
+  private List<String> comments; //Luigi Tosin Misturini - Esse campo é usado em algum lugar?
+}
+** Arquivo Dto (Data Transfer Object)
+DTO stands for Data Transfer Object, which is a design pattern. It is one of the EPA patterns which we call when we need to use such objects that encapsulate and aggregate data for transfer. A DTO is similar to a data structure, but like a data structure, it doesn't contain any business logic.

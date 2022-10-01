@@ -1,0 +1,50 @@
+* Array
+Um array é um objeto, ou seja, temos atributos e métodos associados à ele.
+
+É possível criar arrays multidimensionais. Ex:
+int[][][] ar1 =  new ...
+int[][][][] ar2 =  new ...
+
+-------------------------
+
+notasAlunoA[0] = 9.2;
+notasAlunoA[1] = 8.2;
+notasAlunoA[2] = 7.2;
+
+System.out.println(Arrays.toString(notasAlunoA)); //Para mostrar conteúdo do Array na tela
+--------------------------
+double[] notasAlunoB = { 6.7, 2.3, 9.9 };
+--------------------------
+double notaAvulsa = 8.8;
+double[] notasAlunoC = { 6.7, notaAvulsa, 9.9 };
+----------------------
+
+double[] notasAlunoD = { 6.7, 2.3, 9.9 , 10, 8.3};
+
+for (double nota : notasAlunoD) {
+	System.out.println(nota);
+}
+
+* Equals e Hashcode
+
+Para tipos primitivos: 3.2 == 3.2?? True.
+
+Para objetos: obj1 == obj2?? Esse modo de comparar objetos também compara memória
+
+-------------------
+Equals compara endereço de memória de 2 objetos, de modo que eles só são iguais se apontam para o mesmo endereço de memória.
+
+Toda classe e objeto criado tem o método "equals".
+
+-------------------
+	O método hashcode é uma primeira filtragem que é feita para saber sobre quem vai executar depois o equals (que é um método mais demorado, de modo que seria muito lento efetuá-lo para todos os itens - por isso de fazer uma primeira filtragem com o hashcode).
+	Dentro do método hashcode poderíamos por exemplo colocar para ele retornar o tamanho de uma das Strings do objeto, de modo que só faz equals de elementos do objeto que possuem por exemplo o atributo "nome" com o mesmo tamanho de caracteres. Mas o que eu gostaria de deixar claro é que podemos definir como é feito a comparação do hashcode, e que ele não passa de uma primeira filtragem antes de executar o equals, e que se o hashcode não for igual, ele nem executa o equals.
+	Apesar de para alguns tipos de atributos não precisamos nem definir o método hashcode (considerando que está definido o método equals()), existem alguns objetos que precisamos que pelo menos eles retornarem o mesmo valor, por exemplo:
+	HashSet<Usuario> usuarios = new HashSet<Usuario>(); 
+	usuarios.add(new Usurario("Pedro"));
+	usuarios.add(new Usurario("Ana"));
+	usuarios.add(new Usurario("Guilherme"));
+
+	boolean resultado = usuarios.contains(new Usuario("Guilherme")); //Se não tiver um método hashcode definido na classe Usuario ele não encontra esse elemento. Esse hashcode poria por exemplo retornar um valor igual para todos os elementos, o que satisfaria as buscas. Mas se o hashcode() não retornar nada ele não encontra as buscas, mesmo depois executando o equals().
+
+	Resumindo: é preciso implementar tanto o hashcode() como o equals().
