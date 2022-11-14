@@ -27,3 +27,24 @@ Assim como o "forEach" é uma função terminadora, o "reduce" também é uma fu
 		Stream<String> stream = aprovados.stream();
 		stream.forEach(System.out::println); // Laço interno!!!
 	}
+* processamentos de maps + optional
+** transformar map em List + optional
+List<Long> adjustmentReasonIds = Optional.ofNullable(peopleInformation.getMapClockings()).orElse(Collections.emptyMap())
+				.values()
+				.stream()
+				.map(Map::values)
+				.flatMap(Collection::stream)
+				.flatMap(List::stream)
+				.map(clocking -> clocking.getAdjustmentReason().getId())
+				.distinct()
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+** semelhante à acima + optional
+List<Long> adjustmentReasonIds.addAll(Optional.ofNullable(peopleInformation.getMapCanceledClockings()).orElse(Collections.emptyMap())
+				.values()
+				.stream()
+				.flatMap(Collection::stream)
+				.map(clocking -> clocking.getAdjustmentReason().getId())
+				.distinct()
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList()));
