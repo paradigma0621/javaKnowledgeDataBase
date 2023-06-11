@@ -1,0 +1,5 @@
+em:
+* Java 8
+** curso da Oracle
+
+obs: depois voltar para fazer o SDK 10, pois o SDK 9 eu já fiz

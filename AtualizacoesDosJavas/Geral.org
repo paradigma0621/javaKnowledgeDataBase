@@ -1,0 +1,733 @@
+* JDK_7
+https://loiane.com/2011/07/novidades-java-7-project-coin/
+https://github.com/loiane/Java7HelloWorld
+* JDK_8
+fonte: https://www.digitalocean.com/community/tutorials/java-8-features-with-examples
+	
+** 1. forEach() method in Iterable interface
+Whenever we need to traverse through a Collection, we need to create an Iterator whose whole purpose is to iterate over, and then we have business logic in a loop for each of the elements in the Collection. We might get ConcurrentModificationException if the iterator is not used properly.
+
+Java 8 has introduced forEach method in java.lang.Iterable interface so that while writing code we focus on business logic. The forEach method takes java.util.function.Consumer object as an argument, so it helps in having our business logic at a separate location that we can reuse. Let’s see forEach usage with a simple example.
+
+*** código 1
+package com.journaldev.java8.foreach;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
+import java.lang.Integer;
+
+public class Java8ForEachExample {
+
+	public static void main(String[] args) {
+		
+		//creating sample Collection
+		List<Integer> myList = new ArrayList<Integer>();
+		for(int i=0; i<10; i++) myList.add(i);
+		
+		//traversing using Iterator
+		Iterator<Integer> it = myList.iterator();
+		while(it.hasNext()){
+			Integer i = it.next();
+			System.out.println("Iterator Value::"+i);
+		}
+		
+		//traversing through forEach method of Iterable with anonymous class
+		myList.forEach(new Consumer<Integer>() {
+
+			public void accept(Integer t) {
+				System.out.println("forEach anonymous class Value::"+t);
+			}
+
+		});
+		
+		//traversing with Consumer interface implementation
+		MyConsumer action = new MyConsumer();
+		myList.forEach(action);
+		
+	}
+
+}
+
+//Consumer implementation that can be reused
+class MyConsumer implements Consumer<Integer>{
+
+	public void accept(Integer t) {
+		System.out.println("Consumer impl Value::"+t);
+	}
+}
+
+The number of lines might increase but forEach method helps in having the logic for iteration and business logic at separate place resulting in higher separation of concern and cleaner code.
+
+** 2. default and static methods in Interfaces
+If you read forEach method details carefully, you will notice that it’s defined in Iterable interface but we know that interfaces can’t have a method body. From Java 8, interfaces are enhanced to have a method with implementation. We can use default and static keyword to create interfaces with method implementation. forEach method implementation in Iterable interface is:
+
+default void forEach(Consumer<? super T> action) {
+    Objects.requireNonNull(action);
+    for (T t : this) {
+        action.accept(t);
+    }
+}
+We know that Java doesn’t provide multiple inheritance in Classes because it leads to Diamond Problem. So how it will be handled with interfaces now since interfaces are now similar to abstract classes?
+
+The solution is that compiler will throw an exception in this scenario and we will have to provide implementation logic in the class implementing the interfaces.
+
+package com.journaldev.java8.defaultmethod;
+
+@FunctionalInterface
+public interface Interface1 {
+
+	void method1(String str);
+	
+	default void log(String str){
+		System.out.println("I1 logging::"+str);
+	}
+	
+	static void print(String str){
+		System.out.println("Printing "+str);
+	}
+	
+	//trying to override Object method gives compile-time error as
+	//"A default method cannot override a method from java.lang.Object"
+	
+//	default String toString(){
+//		return "i1";
+//	}
+	
+}
+package com.journaldev.java8.defaultmethod;
+
+@FunctionalInterface
+public interface Interface2 {
+
+	void method2();
+	
+	default void log(String str){
+		System.out.println("I2 logging::"+str);
+	}
+
+}
+Notice that both the interfaces have a common method log() with implementation logic.
+
+package com.journaldev.java8.defaultmethod;
+
+public class MyClass implements Interface1, Interface2 {
+
+	@Override
+	public void method2() {
+	}
+
+	@Override
+	public void method1(String str) {
+	}
+
+	//MyClass won't compile without having it's own log() implementation
+	@Override
+	public void log(String str){
+		System.out.println("MyClass logging::"+str);
+		Interface1.print("abc");
+	}
+	
+}
+As you can see that Interface1 has static method implementation that is used in MyClass.log() method implementation. Java 8 uses default and static methods heavily in Collection API and default methods are added so that our code remains backward compatible.
+
+If any class in the hierarchy has a method with the same signature, then default methods become irrelevant. The Object is the base class, so if we have equals(), hashCode() default methods in the interface, it will become irrelevant. That’s why for better clarity, interfaces are not allowed to have Object default methods.
+
+For complete details of interface changes in Java 8, please read Java 8 interface changes.
+** 3. Functional Interfaces and Lambda Expressions
+If you notice the above interface code, you will notice @FunctionalInterface annotation. Functional interfaces are a new concept introduced in Java 8. An interface with exactly one abstract method becomes a Functional Interface. We don’t need to use @FunctionalInterface annotation to mark an interface as a Functional Interface.
+
+@FunctionalInterface annotation is a facility to avoid the accidental addition of abstract methods in the functional interfaces. You can think of it like @Override annotation and it’s best practice to use it. java.lang.Runnable with a single abstract method run() is a great example of a functional interface.
+
+One of the major benefits of the functional interface is the possibility to use lambda expressions to instantiate them. We can instantiate an interface with an anonymous class but the code looks bulky.
+
+Runnable r = new Runnable(){
+			@Override
+			public void run() {
+				System.out.println("My Runnable");
+			}};
+Since functional interfaces have only one method, lambda expressions can easily provide the method implementation. We just need to provide method arguments and business logic. For example, we can write above implementation using lambda expression as:
+
+Runnable r1 = () -> {
+			System.out.println("My Runnable");
+		};
+If you have single statement in method implementation, we don’t need curly braces also. For example above Interface1 anonymous class can be instantiated using lambda as follows:
+
+Interface1 i1 = (s) -> System.out.println(s);
+		
+i1.method1("abc");
+So lambda expressions are a means to create anonymous classes of functional interfaces easily. There are no runtime benefits of using lambda expressions, so I will use it cautiously because I don’t mind writing a few extra lines of code.
+
+A new package java.util.function has been added with bunch of functional interfaces to provide target types for lambda expressions and method references. Lambda expressions are a huge topic, I will write a separate article on that in the future.
+
+You can read complete tutorial at Java 8 Lambda Expressions Tutorial.
+** 4. Java Stream API for Bulk Data Operations on Collections
+A new java.util.stream has been added in Java 8 to perform filter/map/reduce like operations with the collection. Stream API will allow sequential as well as parallel execution. This is one of the best features for me because I work a lot with Collections and usually with Big Data, we need to filter out them based on some conditions.
+
+Collection interface has been extended with stream() and parallelStream() default methods to get the Stream for sequential and parallel execution. Let’s see their usage with a simple example.
+
+package com.journaldev.java8.stream;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+public class StreamExample {
+
+	public static void main(String[] args) {
+		
+		List<Integer> myList = new ArrayList<>();
+		for(int i=0; i<100; i++) myList.add(i);
+		
+		//sequential stream
+		Stream<Integer> sequentialStream = myList.stream();
+		
+		//parallel stream
+		Stream<Integer> parallelStream = myList.parallelStream();
+		
+		//using lambda with Stream API, filter example
+		Stream<Integer> highNums = parallelStream.filter(p -> p > 90);
+		//using lambda in forEach
+		highNums.forEach(p -> System.out.println("High Nums parallel="+p));
+		
+		Stream<Integer> highNumsSeq = sequentialStream.filter(p -> p > 90);
+		highNumsSeq.forEach(p -> System.out.println("High Nums sequential="+p));
+
+	}
+
+}
+If you will run above example code, you will get output like this:
+
+High Nums parallel=91
+High Nums parallel=96
+High Nums parallel=93
+High Nums parallel=98
+High Nums parallel=94
+High Nums parallel=95
+High Nums parallel=97
+High Nums parallel=92
+High Nums parallel=99
+High Nums sequential=91
+High Nums sequential=92
+High Nums sequential=93
+High Nums sequential=94
+High Nums sequential=95
+High Nums sequential=96
+High Nums sequential=97
+High Nums sequential=98
+High Nums sequential=99
+Notice that parallel processing values are not in order, so parallel processing will be very helpful while working with huge collections.
+
+Covering everything about Stream API is not possible in this post, you can read everything about Stream API at Java 8 Stream API Example Tutorial.
+** 5. Java Time API
+It has always been hard to work with Date, Time, and Time Zones in java. There was no standard approach or API in java for date and time in Java. One of the nice addition in Java 8 is the java.time package that will streamline the process of working with time in java.
+
+Just by looking at Java Time API packages, I can sense that they will be very easy to use. It has some sub-packages java.time.format that provides classes to print and parse dates and times and java.time.zone provides support for time zones and their rules.
+
+The new Time API prefers enums over integer constants for months and days of the week. One of the useful classes is DateTimeFormatter for converting DateTime objects to strings. For a complete tutorial, head over to Java Date Time API Example Tutorial.
+
+** 6. Collection API improvements
+We have already seen forEach() method and Stream API for collections. Some new methods added in Collection API are:
+
+- Iterator default method forEachRemaining(Consumer action) to perform the given action for each remaining element until all elements have been processed or the action throws an exception.
+- Collection default method removeIf(Predicate filter) to remove all of the elements of this collection that satisfy the given predicate.
+- Collection spliterator() method returning Spliterator instance that can be used to traverse elements sequentially or parallel.
+- Map replaceAll(), compute(), merge() methods.
+- Performance Improvement for HashMap class with Key Collisions
+** 7. Concurrency API improvements
+Some important concurrent API enhancements are:
+
+- ConcurrentHashMap compute(), forEach(), forEachEntry(), forEachKey(), forEachValue(), merge(), reduce() and search() methods.
+- CompletableFuture that may be explicitly completed (setting its value and status).
+- Executors newWorkStealingPool() method to create a work-stealing thread pool using all available processors as its target parallelism level.
+** 8. Java IO improvements
+Some IO improvements known to me are:
+
+- Files.list(Path dir) that returns a lazily populated Stream, the elements of which are the entries in the directory.
+- Files.lines(Path path) that reads all lines from a file as a Stream.
+- Files.find() that returns a Stream that is lazily populated with Path by searching for files in a file tree rooted at a given starting file.
+- BufferedReader.lines() that return a Stream, the elements of which are lines read from this BufferedReader.
+** Miscellaneous Java 8 Core API improvements
+Some miscellaneous API improvements that might come handy are:
+
+1. ThreadLocal static method withInitial(Supplier supplier) to create instances easily.
+2. The Comparator interface has been extended with a lot of default and static methods for natural ordering, reverse order, etc.
+3. min(), max() and sum() methods in Integer, Long and Double wrapper classes.
+4. logicalAnd(), logicalOr() and logicalXor() methods in Boolean class.
+5. ZipFile.stream() method to get an ordered Stream over the ZIP file entries. Entries appear in the Stream in the order they appear in the central directory of the ZIP file.
+6. Several utility methods in Math class.
+7. jjs command is added to invoke Nashorn Engine.
+8. jdeps command is added to analyze class files
+9. JDBC-ODBC Bridge has been removed.
+10. PermGen memory space has been removed
+
+* JDK_9
+** fontes de onde tirei o conteúdo dessa seção "* JDK_9"
+https://www.digitalocean.com/community/tutorials/java-9-features-with-examples
+https://www.pluralsight.com/blog/software-development/java-9-new-features
+
+** 1 Java 9 REPL (JShell) (REPL = Read-Evaluate-Print-Loop)
+Let’s first try to understand why REPL support was added in Java, if it was that important then why in so late release. As you know, Scala has become very popular to develop from small to large-scale applications because of it’s features and advantages. It supports multi-paradigm (Object-Oriented and Functional Programming) and REPL. Oracle Corporation is trying to integrate most of Scala features into Java. They have already integrated some functional programming features as part of Java 8, such as lambda expressions. Scala’s one of the best features is REPL (Read-Evaluate-Print-Loop). It’s a command line interface and Scala Interpreter to execute Scala programs. It’s very easy to use Scala REPL to learn basics of scala programming and even run small test code. Because of Scala REPL and it’s benefits in reducing the learning curve and ease of running test code, Java REPL got introduced in java 9.
+
+Java 9 REPL (JShell)
+Oracle Corp has introduced a new tool called “jshell”. It stands for Java Shell and also known as REPL (Read Evaluate Print Loop). It is used to execute and test any Java Constructs like class, interface, enum, object, statements etc. very easily. We can download JDK 9 EA (Early Access) software from https://jdk9.java.net/download/
+
+G:\>jshell
+|  Welcome to JShell -- Version 9-ea
+|  For an introduction type: /help intro
+
+
+jshell> int a = 10
+a ==> 10
+
+jshell> System.out.println("a value = " + a )
+a value = 10
+If you want to know more about REPL tool, Please go through Java 9 REPL Basics (Part-1) and Java 9 REPL Features (Part-2).
+*** Abaixo citações de outro site sobre mesmo assunto:3. JShell: the interactive Java REPL  (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+
+Many languages already feature an interactive Read-Eval-Print-Loop, and Java now joins this club. You can launch jshell from the console and directly start typing and executing Java code. The immediate feedback of jshell makes it a great tool to explore APIs and try out language features.
+
+
+Testing a Java regular expression is a great example of how jshell can make your life easier. The interactive shell also makes for a great teaching environment and productivity boost. No longer do you have to explain what this `public static void main(String[] args)` nonsense is all about when teaching people how to code Java.
+
+** 2 Factory Methods for Immutable List, Set, Map and Map.Entry
+Oracle Corp has introduced some convenient factory methods to create Immutable List, Set, Map and Map.Entry objects. These utility methods are used to create empty or non-empty Collection objects. In Java SE 8 and earlier versions, We can use Collections class utility methods like unmodifiableXXX to create Immutable Collection objects. For instance, if we want to create an Immutable List, then we can use Collections.unmodifiableList method. However, these Collections.unmodifiableXXX methods are a tedious and verbose approach. To overcome those shortcomings, Oracle Corp has added a couple of utility methods to List, Set and Map interfaces. List and Set interfaces have “of()” methods to create an empty or no-empty Immutable List or Set objects as shown below:
+
+Empty List Example
+List immutableList = List.of();
+
+Non-Empty List Example
+List immutableList = List.of("one","two","three");
+
+The Map has two sets of methods: of() methods and ofEntries() methods to create an Immutable Map object and an Immutable Map.Entry object respectively.
+Empty Map Example
+jshell> Map emptyImmutableMap = Map.of()
+emptyImmutableMap ==> {}
+
+Non-Empty Map Example
+jshell> Map nonemptyImmutableMap = Map.of(1, "one", 2, "two", 3, "three")
+nonemptyImmutableMap ==> {2=two, 3=three, 1=one}
+
+*** Abaixo citações de outro site sobre mesmo assunto: 5. Collection factory methods (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+Often you want to create a collection (e.g., a List or Set) in your code and directly populate it with some elements. That leads to repetitive code where you instantiate the collection, followed by several `add` calls. With Java 9, several so-called collection factory methods have been added:
+
+Set<Integer> ints = Set.of(1, 2, 3);
+List<String> strings = List.of("first", "second");
+Besides being shorter and nicer to read, these methods also relieve you from having to pick a specific collection implementation. In fact, the collection implementations returned from the factory methods are highly optimized for the number of elements you put in. That's possible because they're immutable: adding items to these collections after creation results in an `UnsupportedOperationException`.
+
+** 3 Private methods in Interfaces
+In Java 8, we can provide method implementation in Interfaces using Default and Static methods. However we cannot create private methods in Interfaces. To avoid redundant code and more re-usability, Oracle Corp is going to introduce private methods in Java SE 9 Interfaces. From Java SE 9 onwards, we can write private and private static methods too in an interface using a ‘private’ keyword. These private methods are like other class private methods only, there is no difference between them.
+Obs: Private methods in interfaces should have a body
+
+public interface Card{
+
+  private Long createCardID(){
+    // Method implementation goes here.
+  }
+
+  private static void displayCardDetails(){
+    // Method implementation goes here.
+  }
+	
+}
+*** Abaixo citações de outro site sobre mesmo assunto: 7. Private interface methods (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+Java 8 brought us default methods on interfaces. An interface can now also contain behavior instead of only method signatures. But what happens if you have several default methods on an interface with code that does almost the same thing? Normally, you'd refactor those methods to call a private method containing the shared functionality. But default methods can't be private. Creating another default method with the shared code is not a solution, because this helper method becomes part of the public API. With Java 9, you can add private helper methods to interfaces to solve this problem:
+
+public interface MyInterface {
+
+    void normalInterfaceMethod();
+
+    default void interfaceMethodWithDefault() {  init(); }
+
+    default void anotherDefaultMethod() { init(); }
+
+    // This method is not part of the public API exposed by MyInterface
+    private void init() { System.out.println("Initializing"); }
+}
+If you're evolving APIs with default methods, private interface methods can be helpful in structuring their implementation.
+
+
+
+** 4 Java 9 Module System
+One of the big changes or java 9 feature is the Module System. Oracle Corp is going to introduce the following features as part of Jigsaw Project.
+- Modular JDK
+- Modular Java Source Code
+- Modular Run-time Images
+- Encapsulate Java Internal APIs
+- Java Platform Module System
+
+Before Java SE 9 versions, we are using Monolithic Jars to develop Java-Based applications. This architecture has a lot of limitations and drawbacks. To avoid all these shortcomings, Java SE 9 is coming with the Module System. JDK 9 is coming with 92 modules (may change in final release). We can use JDK Modules and also we can create our own modules as shown below:
+	Simple Module Example
+
+		module com.foo.bar { }
+
+Here we are using ‘module’ to create a simple module. Each module has a name, related code, and other resources.
+*** Abaixo citações de outro site sobre mesmo assunto: 1. The Java Platform module system  (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+
+The defining feature for Java 9 is an all-new module system. When codebases grow larger, the odds of creating complicated, tangled “spaghetti code” increase exponentially. There are two fundamental problems: It is hard to truly encapsulate code, and there is no notion of explicit dependencies between different parts (JAR files) of a system. Every public class can be accessed by any other public class on the classpath, leading to inadvertent usage of classes that weren't meant to be public API. Furthermore, the classpath itself is problematic: How do you know whether all the required JARs are there, or if there are duplicate entries? The module system addresses both issues.
+
+Modular JAR files contain an additional module descriptor. In this module descriptor, dependencies on other modules are expressed through`requires` statements. Additionally, `exports` statements control which packages are accessible to other modules. All non-exported packages are encapsulated in the module by default. Here's an example of a module descriptor, which lives in `module-info.java`:
+
+
+module blog {
+  exports com.pluralsight.blog;
+
+  requires cms;
+}
+
+Note that both modules contain packages that are encapsulated because they're not exported (visualized with the orange shield). Nobody can accidentally use classes from those packages.  The Java platform itself has been modularized using its own module system as well. By encapsulating JDK internal classes, the platform is more secure and evolving it becomes much easier.
+
+When starting a modular application, the JVM verifies whether all modules can be resolved based on the `requires` statements—a big step up from the brittle classpath. Modules allow you to better structure your application with strong enforcement of encapsulation and explicit dependencies. 
+** 5 Process API Improvements
+Java SE 9 is coming with some improvements in Process API. They have added couple new classes and methods to ease the controlling and managing of OS processes. Two new interfcase in Process API:
+
+java.lang.ProcessHandle
+java.lang.ProcessHandle.Info
+
+Process API example
+ ProcessHandle currentProcess = ProcessHandle.current();
+ System.out.println("Current Process Id: = " + currentProcess.getPid());
+** 6 Try With Resources Improvement
+We know, Java SE 7 has introduced a new exception handling construct: Try-With-Resources to manage resources automatically. The main goal of this new statement is “Automatic Better Resource Management”. Java SE 9 is going to provide some improvements to this statement to avoid some more verbosity and improve some Readability. 
+*** Java SE 7 example
+void testARM_Before_Java9() throws IOException{
+ BufferedReader reader1 = new BufferedReader(new FileReader("journaldev.txt"));
+ try (BufferedReader reader2 = reader1) {
+   System.out.println(reader2.readLine());
+ }
+}
+*** Java 9 example
+
+void testARM_Java9() throws IOException{
+ BufferedReader reader1 = new BufferedReader(new FileReader("journaldev.txt"));
+ try (reader1) {
+   System.out.println(reader1.readLine());
+ }
+}
+
+** 7 CompletableFuture API Improvements
+In Java SE 9, Oracle Corp is going to improve CompletableFuture API to solve some problems raised in Java SE 8. They are going add to support some delays and timeouts, some utility methods and better sub-classing.
+
+Executor exe = CompletableFuture.delayedExecutor(50L, TimeUnit.SECONDS);
+
+Here delayedExecutor() is a static utility method used to return a new Executor that submits a task to the default executor after the given delay.
+** 8 Reactive Streams
+Nowadays, Reactive Programming has become very popular in developing applications to get some beautiful benefits. Scala, Play, Akka, etc. Frameworks have already integrated Reactive Streams and getting many benefits. Oracle Corps is also introducing new Reactive Streams API in Java SE 9. Java SE 9 Reactive Streams API is a Publish/Subscribe Framework to implement Asynchronous, Scalable and Parallel applications very easily using Java language. Java SE 9 has introduced the following API to develop Reactive Streams in Java-based applications.
+
+- java.util.concurrent.Flow
+- java.util.concurrent.Flow.Publisher
+- java.util.concurrent.Flow.Subscriber
+- java.util.concurrent.Flow.Processor
+
+** 9 Diamond Operator for Anonymous Inner Class
+We know, Java SE 7 has introduced one new feature: Diamond Operator to avoid redundant code and verbosity, to improve readability. However, in Java SE 8, Oracle Corp (Java Library Developer) has found that some limitations in the use of Diamond operator with Anonymous Inner Class. They have fixed those issues and going to release them as part of Java 9.
+
+  public List getEmployee(String empid){
+     // Code to get Employee details from Data Store
+     return new List(emp){ };
+  }
+Here we are using just “List” without specifying the type parameter.
+** 10 Optional Class Improvements
+In Java SE 9, Oracle Corp has added some useful new methods to java.util.Optional class. Here I’m going to discuss about one of those methods with some simple example: stream method If a value present in the given Optional object, this stream() method returns a sequential Stream with that value. Otherwise, it returns an empty Stream. They have added “stream()” method to work on Optional objects lazily as shown below:
+
+Stream<Optional> emp = getEmployee(id)
+Stream empStream = emp.flatMap(Optional::stream)
+
+Here Optional.stream() method is used to convert a Stream of Optional of Employee object into a Stream of Employee so that we can work on this result lazily in the result code. 
+** 11 Stream API Improvements
+In Java SE 9, Oracle Corp has added four useful new methods to java.util.Stream interface. As Stream is an interface, all those new implemented methods are default methods. Two of them are very important: dropWhile and takeWhile methods. If you are familiar with Scala Language or any Functions programming language, you will definitely know about these methods. These are very useful methods in writing some functional style code. Let us discuss the takeWhile utility method here. This takeWhile() takes a predicate as an argument and returns a Stream of the subset of the given Stream values until that Predicate returns false for the first time. If the first value does NOT satisfy that Predicate, it just returns an empty Stream.
+
+jshell> Stream.of(1,2,3,4,5,6,7,8,9,10).takeWhile(i -> i < 5 )
+                 .forEach(System.out::println);
+1
+2
+3
+4
+*** Abaixo citações de outro site sobre mesmo assunto: 6. Stream API improvements (fonte: https://www.pluralsight.com/blog/software-development/java-9-new-features )
+The Streams API is arguably one of the best improvements to the Java standard library in a long time. It allows you to create declarative pipelines of transformations on collections. With Java 9, this only gets better. There are four new methods added to the Stream interface: dropWhile, takeWhile, ofNullable. The iterate method gets a new overload, allowing you to provide a Predicate on when to stop iterating:
+
+IntStream.iterate(1, i -> i < 100, i -> i + 1).forEach(System.out::println);
+The second argument is a lambda that returns true until the current element in the IntStream becomes 100. This simple example therefore prints the integers 1 until 99 on the console.
+
+Besides these additions on Stream itself, the integration between Optional and Stream has been improved. It's now possible to turn an Optional object into a (possibly empty) Stream with the new `stream` method on Optional:
+
+Stream<Integer> s = Optional.of(1).stream();
+Turning an Optional into a Stream is especially useful when composing complex Stream pipelines.
+** 12 Enhanced @Deprecated annotation
+In Java SE 8 and earlier versions, @Deprecated annotation is just a Marker interface without any methods. It is used to mark a Java API that is a class, field, method, interface, constructor, enum etc. In Java SE 9, Oracle Corp has enhanced @Deprecated annotation to provide more information about deprecated API and also provide a Tool to analyze an application’s static usage of deprecated APIs. They have add two methods to this Deprecated interface: "forRemoval" and "since" to serve this information.
+** 13 HTTP 2 Client
+In Java SE 9, Oracle Corp is going to release New HTTP 2 Client API to support HTTP/2 protocol and WebSocket features. As existing or Legacy HTTP Client API has numerous issues (like supports HTTP/1.1 protocol and does not support HTTP/2 protocol and WebSocket, works only in Blocking mode and lot of performance issues.), they are replacing this HttpURLConnection API with new HTTP client. They are going to introduce a new HTTP 2 Client API under the “java.net.http” package. It supports both HTTP/1.1 and HTTP/2 protocols. It supports both Synchronous (Blocking Mode) and Asynchronous Modes. It supports Asynchronous Mode using the WebSocket API. We can see this new API at https://download.java.net/java/jdk9/docs/api/java/net/http/package-summary.html HTTP 2 Client Example
+*** exemplo fornecido para o java 9, mas não faz todos os imports e não funciona ok
+jshell> import java.net.http.*
+
+jshell> import static java.net.http.HttpRequest.*
+
+jshell> import static java.net.http.HttpResponse.*
+
+jshell> URI uri = new URI("https://rams4java.blogspot.co.uk/2016/05/java-news.html")
+uri ==> https://rams4java.blogspot.co.uk/2016/05/java-news.html
+
+jshell> HttpResponse response = HttpRequest.create(uri).body(noBody()).GET().response()
+response ==> java.net.http.HttpResponseImpl@79efed2d
+
+jshell> System.out.println("Response was " + response.body(asString()))
+
+*** exemplo que peguei no chatGPT que funciona no jshell, mas que segundo o chatGPT é do java 11
+jshell> import java.net.http.*;
+jshell> import static java.net.http.HttpRequest.*;
+jshell> import java.net.http.HttpClient;
+jshell> import static java.net.http.HttpResponse.*;
+jshell> import static java.net.http.HttpRequest.BodyPublishers.noBody;
+jshell> URI uri = new URI("https://www.google.com");
+jshell> HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+jshell> HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+jshell> System.out.println("Response was " + response.body());
+
+*** Abaixo citações de outro site sobre mesmo assunto: 8. HTTP/2  (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+
+A new way of performing HTTP calls arrives with Java 9. This much overdue replacement for the old `HttpURLConnection` API also supports WebSockets and HTTP/2 out of the box. One caveat: The new HttpClient API is delivered as a so-called _incubator module_ in Java 9. This means the API isn't guaranteed to be 100% final yet. Still, with the arrival of Java 9 you can already start using this API:
+
+HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest req =
+   HttpRequest.newBuilder(URI.create("http://www.google.com"))
+              .header("User-Agent","Java")
+              .GET()
+              .build();
+
+
+HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandler.asString());
+Besides this simple request/response model, HttpClient provides new APIs to deal with HTTP/2 features such as streams and server push.
+
+
+** 14 Multi-Resolution Image API
+In Java SE 9, Oracle Corp is going to introduce a new Multi-Resolution Image API. Important interface in this API is MultiResolutionImage . It is available in java.awt.image package. MultiResolutionImage encapsulates a set of images with different Height and Widths (that is different resolutions) and allows us to query them with our requirements.
+** 15 Improved Javadoc
+(fonte: https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+Sometimes it's the little things that can make a big difference. Did you use Google all the time to find the right Javadoc pages, just like me? That's no longer necessary. Javadoc now includes search right in the API documentation itself. As an added bonus, the Javadoc output is now HTML5 compliant. Also, you'll notice that every Javadoc page includes information on which JDK module the class or interface comes from.
+
+** 9. Multi-release JARs
+(fonte: https://www.pluralsight.com/blog/software-development/java-9-new-features) 
+The last feature we're highlighting is especially good news for library maintainers. When a new version of Java comes out, it takes years for all users of your library to switch to this new version. That means the library has to be backward compatible with the oldest version of Java you want to support (e.g., Java 6 or 7 in many cases). That effectively means you won't get to use the new features of Java 9 in your library for a long time. Fortunately, the multi-release JAR feature allows you to create alternate versions of classes that are only used  when running the library on a specific Java version:
+
+multirelease.jar
+├── META-INF
+│   └── versions
+│       └── 9
+│           └── multirelease
+│               └── Helper.class
+├── multirelease
+    ├── Helper.class
+    └── Main.class
+In this case, multirelease.jar can be used on Java 9, where instead of the top-level "multirelease.Helper" class, the one under `META-INF/versions/9` is used. This Java 9-specific version of the class can use Java 9 features and libraries. At the same time, using this JAR on earlier Java versions still works, since the older Java versions only see the top-level Helper class.
+
+** 16 Miscellaneous Java 9 Features
+In this section, I will just list out some miscellaneous Java SE 9 New Features. I’m NOT saying these are less important features. They are also important and useful to understand them very well with some useful examples. As of now, I did not get enough information about these features. That’s why I am going to list them here for a brief understanding. I will pick up these features one by one and add to the above section with a brief discussion and example. And finally write a separate tutorial later.
+
+GC (Garbage Collector) Improvements
+Stack-Walking API
+Filter Incoming Serialization Data
+Deprecate the Applet API
+Indify String Concatenation
+Enhanced Method Handles
+Java Platform Logging API and Service
+Compact Strings
+Parser API for Nashorn
+I will pickup these java 9 features one by one and update them with enough description and examples. That’s all about Java 9 features in brief with examples.
+
+*** Linking
+(fonte: https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
+When you have modules with explicit dependencies, and a modularized JDK, new possibilities arise. Your application modules now state their dependencies on other application modules and on the modules it uses from the JDK. Why not use that information to create a minimal runtime environment, containing just those modules necessary to run your application? That's made possible with the new jlink tool in Java 9. Instead of shipping your app with a fully loaded JDK installation, you can create a minimal runtime image optimized for your application.
+
+* JDK_10
+*** novidades trazidas
+melhor site: https://www.journaldev.com/20395/java-10-features
+	
+*** workshop (repeteco da do JDK_9)
+https://github.com/loiane/java_9_10_workshop
+  
+** Time-Based Release Versioning (JEP 322)
+With the adoption of the time-based release cycle, Oracle changed the version-string scheme of the Java SE Platform and the JDK, and related versioning information, for present and future time-based release models. The new pattern of the Version number is: $FEATURE.$INTERIM.$UPDATE.$PATCH $FEATURE: counter will be incremented every 6 months and will be based on feature release versions, e.g: JDK 10, JDK 11. $INTERIM: counter will be incremented for non-feature releases that contain compatible bug fixes and enhancements but no incompatible changes. Usually, this will be zero, as there will be no interim release in a six month period. This kept for a future revision to the release model. $UPDATE: counter will be incremented for compatible update releases that fix security issues, regressions, and bugs in newer features. This is updated one month after the feature release and every 3 months thereafter. The April 2018 release is JDK 10.0.1, the July release is JDK 10.0.2, and so forth $PATCH: counter will be incremented for an emergency release to fix a critical issue. New API’s have been added to get these counter values programmatically. Let’s take a look;
+       Version version = Runtime.version();
+       version.feature();
+       version.interim();
+       version.update();
+       version.patch();
+
+Now, let us take a look at Java launcher which returns the version information:
+       $ java -version
+       java version "10" 2018-03-20
+       Java(TM) SE Runtime Environment 18.3 (build 10+46)
+       Java HotSpot(TM) 64-Bit Server VM 18.3 (build 10+46, mixed mode)
+The version number format is “10” as there’s no other counter which is other than zero. The date of release is added. 18.3 can be read as the Year 2018 & 3rd Month, build 10+46 is 46th build for version 10. For a hypothetical build 93 of JDK 10.0.1, the build will be 10.0.1+939. ### Local-Variable Type Inference (JEP 286)
+
+Local-Variable Type Inference is the biggest new feature in Java 10 for developers. It adds type inference to declarations of local variables with initializers. Local type inference can be used only in the following scenarios:
+    - Limited only to Local Variable with initializer
+    - Indexes of enhanced for loop or indexes
+    - Local declared in for loop
+
+Let’s take a look at its usage:
+
+var numbers = List.of(1, 2, 3, 4, 5); // inferred value ArrayList<String>
+// Index of Enhanced For Loop
+for (var number : numbers) {
+	System.out.println(number);
+}
+// Local variable declared in a loop
+for (var i = 0; i < numbers.size(); i++) {
+	System.out.println(numbers.get(i));
+}
+
+
+* Java 11:
+https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
+https://www.zup.com.br/blog/java-11-principais-novidades
+
+* Java 16 API Documentation
+ler só o que é dito no index.html geral facilmente pode deixar passar o que o pacote/classe/recurso/tool faz... tem que abrir o link e ler com mais detalhes
+** JDK Tool Specifications - Java® Development Kit Version 16 Tool Specifications
+ver todos aqui (só vi poucos por enquanto... se entende mais de cada uma ao abrir os links individualmente:  https://docs.oracle.com/en/java/javase/16/docs/specs/man/index.html
+
+*** jpackage
+	Cria arquivo executável de cada sistema operacional
+*** jshell
+interactively evaluate declarations, statements, and expressions of the Java programming language in a read-eval-print loop (REPL)
+* Java 16
+https://wiki.eclipse.org/Java16/Examples
+* colocar em algum lugar
+*** The main Method
+public static void main(String[] args)
+
+The modifiers public and static can be written in either order (public static or static public), but the convention is to use public static as shown above. You can name the argument anything you want, but most programmers choose "args" or "argv".
+
+*** Lesson: Common Problems (and Their Solutions)
+**** Compiler Problems
+
+****** Common Error Messages on Microsoft Windows Systems: 'javac' is not recognized as an internal or external command, operable program or batch file
+If you receive this error, Windows cannot find the compiler (javac).
+
+Here's one way to tell Windows where to find javac. Suppose you installed the JDK in C:\jdk1.8.0. At the prompt you would type the following command and press Enter:
+
+C:\jdk1.8.0\bin\javac HelloWorldApp.java
+
+If you choose this option, you'll have to precede your javac and java commands with C:\jdk1.8.0\bin\ each time you compile or run a program. To avoid this extra typing, consult the section Updating the PATH variable in the JDK 8 installation instructions.
+	
+******* Updating the PATH Environment Variable
+
+If you do not set the PATH variable, you need to specify the full path to the executable file every time you run it, such as:
+
+C:\> "C:\Program Files\Java\jdk1.8.0\bin\javac" MyClass.java
+
+It is useful to set the PATH variable permanently so it will persist after rebooting.
+
+To set the PATH variable permanently, add the full path of the jdk1.8.0\bin directory to the PATH variable. Typically, this full path looks something like C:\Program Files\Java\jdk1.8.0\bin. Set the PATH variable as follows on Microsoft Windows:
+
+    Click Start, then Control Panel, then System.
+
+    Click Advanced, then Environment Variables.
+
+    Add the location of the bin folder of the JDK installation to the PATH variable in System Variables. The following is a typical value for the PATH variable:
+
+    C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Java\jdk1.8.0\bin
+
+Note:
+
+    The PATH environment variable is a series of directories separated by semicolons (;) and is not case-sensitive. Microsoft Windows looks for programs in the PATH directories in order, from left to right.
+
+    You should only have one bin directory for a JDK in the path at a time. Those following the first instance are ignored.
+
+    If you are not sure where to add the JDK path, append it.
+
+    The new path takes effect in each new command window you open after setting the PATH variable.
+
+****** Common Error Messages on UNIX Systems: javac: Command not found
+If you receive this error, UNIX cannot find the compiler, javac.
+
+Here's one way to tell UNIX where to find javac. Suppose you installed the JDK in /usr/local/jdk1.8.0. At the prompt you would type the following command and press Return:
+
+/usr/local/jdk1.8.0/javac HelloWorldApp.java
+
+Note: If you choose this option, each time you compile or run a program, you'll have to precede your javac and java commands with /usr/local/jdk1.8.0/. To avoid this extra typing, you could add this information to your PATH variable. The steps for doing so will vary depending on which shell you are currently running.
+****** Class names, 'HelloWorldApp', are only accepted if annotation processing is explicitly requested
+If you receive this error, you forgot to include the .java suffix when compiling the program. Remember, the command is javac HelloWorldApp.java not javac HelloWorldApp
+
+
+
+
+* JDK_11
+*** novidades trazidas
+https://www.journaldev.com/24601/java-11-features
+* JDK_12
+*** novidades trazidas
+melhor site: https://www.journaldev.com/28666/java-12-features
+ver tb: https://currere.co/knowledge/java12-new-language-features
+com as novas funcionalidades trazidas com a versão 12
+
+
+https://loiane.com/2019/03/what-is-new-in-java-12-api-for-developers/
+https://github.com/loiane/java12-examples
+
+https://www.youtube.com/watch?v=xgJyQVeJltA
+
+* JDK_13
+
+*** novidades trazidas
+melhor site: https://www.journaldev.com/33204/java-13-features
+https://github.com/loiane/java13-examples
+
+* JDK_14
+*** novidades trazidas
+melhor site: https://www.journaldev.com/37273/java-14-features
+https://github.com/loiane/java14-examples
+
+* JDK_15_e_16
+*** novidades trazidas
+https://github.com/loiane/java-15_16-examples
+
+
+melhor site: https://www.journaldev.com/44681/java-15-features
+** generics
+AP: Para definir que será usado um generics existem 2 modos:
+*** modo 1
+#+BEGIN_SRC java
+class Printer
+{
+	public <T> void  printArray(T a[]) {   /// O <T> vem antes do void. Depois dentro da definição dos argumentos aparece sem os "< >"
+		for(T b:a) {
+			System.out.println(b);
+		}
+	}
+ 
+}
+#+END_SRC
+
+*** modo 2
+#+BEGIN_SRC java
+class Printer<T>                      /// Ou o <T> vem do lado do nome da classe. Nesse caso não precisa vir ali no método
+{ 
+	public void  printArray(T a[]) {      // O "T" que aparece aqui deve estar fora dos "< >"
+		for(T b:a) {
+			System.out.println(b);
+		}
+	}
+ 
+}
+#+END_SRC
+* Coisas interessantes para falar na apresentação do Meeting sobre Avanços do Java
+** Usando o jshell pode-se passar código como literal, mesmo os imports.
+Ou seja: não preciso mais precisar ficar criando @Test para aprender sobre funcionamento de código de métodos/operações naõ aind totalmente conhecidos. Exemplo (obs: apesar de o código abaixo não funcionar perfeitamente, fica a dica da lógica de uso do jshell)
+*** código que funciona 
+pode-se colar tudo de uma vez no prompt do "jshell>", ou ir adicionando linha à linha:
+
+import java.net.http.*;
+import static java.net.http.HttpRequest.*;
+import java.net.http.HttpClient;
+import static java.net.http.HttpResponse.*;
+import static java.net.http.HttpRequest.BodyPublishers.noBody;
+URI uri = new URI("https://www.google.com");
+HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println("Response was " + response.body());
+
+* cavar mais depois para completar os avanços nas versões lançadas do java

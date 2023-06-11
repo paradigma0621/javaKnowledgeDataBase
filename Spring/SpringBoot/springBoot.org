@@ -1,0 +1,13 @@
+continuar em: https://www.youtube.com/watch?v=-mwpoE0x0JQ  em 42min30secs
+* diferenças entre @RestController e @Controller
+** ChatGPT 
+
+No Spring Boot, as anotações @RestController e @Controller são usadas para marcar classes como controladores para lidar com requisições em uma aplicação web. No entanto, há uma diferença sutil entre elas.
+
+A anotação @Controller é usada para marcar uma classe como um controlador no Spring MVC. Essa anotação é usada para criar controladores que retornam uma representação da visualização (View) para o cliente. Os métodos em uma classe marcada com @Controller geralmente são mapeados para determinadas URLs e retornam uma resposta em formato HTML ou outro formato de visualização, dependendo da configuração do sistema.
+
+Por outro lado, a anotação @RestController é uma extensão da anotação @Controller. Ela combina a funcionalidade das anotações @Controller e @ResponseBody. A anotação @ResponseBody indica que o valor de retorno de um método deve ser serializado diretamente para a resposta HTTP, em vez de ser tratado como uma visualização. Em outras palavras, quando usamos @RestController, cada método dentro da classe é automaticamente anotado com @ResponseBody.
+
+Os controladores marcados com @RestController são usados para construir APIs RESTful. Eles retornam diretamente dados formatados (JSON, XML, etc.) para o cliente, em vez de visualizações HTML. O Spring Boot cuida da serialização dos objetos de retorno para o formato adequado (por exemplo, JSON) automaticamente.
+
+Em resumo, a diferença entre @RestController e @Controller é que o @RestController combina a funcionalidade do @Controller e do @ResponseBody, sendo usado para construir APIs RESTful e retornar diretamente dados formatados, enquanto o @Controller é usado para retornar visualizações HTML.

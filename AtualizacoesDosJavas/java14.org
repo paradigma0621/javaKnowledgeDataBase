@@ -1,0 +1,26 @@
+* record
+
+** ChatGPT
+O recurso "record" do Java é uma nova funcionalidade introduzida a partir do Java 14. Ele permite criar classes imutáveis de forma concisa, onde o compilador automaticamente gera o código necessário para os métodos equals(), hashCode(), toString() e constructors, além de fornecer acesso aos campos da classe.
+
+A principal finalidade do recurso "record" é fornecer uma forma mais fácil e concisa de definir classes de dados simples, onde o principal objetivo é armazenar e representar informações. Alguns usos comuns do "record" incluem:
+
+1. Modelagem de dados: O "record" pode ser usado para modelar classes que representam dados imutáveis, como informações de uma entidade, informações de configuração ou até mesmo dados de transferência de objetos (DTOs).
+
+2. Sobrescrita de métodos padrão: O compilador automaticamente gera métodos equals(), hashCode() e toString() para classes "record". Isso evita a necessidade de escrever esses métodos manualmente, economizando tempo e reduzindo a chance de erros.
+
+3. Comparação de objetos: Com o método equals() gerado automaticamente, é mais fácil comparar objetos "record" com base em seus campos, tornando a comparação de igualdade mais simples e direta.
+
+4. Uso em estruturas de dados: Classes "record" são imutáveis, o que as torna adequadas para uso em estruturas de dados imutáveis, como em mapas ou conjuntos.
+
+Um exemplo simples de uso de "record" seria:
+
+```java
+record Person(String name, int age) {
+    // Construtor, getters e métodos equals(), hashCode(), toString() são gerados automaticamente
+}
+```
+
+Nesse exemplo, a declaração do "record" cria uma classe chamada "Person" com os campos "name" e "age". Além disso, o compilador automaticamente gera um construtor, getters para os campos e métodos equals(), hashCode() e toString().
+
+Em resumo, o recurso "record" do Java é usado para criar classes de dados imutáveis de forma concisa, onde o compilador gera automaticamente métodos e construtores, facilitando a modelagem de dados e a manipulação de objetos.
