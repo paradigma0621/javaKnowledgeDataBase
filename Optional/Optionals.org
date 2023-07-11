@@ -73,3 +73,8 @@ public void save(Optional<User> user){
 Set<String> allDevicesNotRepeated = 	 Optional.ofNullable(getAllDevicesVinculatedToAPerson(personId)).orElse(new HashSet());
  	List<String> allDevicesNotRepeatedAsList = new ArrayList<>();
 	allDevicesNotRepeatedAsList.addAll(allDevicesNotRepeated);
+** quando faço um stream pra varrer uma Collection trazer o valor, mas quando nenhum valor pode ser encontrado
+        for (Long personId: personIds) {
+            Optional<ReplacementDto> replacementDto = personReplacements.stream().filter(r -> r.getAbsenteeId().equals(personId)).findFirst();
+            responsePersonIds.add(replacementDto.map(ReplacementDto::getPersonId).orElse(personId));
+        }

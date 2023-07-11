@@ -1,0 +1,476 @@
+* Conceitos
+** interface funcional
+Aquela  interface que contém um único método abstrato. Se por exemplo colocarmos a annotation @FunctionalInterface acima do nome da declaração da interface e implementarmos 2 métodos abstratos: obteremos um erro - ela só aceita 1 método. A declaração da annotation citada não é obrigatória, mas sim uma boa prática usá-la. Ex:
+@FunctionalInterface
+interface Figura2D {
+	void desenha(Double largura, Double altura);
+	
+}
+
+Exemplos de interfaces funcionais trazidas pelo Java 8:
+Function, Supplier, Consumer, Predicate,...
+(obs: antes do java 8 já haviam interfaces funcionais no Java - ex: Runnable (com seu único método abstrato run()), Callable (com seu único método abstrato call()), Comparable (com seu único método abstrato comparteTo()), ... 
+
+Pode-se usar lambda expression em todos lugares que usam interface funcional.
+
+*** Interfaces funcionais permitem sua implementação através de lambda expressions ou method references
+**** Exemplo de implementação de interface funcional à partir de uma lambda expression
+//Functional interface
+interface Figura2D {
+	void desenha(Double largura, Double altura);
+}
+...
+
+public static void main(String[] args) {
+//Lambda expression. A linha abaixo implementa o método abstrato "desenha" da classe Figura2D
+		Figura2D fig1 = (l, a) -> System.out.println("Desenha retângulo de Largura: " + l + " e Altura: " + a);
+		//Atentar que na linha abaixo é chamado o método declarado na linha cima chamando o nome do método declarado na interface Figura2D
+		fig1.desenha(8.0, 1.5);
+*** Abaixo exemplos tanto de implementações de métodos funcionais como uso de method reference (para saber mais sobre "Method Reference" ver tópico na seção Java 8 abaixo)
+**** Exemplo de implementação de interface funcional à partir de um objeto
+O método da interface será 
+//Functional interface
+interface Figura2D {
+	void desenha(Double largura, Double altura);
+}
+
+//Observe que a classe Retângulo não está implementando a interface Figura
+class Retangulo {
+	
+	public void desenhaRetangulo(Double largura, Double altura) {
+		System.out.println("Desenha retângulo de Largura: " + largura + " e Altura: " + altura);
+	}
+}
+...
+public static void main(String[] args) {
+		//Objeto específico
+		Retangulo ret = new Retangulo();
+		/*Method reference 
+		* Referência a um método de instância (desenhaRetangulo) de um objeto particular (ret)
+		*/
+		Figura2D fig2 = ret::desenhaRetangulo; // O método da interface será referenciado por um método de instância de um objeto particular  (que é o ret)
+				
+		fig2.desenha(10.5, 7.0);
+**** implementação à partir de método estático
+class Produto {
+	private String nome;
+	private Double preco;
+	
+...
+
+
+class Impressora {
+	public static void imprime(Produto p) {
+		System.out.println(p.getNome() + " = " + p.getPreco());
+	}
+}
+
+...	
+	public static void main(String[] args) {
+		
+		List<Produto> lista = new ArrayList<>();
+		
+		lista.add(new Produto("TV 42'", 2000.00));
+		lista.add(new Produto("Geladeira 470L'", 3200.00));
+		lista.add(new Produto("Fogão 4 bocas", 900.00));
+		lista.add(new Produto("Videogame", 1999.00));
+		lista.add(new Produto("Microondas", 550.00));
+		
+		/*Method reference 
+		* Referência a um método estático (imprime)
+		*/
+		lista.forEach(Impressora::imprime);
+		
+	}
+**** Referência a um método de instância (imprime) de um objeto arbitrário, a partir de um tipo específico (uma classe específica)
+class Produto {
+	private String nome;
+	private Double preco;
+ 	...	
+	public void imprime() { //Obs: atentar que em relação ao caso de cima, aqui o método não tem o parâmetro "Produto p". Já está no próprio objeto
+		System.out.println(nome + " = " + preco);
+	}
+}	
+...
+public static void main(String[] args) {
+		
+		List<Produto> lista = new ArrayList<>();
+		
+		lista.add(new Produto("TV 42'", 2000.00));
+		lista.add(new Produto("Geladeira 470L'", 3200.00));
+		lista.add(new Produto("Fogão 4 bocas", 900.00));
+		lista.add(new Produto("Videogame", 1999.00));
+		lista.add(new Produto("Microondas", 550.00));
+		
+		/*Method reference 
+		* Referência a um método de instância (imprime) de um objeto arbitrário (?) a partir de um tipo específico (uma classe específica = Produto)
+		*/
+		lista.forEach(Produto::imprime);
+
+**** Implementação à partir de um construtor
+exemplo de caso de uso: padrão de projetos Factory Method
+
+//Functional interface
+interface Figura2D {
+	Retangulo desenha(Double largura, Double altura);
+}
+
+class Retangulo {
+	
+	public Retangulo(Double largura, Double altura) {
+		System.out.println("Desenha retângulo de Largura: " + largura + " e Altura: " + altura);
+	}
+}
+
+public class MethodReferencesExemplo04 {
+
+	public static void main(String[] args) {
+		
+		/*Method reference 
+		* Referência a um construtor
+		*/
+		Figura2D fig1 = Retangulo::new; // O tipo de tipo do retorno do método da interface funcional deve ser do mesmo tipo do da classe que terá seu construtor referênciado
+		
+		fig1.desenha(10.5, 7.0); //chama o construtor da classe Retangulo
+
+	}
+
+}
+* java 8
+** Operador method reference
+Foi adicionado no Java 8.
+Operador Method Reference é o "::" é usado para separa a (classe ou objeto) do método referênciado.
+como o próprio nome diz ele é usado para fazer referência:
+*** exemplos de conversão entre method reference x lambda expression
+**** a um método de instância de um objeto particular
+Lambda Expression Syntax:  (arg) -> instância.metodo(arg)
+Method Reference Syntax: instância::método
+**** a um método estático
+Lambda Expression Syntax:  (arg) -> Classe.método_estático(arg)
+Method Reference Syntax: Classe::método_estático
+**** a um método de instância de um objeto arbitrário a partir do tipo específico (uma classe específica)
+Lambda Expression Syntax:  (obj) -> obj.metodo()
+Method Reference Syntax: Classe::método
+**** a um construtor
+Lambda Expression Syntax:  () -> new Classe()
+Method Reference Syntax: Classe::new
+*** Quando utilizar o método reference?
+Ao invés de utilizar classe anônima para implementar interfaces funcionais: opte pelo uso
+de lambda expression. Porém se a lambda expression não envolver o uso de múltiplos métodos, opte
+pelo uso de Method Reference para obter um código mais conciso.
+*** Obs
+Assim como lambda expressions, method reference também está relacionado a interfaces funcionais.									
+** Streams
+Streams são pipelines.
+A ideia que do pipeline é que a saída de uma operação é a entrada da próxima.
+Obs: pode-se chamar também de pipelines os que processam operações em paralelo.
+
+*** Obs: conteúdo "pescado" da documentação da Oracle citado pelo professor da Udemy
+		listaProdutos.stream()
+*** 		.filter(p -> p.getNome().contains("Geladeira"))
+		//Interface Predicate - filtrar os nomes dos produtos que contém 'Geladeira'		
+
+Oracle traz:
+@FunctionalInterface
+public interface Predicate<T>
+Represents a predicate (boolean-valued function) of one argument.
+This is a functional interface whose functional method is test(Object).
+	test(T t)
+	retorno: boolean
+	Evaluates this predicate on the given argument.
+*** 		.sorted((p1, p2) -> p1.getPreco().compareTo(p2.getPreco()))
+		//Interface Comparator - ordenar o preço em ordem crescente de acordo com a implemetação da classe OrdenaProdutoPorPreco 
+
+Oracle traz:
+@FunctionalInterface
+public interface Comparator<T>
+A comparison function, which imposes a total ordering on some collection of objects. Comparators can be passed to a sort method (such as Collections.sort or Arrays.sort) to allow precise control over the sort order. Comparators can also be used to control the order of certain data structures (such as sorted sets or sorted maps), or to provide an ordering for collections of objects that don't have a natural ordering.
+	Functional Interface:
+	compare(T o1, T o2)
+	int
+Compares its two arguments for order.
+
+*** 		.map(p -> p.getNome().toUpperCase())
+		//Interface Function - aplicar uma dada função (toUpperCase) aos elementos dessa stream
+
+Oracle traz:
+@FunctionalInterface
+public interface Function<T,R>
+Represents a function that accepts one argument and produces a result.
+This is a functional interface whose functional method is apply(Object).
+	apply(T t)
+	retorno: R
+Applies this function to the given argument.
+
+O que entendi do curso e do material acima: map é uma interface que pega os elementos que chegam até ele pelo pipeline e executa uma ação em cada um desses elementos.
+
+*** 		.forEach(System.out::println);
+		//Interface Consumer - percorrer cada elemento da stream e exibi-los no console 
+
+Oracle traz:
+@FunctionalInterface
+public interface Consumer<T>
+Represents an operation that accepts a single input argument and returns no result. Unlike most other functional interfaces, Consumer is expected to operate via side-effects.
+This is a functional interface whose functional method is accept(Object).
+	accept(T t)
+retorno: void
+Performs this operation on the given argument.
+
+** Base64
+Oferece métodos estáticos para codificar e decodificar caracteres.
+Transmissão de dados binários através de meio que enviam apenas texto. Caso contrários os 0's e 1's poderiam ser entendidos como dados especiais ou de comandos propriamente relativos à transmissão.
+
+*** exemplo
+		try{
+			
+			final String textoOriginal = "A classe Base64 no Java 8!";
+			System.out.println( "Mensagem original: " + textoOriginal );
+			
+	        String textoCodificado = Base64.getEncoder().encodeToString( textoOriginal.getBytes("utf-8") );
+	        System.out.println( "Mensagem codificada: " + textoCodificado );
+	        
+	        String textoDecodificado = new String( Base64.getDecoder().decode( textoCodificado ), "utf-8");
+	        System.out.println( "Mensagem decodificada: " + textoDecodificado );
+	        
+		}
+		catch(Exception e){
+				
+		}
+*** observação importante a respeito do exemplo acima
+foram utilizados os métodos para codificar/decodificar sequência de caracteres (alfabeto) no exemplo acima:
+Base64.getEncoder().encodeToString()
+Base64.getDecoder().decode
+
+se fossemos fazer essas mesmas operações para URL, deveríamos usar:
+Base64.getUrlEncoder().encodeToString()
+Base64.getUrlDecoder().decode()
+
+se fossemos fazer essas mesmas operações para dados tipo MIME, deveríamos usar:
+Base64.getMimeEncoder().encodeToString()
+Base64.getMimeDecoder().decode()
+** StringJoiner
+Enquanto a classe StringTokenizer do Java 1 quebra uma string segundo um delimitador, o StringJoiner os agrupa novamente adicionando um delimitador.
+		String nomes = " João, Pedro, Maria, Ana, Paulo";
+		
+		StringTokenizer st = new StringTokenizer(nomes, ",");
+
+		while(st.hasMoreTokens()){
+			System.out.println(st.nextToken());
+		}
+		
+		/****************************************************/
+		
+		StringJoiner sj = new StringJoiner(", ");
+		
+		sj.add("João");
+		sj.add("Pedro");
+		sj.add("Maria");
+		sj.add("Ana");
+		sj.add("Paulo");
+		
+		System.out.println(sj);
+** Optional
+** Javascript Nashorn
+Permite executar comandos Javascript dentro do aplicativo Java.
+Permite modificar parte da lógica do javascript sem recompilar.
+Interoperabilidade (AP: o professor mencionou que é possível fazer o javascript acessar métodos do java, e vice-versa)
+*** arquivo "olamundo.js"
+var saudacao = "Ola Mundo!";
+
+print(saudacao + goodbye);
+*** arquivo java
+	public static void main(String[] args) {
+		
+		ScriptEngine ee = new ScriptEngineManager().getEngineByName("Nashorn");
+		
+		Bindings bind = ee.getBindings(ScriptContext.ENGINE_SCOPE); //Não é estritamente necessário, mas permite setar valor de variáveis do javascript, como mostrado no comando abaixo
+		
+		bind.put("goodbye", " Até logo!!!");
+		
+		try {
+			ee.eval(new FileReader("olamundo.js"));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+
+}
+** Parallel Array Sorting
+ordena os elementos de um array
+para poucos elementos a serem ordenados TALVEZ seja melhor ordenar sem ser paralelo - tudo depende da máquina e do caso - o professor da udemy mostrou um exemplo de ordenação de 602 números double onde a ordenação simples não paralela era mais rápida que a tradicional ordenação serial Arrays.sort()
+*** código de exemplo
+		int[] meu_array = {5, 8, 1, 0, 6, 9, 50, -3};
+		
+		for(int i : meu_array) {
+			System.out.print(i + " ");
+		}
+		
+		/*****************************************************/
+		Arrays.parallelSort(meu_array);		
+		
+		System.out.println();
+		
+		for(int i : meu_array) {
+			System.out.print(i + " ");
+		}
+*** obs
+caso usássemos:
+		Arrays.parallelSort(meu_array, 0, 5);
+ordenaria do primeiro elemento inclusivo, até o último elemento exclusivo.
+** Inferência de tipos
+*** class ImprimeProdutos {
+	
+	public static void imprime(List<Produto> lista) {
+		if(!lista.isEmpty()) {
+			lista.forEach(p -> System.out.println(p.getNome()));
+		}
+		else {
+			System.out.println("Lista vazia");
+		}
+	}
+}
+
+*** Método main()
+//Inferência de tipo na chamada ao método especializado imprime da classe ImprimeProdutos
+		ImprimeProdutos.imprime(new ArrayList<>()); //Passou a não ser mais necessário escrever new ArrayList<Produto> aqui, ele entende que é uma lista de Produto's  olhando o parâmetro do método "imprime".
+
+
+** Reflexão de métodos e parâmetros
+Para que serve: obter informações sobre métodos e parâmetros de uma classe ou de uma instância em tempo de execução.
+Pode também modificar o outro código. Seu uso indevido pode acarretar risco à segurança do código e violação dos conceitos de orientação a objetos.
+
+exemplo de uso: construção de um debugger
+*** código
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
+class Produto {
+	private String nome;
+	private Double preco;
+	
+	public Produto(String nome, Double preco) {
+		this.nome = nome;
+		this.preco = preco;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public Double getPreco() {
+		return preco;
+	}
+
+	public void setPreco(Double preco) {
+		this.preco = preco;
+	}
+}
+
+public class ReflexaoExemplo {
+
+	public static void main(String[] args) {
+		
+		//Instância da classe Produto
+		Produto p = new Produto("Geladeira", 3000.00);
+		
+		//Instância da classe Class
+		Class<? extends Produto> cl = p.getClass();
+		
+		//Todos os métodos declarados na classe Produto
+		Method[] method = cl.getDeclaredMethods();
+		
+		for(Method m : method) {
+			System.out.println(m.getName());
+			
+			//Parâmetros do método
+			Parameter[] parameter = m.getParameters();
+			
+			for(Parameter pr : parameter) {
+				System.out.println(pr);
+			}
+		}
+		
+		
+	}
+
+}
+*** saída do console do código acima
+getNome
+setNome
+java.lang.String arg0
+getPreco
+setPreco
+java.lang.Double arg0
+** Novas anotações (annotations)
+As annotations existem desde o java 5, o que foi adicionado no java 8 foi a possibilidade de repetir uma mesma annotation, como nesse exemplo foram acrescentadas 2 voltagens em cima da classe Produto:
+	@Voltagem(tensao = "110")
+	@Voltagem(tensao = "220")
+além disso:
+Antes do Java 8, as anotações eram aplicadas apenas às declarações, ou seja, em cima das classes, interfaces, atributos e métodos. A partir do Java 8, é possível usar anotações em muitas outras diferentes partes do código. (Obs: ver imagens na pasta do documento org).
+*** exemplo de código 
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+//Anotação customizada e que pode ser repetida no código
+@Repeatable(Voltagens.class) 
+@interface Voltagem{
+	String tensao();
+}
+
+//Container da anotação Voltagem
+@Retention(RetentionPolicy.RUNTIME)  
+@interface Voltagens{
+	Voltagem[] value();
+}
+
+//Repetindo a anotção
+@Voltagem(tensao = "110")
+@Voltagem(tensao = "220")
+class Produto {
+	private String nome;
+	private Double preco;
+	
+	public Produto(String nome, Double preco) {
+		this.nome = nome;
+		this.preco = preco;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public Double getPreco() {
+		return preco;
+	}
+
+	public void setPreco(Double preco) {
+		this.preco = preco;
+	}
+}
+
+
+public class AnnotationsExemplo {
+
+	public static void main(String[] args) {
+		//Obter os tipos de anotações
+		Voltagem[] volts = Produto.class.getAnnotationsByType(Voltagem.class);  
+		
+        for (Voltagem v : volts) {    // Iterating values  
+            System.out.println(v.tensao());  
+        }  
+	}
+
+}
+* java 9
+** Sistema de módulos (Projeto Jigsaw)
+**

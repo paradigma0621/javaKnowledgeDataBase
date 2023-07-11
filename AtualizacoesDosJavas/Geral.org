@@ -1,9 +1,22 @@
+
+
 * JDK_7
 https://loiane.com/2011/07/novidades-java-7-project-coin/
 https://github.com/loiane/Java7HelloWorld
 * JDK_8
 fonte: https://www.digitalocean.com/community/tutorials/java-8-features-with-examples
-	
+** Quick View
+Some of the important Java 8 features are;
+
+forEach() method in Iterable interface
+default and static methods in Interfaces
+Functional Interfaces and Lambda Expressions
+Java Stream API for Bulk Data Operations on Collections
+Java Time API
+Collection API improvements
+Concurrency API improvements
+Java IO improvements
+Let’s have a brief look on these Java 8 features. I will provide some code snippets for better understanding the features in a simple way.
 ** 1. forEach() method in Iterable interface
 Whenever we need to traverse through a Collection, we need to create an Iterator whose whole purpose is to iterate over, and then we have business logic in a loop for each of the elements in the Collection. We might get ConcurrentModificationException if the iterator is not used properly.
 
@@ -162,6 +175,47 @@ So lambda expressions are a means to create anonymous classes of functional inte
 A new package java.util.function has been added with bunch of functional interfaces to provide target types for lambda expressions and method references. Lambda expressions are a huge topic, I will write a separate article on that in the future.
 
 You can read complete tutorial at Java 8 Lambda Expressions Tutorial.
+*** material de sort usando lambda que tirei da page da Loiane
+#+BEGIN_SRC markdown
+## Lambda expressions
+
+Let's start with a simple example of how to sort a list of strings in prior versions of Java:
+
+```java
+List<String> names = Arrays.asList("peter", "anna", "mike", "xenia");
+
+Collections.sort(names, new Comparator<String>() {
+    @Override
+    public int compare(String a, String b) {
+        return b.compareTo(a);
+    }
+});
+```
+
+The static utility method `Collections.sort` accepts a list and a comparator in order to sort the elements of the given list. You often find yourself creating anonymous comparators and pass them to the sort method.
+
+Instead of creating anonymous objects all day long, Java 8 comes with a much shorter syntax, **lambda expressions**:
+
+```java
+Collections.sort(names, (String a, String b) -> {
+    return b.compareTo(a);
+});
+```
+
+As you can see the code is much shorter and easier to read. But it gets even shorter:
+
+```java
+Collections.sort(names, (String a, String b) -> b.compareTo(a));
+```
+
+For one line method bodies you can skip both the braces `{}` and the `return` keyword. But it gets even shorter:
+
+```java
+names.sort((a, b) -> b.compareTo(a));
+```
+
+List now has a `sort` method. Also the java compiler is aware of the parameter types so you can skip them as well. Let's dive deeper into how lambda expressions can be used in the wild.
+#+END_SRC
 ** 4. Java Stream API for Bulk Data Operations on Collections
 A new java.util.stream has been added in Java 8 to perform filter/map/reduce like operations with the collection. Stream API will allow sequential as well as parallel execution. This is one of the best features for me because I work a lot with Collections and usually with Big Data, we need to filter out them based on some conditions.
 
@@ -248,6 +302,258 @@ Some IO improvements known to me are:
 - Files.lines(Path path) that reads all lines from a file as a Stream.
 - Files.find() that returns a Stream that is lazily populated with Path by searching for files in a file tree rooted at a given starting file.
 - BufferedReader.lines() that return a Stream, the elements of which are lines read from this BufferedReader.
+** Site que a Loiane mencionou
+*** Method and Constructor References
+#+BEGIN_SRC markdown
+The above example code can be further simplified by utilizing static method references:
+
+```java
+Converter<String, Integer> converter = Integer::valueOf;
+Integer converted = converter.convert("123");
+System.out.println(converted);   // 123
+```
+
+Java 8 enables you to pass references of methods or constructors via the `::` keyword. The above example shows how to reference a static method. But we can also reference object methods:
+
+```java
+class Something {
+    String startsWith(String s) {
+        return String.valueOf(s.charAt(0));
+    }
+}
+```
+
+```java
+Something something = new Something();
+Converter<String, String> converter = something::startsWith;
+String converted = converter.convert("Java");
+System.out.println(converted);    // "J"
+```
+
+
+Next we specify a person factory interface to be used for creating new persons:
+
+```java
+interface PersonFactory<P extends Person> {
+    P create(String firstName, String lastName);
+}
+```
+
+Instead of implementing the factory manually, we glue everything together via constructor references:
+
+```java
+PersonFactory<Person> personFactory = Person::new;
+Person person = personFactory.create("Peter", "Parker");
+```
+
+We create a reference to the Person constructor via `Person::new`. The Java compiler automatically chooses the right constructor by matching the signature of `PersonFactory.create`.
+
+#+END_SRC
+
+*** Lambda Scopes
+#+BEGIN_SRC markdown
+Accessing outer scope variables from lambda expressions is very similar to anonymous objects. You can access final variables from the local outer scope as well as instance fields and static variables.
+
+### Accessing local variables
+
+We can read final local variables from the outer scope of lambda expressions:
+
+```java
+final int num = 1;
+Converter<Integer, String> stringConverter =
+        (from) -> String.valueOf(from + num);
+
+stringConverter.convert(2);     // 3
+```
+
+But different to anonymous objects the variable `num` does not have to be declared final. This code is also valid:
+
+```java
+int num = 1;
+Converter<Integer, String> stringConverter =
+        (from) -> String.valueOf(from + num);
+
+stringConverter.convert(2);     // 3
+```
+
+However `num` must be implicitly final for the code to compile. The following code does **not** compile:
+
+```java
+int num = 1;
+Converter<Integer, String> stringConverter =
+        (from) -> String.valueOf(from + num);
+num = 3;
+```
+
+Writing to `num` from within the lambda expression is also prohibited.
+ 
+### Accessing fields and static variables
+
+In contrast to local variables, we have both read and write access to instance fields and static variables from within lambda expressions. This behaviour is well known from anonymous objects.
+
+```java
+class Lambda4 {
+    static int outerStaticNum;
+    int outerNum;
+
+    void testScopes() {
+        Converter<Integer, String> stringConverter1 = (from) -> {
+            outerNum = 23;
+            return String.valueOf(from);
+        };
+
+        Converter<Integer, String> stringConverter2 = (from) -> {
+            outerStaticNum = 72;
+            return String.valueOf(from);
+        };
+    }
+}
+```
+
+### Accessing Default Interface Methods
+
+Remember the formula example from the first section? Interface `Formula` defines a default method `sqrt` which can be accessed from each formula instance including anonymous objects. This does not work with lambda expressions.
+
+Default methods **cannot** be accessed from within lambda expressions. The following code does not compile:
+
+```java
+Formula formula = (a) -> sqrt(a * 100);
+```
+#+END_SRC
+
+*** Trabalhando com tempo (data/hora)
+#+BEGIN_SRC markdown
+### Clock
+
+Clock provides access to the current date and time. Clocks are aware of a timezone and may be used instead of `System.currentTimeMillis()` to retrieve the current time in milliseconds since Unix EPOCH. Such an instantaneous point on the time-line is also represented by the class `Instant`. Instants can be used to create legacy `java.util.Date` objects.
+
+```java
+Clock clock = Clock.systemDefaultZone();
+long millis = clock.millis();
+
+Instant instant = clock.instant();
+Date legacyDate = Date.from(instant);   // legacy java.util.Date
+```
+
+### Timezones
+
+Timezones are represented by a `ZoneId`. They can easily be accessed via static factory methods. Timezones define the offsets which are important to convert between instants and local dates and times.
+
+```java
+System.out.println(ZoneId.getAvailableZoneIds());
+// prints all available timezone ids
+
+ZoneId zone1 = ZoneId.of("Europe/Berlin");
+ZoneId zone2 = ZoneId.of("Brazil/East");
+System.out.println(zone1.getRules());
+System.out.println(zone2.getRules());
+
+// ZoneRules[currentStandardOffset=+01:00]
+// ZoneRules[currentStandardOffset=-03:00]
+a```
+
+### LocalTime
+
+LocalTime represents a time without a timezone, e.g. 10pm or 17:30:15. The following example creates two local times for the timezones defined above. Then we compare both times and calculate the difference in hours and minutes between both times.
+
+```java
+LocalTime now1 = LocalTime.now(zone1);
+LocalTime now2 = LocalTime.now(zone2);
+
+System.out.println(now1.isBefore(now2));  // false
+
+long hoursBetween = ChronoUnit.HOURS.between(now1, now2);
+long minutesBetween = ChronoUnit.MINUTES.between(now1, now2);
+
+System.out.println(hoursBetween);       // -3
+System.out.println(minutesBetween);     // -239
+```
+
+LocalTime comes with various factory methods to simplify the creation of new instances, including parsing of time strings.
+
+```java
+LocalTime late = LocalTime.of(23, 59, 59);
+System.out.println(late);       // 23:59:59
+
+DateTimeFormatter germanFormatter =
+    DateTimeFormatter
+        .ofLocalizedTime(FormatStyle.SHORT)
+        .withLocale(Locale.GERMAN);
+
+LocalTime leetTime = LocalTime.parse("13:37", germanFormatter);
+System.out.println(leetTime);   // 13:37
+```
+
+### LocalDate
+
+LocalDate represents a distinct date, e.g. 2014-03-11. It's immutable and works exactly analog to LocalTime. The sample demonstrates how to calculate new dates by adding or subtracting days, months or years. Keep in mind that each manipulation returns a new instance.
+
+```java
+LocalDate today = LocalDate.now();
+LocalDate tomorrow = today.plus(1, ChronoUnit.DAYS);
+LocalDate yesterday = tomorrow.minusDays(2);
+
+LocalDate independenceDay = LocalDate.of(2014, Month.JULY, 4);
+DayOfWeek dayOfWeek = independenceDay.getDayOfWeek();
+System.out.println(dayOfWeek);    // FRIDAY
+```
+
+Parsing a LocalDate from a string is just as simple as parsing a LocalTime:
+
+```java
+DateTimeFormatter germanFormatter =
+    DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(Locale.GERMAN);
+
+LocalDate xmas = LocalDate.parse("24.12.2014", germanFormatter);
+System.out.println(xmas);   // 2014-12-24
+```
+
+### LocalDateTime
+
+LocalDateTime represents a date-time. It combines date and time as seen in the above sections into one instance. `LocalDateTime` is immutable and works similar to LocalTime and LocalDate. We can utilize methods for retrieving certain fields from a date-time:
+
+```java
+LocalDateTime sylvester = LocalDateTime.of(2014, Month.DECEMBER, 31, 23, 59, 59);
+
+DayOfWeek dayOfWeek = sylvester.getDayOfWeek();
+System.out.println(dayOfWeek);      // WEDNESDAY
+
+Month month = sylvester.getMonth();
+System.out.println(month);          // DECEMBER
+
+long minuteOfDay = sylvester.getLong(ChronoField.MINUTE_OF_DAY);
+System.out.println(minuteOfDay);    // 1439
+```
+
+With the additional information of a timezone it can be converted to an instant. Instants can easily be converted to legacy dates of type `java.util.Date`.
+
+```java
+Instant instant = sylvester
+        .atZone(ZoneId.systemDefault())
+        .toInstant();
+
+Date legacyDate = Date.from(instant);
+System.out.println(legacyDate);     // Wed Dec 31 23:59:59 CET 2014
+```
+
+Formatting date-times works just like formatting dates or times. Instead of using pre-defined formats we can create formatters from custom patterns.
+
+```java
+DateTimeFormatter formatter =
+    DateTimeFormatter
+        .ofPattern("MMM dd, yyyy - HH:mm");
+
+LocalDateTime parsed = LocalDateTime.parse("Nov 03, 2014 - 07:13", formatter);
+String string = formatter.format(parsed);
+System.out.println(string);     // Nov 03, 2014 - 07:13
+```
+
+Unlike `java.text.NumberFormat` the new `DateTimeFormatter` is immutable and **thread-safe**.
+
+For details on the pattern syntax read [here](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html).
+#+END_SRC
 ** Miscellaneous Java 8 Core API improvements
 Some miscellaneous API improvements that might come handy are:
 
@@ -266,7 +572,24 @@ Some miscellaneous API improvements that might come handy are:
 ** fontes de onde tirei o conteúdo dessa seção "* JDK_9"
 https://www.digitalocean.com/community/tutorials/java-9-features-with-examples
 https://www.pluralsight.com/blog/software-development/java-9-new-features
+** Quick View
+Some of the important java 9 features are;
 
+Java 9 REPL (JShell)
+Factory Methods for Immutable List, Set, Map and Map.Entry
+Private methods in Interfaces
+Java 9 Module System
+Process API Improvements
+Try With Resources Improvement
+CompletableFuture API Improvements
+Reactive Streams
+Diamond Operator for Anonymous Inner Class
+Optional Class Improvements
+Stream API Improvements
+Enhanced @Deprecated annotation
+HTTP 2 Client
+Multi-Resolution Image API
+Miscellaneous Java 9 Features
 ** 1 Java 9 REPL (JShell) (REPL = Read-Evaluate-Print-Loop)
 Let’s first try to understand why REPL support was added in Java, if it was that important then why in so late release. As you know, Scala has become very popular to develop from small to large-scale applications because of it’s features and advantages. It supports multi-paradigm (Object-Oriented and Functional Programming) and REPL. Oracle Corporation is trying to integrate most of Scala features into Java. They have already integrated some functional programming features as part of Java 8, such as lambda expressions. Scala’s one of the best features is REPL (Read-Evaluate-Print-Loop). It’s a command line interface and Scala Interpreter to execute Scala programs. It’s very easy to use Scala REPL to learn basics of scala programming and even run small test code. Because of Scala REPL and it’s benefits in reducing the learning curve and ease of running test code, Java REPL got introduced in java 9.
 
@@ -284,6 +607,9 @@ a ==> 10
 jshell> System.out.println("a value = " + a )
 a value = 10
 If you want to know more about REPL tool, Please go through Java 9 REPL Basics (Part-1) and Java 9 REPL Features (Part-2).
+
+*** AP
+o JShell tem auto-complete - basta apertar TAB.
 *** Abaixo citações de outro site sobre mesmo assunto:3. JShell: the interactive Java REPL  (fonte:  https://www.pluralsight.com/blog/software-development/java-9-new-features ) 
 
 Many languages already feature an interactive Read-Eval-Print-Loop, and Java now joins this club. You can launch jshell from the console and directly start typing and executing Java code. The immediate feedback of jshell makes it a great tool to explore APIs and try out language features.
@@ -541,14 +867,20 @@ I will pickup these java 9 features one by one and update them with enough descr
 When you have modules with explicit dependencies, and a modularized JDK, new possibilities arise. Your application modules now state their dependencies on other application modules and on the modules it uses from the JDK. Why not use that information to create a minimal runtime environment, containing just those modules necessary to run your application? That's made possible with the new jlink tool in Java 9. Instead of shipping your app with a fully loaded JDK installation, you can create a minimal runtime image optimized for your application.
 
 * JDK_10
-*** novidades trazidas
-melhor site: https://www.journaldev.com/20395/java-10-features
-	
-*** workshop (repeteco da do JDK_9)
-https://github.com/loiane/java_9_10_workshop
-  
+** fontes
+https://www.journaldev.com/20395/java-10-features
 ** Time-Based Release Versioning (JEP 322)
-With the adoption of the time-based release cycle, Oracle changed the version-string scheme of the Java SE Platform and the JDK, and related versioning information, for present and future time-based release models. The new pattern of the Version number is: $FEATURE.$INTERIM.$UPDATE.$PATCH $FEATURE: counter will be incremented every 6 months and will be based on feature release versions, e.g: JDK 10, JDK 11. $INTERIM: counter will be incremented for non-feature releases that contain compatible bug fixes and enhancements but no incompatible changes. Usually, this will be zero, as there will be no interim release in a six month period. This kept for a future revision to the release model. $UPDATE: counter will be incremented for compatible update releases that fix security issues, regressions, and bugs in newer features. This is updated one month after the feature release and every 3 months thereafter. The April 2018 release is JDK 10.0.1, the July release is JDK 10.0.2, and so forth $PATCH: counter will be incremented for an emergency release to fix a critical issue. New API’s have been added to get these counter values programmatically. Let’s take a look;
+With the adoption of the time-based release cycle, Oracle changed the version-string scheme of the Java SE Platform and the JDK, and related versioning information, for present and future time-based release models. The new pattern of the Version number is: $FEATURE.$INTERIM.$UPDATE.$PATCH 
+
+$FEATURE: counter will be incremented every 6 months and will be based on feature release versions, e.g: JDK 10, JDK 11. 
+
+$INTERIM: counter will be incremented for non-feature releases that contain compatible bug fixes and enhancements but no incompatible changes. Usually, this will be zero, as there will be no interim release in a six month period. This kept for a future revision to the release model.
+
+$UPDATE: counter will be incremented for compatible update releases that fix security issues, regressions, and bugs in newer features. This is updated one month after the feature release and every 3 months thereafter. The April 2018 release is JDK 10.0.1, the July release is JDK 10.0.2, and so forth 
+
+$PATCH: counter will be incremented for an emergency release to fix a critical issue. New API’s have been added to get these counter values programmatically.
+
+aLet’s take a look;
        Version version = Runtime.version();
        version.feature();
        version.interim();
@@ -560,8 +892,9 @@ Now, let us take a look at Java launcher which returns the version information:
        java version "10" 2018-03-20
        Java(TM) SE Runtime Environment 18.3 (build 10+46)
        Java HotSpot(TM) 64-Bit Server VM 18.3 (build 10+46, mixed mode)
-The version number format is “10” as there’s no other counter which is other than zero. The date of release is added. 18.3 can be read as the Year 2018 & 3rd Month, build 10+46 is 46th build for version 10. For a hypothetical build 93 of JDK 10.0.1, the build will be 10.0.1+939. ### Local-Variable Type Inference (JEP 286)
+The version number format is “10” as there’s no other counter which is other than zero. The date of release is added. 18.3 can be read as the Year 2018 & 3rd Month, build 10+46 is 46th build for version 10. For a hypothetical build 93 of JDK 10.0.1, the build will be 10.0.1+93
 
+** 9. ### Local-Variable Type Inference (JEP 286)
 Local-Variable Type Inference is the biggest new feature in Java 10 for developers. It adds type inference to declarations of local variables with initializers. Local type inference can be used only in the following scenarios:
     - Limited only to Local Variable with initializer
     - Indexes of enhanced for loop or indexes
@@ -569,7 +902,7 @@ Local-Variable Type Inference is the biggest new feature in Java 10 for develope
 
 Let’s take a look at its usage:
 
-var numbers = List.of(1, 2, 3, 4, 5); // inferred value ArrayList<String>
+var numbers = List.of(1, 2, 3, 4, 5);
 // Index of Enhanced For Loop
 for (var number : numbers) {
 	System.out.println(number);
@@ -579,10 +912,1210 @@ for (var i = 0; i < numbers.size(); i++) {
 	System.out.println(numbers.get(i));
 }
 
+** 13. ### Experimental Java-Based JIT Compiler (JEP 317)
 
-* Java 11:
-https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
-https://www.zup.com.br/blog/java-11-principais-novidades
+This feature enables the Java-based JIT compiler, Graal, to be used as an experimental JIT compiler on the Linux/x64 platform. This is by far the most futuristic inclusion in the Java 10 feature list. Graal was introduced in Java 9. It’s an alternative to the JIT compiler which we have been used to. It’s a plugin to the JVM, which means that the JIT compiler is not tied to JVM and it can be dynamically plugged in and replaced with any another plugin which JVMCI compliant (Java-Level JVM Compiler Interface). It also brings Ahead of Time (AOT) compilation in java world. It also supports polyglot language interpretation. “A Java-based Just in Time Compiler written in Java to convert the java bytecode to machine code.” Is it confusing? If JVM is written in Java, then don’t you need a JVM to run the JVM? The JVM can be compiled AOT and then JIT compiler can be used within JVM it for enhancing performance through live code optimization. Graal is a complete rewrite of the JIT compiler in Java from scratch. Previous JIT compiler was written in c++. It’s considered one for the final stage of evolution for any programming language. You can switch to Graal with following jvm parameters:
+
+-XX:+UnlockExperimentalVMOptions -XX:+UseJVMCICompiler
+You can learn more about Graal from Chris Seaton presentation: https://chrisseaton.com/truffleruby/jokerconf17/
+
+** 16. ### Application Class-Data Sharing (JEP 310)
+This feature helps in improving the startup footprint, extends the existing Class-Data Sharing (“CDS”) feature to allow application classes to be placed in the shared archive. JVM while starting performs some preliminary steps, one of which is loading classes in memory. If there are several jars having multiple classes, then the lag in the first request is clearly visible. This becomes an issue with serverless architecture, where the boot time is critical. In order to bring down application startup time, Application class-data sharing can be used. The idea is to reduce footprint by sharing common class metadata across different Java processes. This can be achieved by the following 3 steps: 
+*** Determining the classes to archive: Use the java launcher to create a list of files to archive, this can be achieved by the following parameters:
+
+$java -Xshare:off -XX:+UseAppCDS -XX:DumpLoadedClassList=hello.lst -cp hello.jar HelloWorld
+
+*** Creating the AppCDS archive: Use java launcher to create the archive of the list of files to be used for Application CDS, this can be achieved by following parameters:
+
+$java -Xshare:dump -XX:+UseAppCDS -XX:SharedClassListFile=hello.lst -XX:SharedArchiveFile=hello.jsa -cp hello.jar
+
+*** Using the AppCDS archive: Use Java launcher with the following parameters to use Application CDS.
+
+$java -Xshare:on -XX:+UseAppCDS -XX:SharedArchiveFile=hello.jsa -cp hello.jar HelloWorld
+** 23. Parallel Full GC for G1 (JEP 307)
+G1 garbage collector was made default in JDK 9. G1 Garbage collector avoids any full garbage collection, but when concurrent threads for collection cannot revive the memory fast enough users experience is impacted. This change improves the G1 worst-case latency by making the full GC parallel. The mark-sweep-compact algorithm from G1 collector is parallelized as part of this change and will be triggered when concurrent threads for collection can’t revive the memory fast enough.
+
+** 25. ### Garbage-Collector Interface (JEP 304)
+
+This JEP is futuristic change. It improves the code isolation of different garbage collectors by introducing a common Garbage Collector Interface. This change provides better modularity to the Internal GC Code. It will help in the future for adding new GC without changing existing codebase, also help in removing or housekeeping of the previous GC.
+
+** 26. ### Additional Unicode Language-Tag Extensions (JEP 314)
+
+This feature enhances java.util.Locale and related APIs to implement additional Unicode extensions of BCP 47 language tags. As of Java SE 9, the supported BCP 47 U language-tag extensions are “ca” and “nu”. This JEP will add support for the following additional extensions:
+
+cu (currency type)
+fw (first day of week)
+rg (region override)
+tz (time zone)
+In order to support these additional extensions, changes are made to various APIs to provide information based on U or additional extensions.
+
+java.text.DateFormat::get*Instance
+java.text.DateFormatSymbols::getInstance
+java.text.DecimalFormatSymbols::getInstance
+java.text.NumberFormat::get*Instance
+java.time.format.DateTimeFormatter::localizedBy
+java.time.format.DateTimeFormatterBuilder::getLocalizedDateTimePattern
+java.time.format.DecimalStyle::of
+java.time.temporal.WeekFields::of
+java.util.Calendar::{getFirstDayOfWeek,getMinimalDaysInWeek}
+java.util.Currency::getInstance
+java.util.Locale::getDisplayName
+java.util.spi.LocaleNameProvider
+
+** 29. Root Certificates (JEP 319)
+In order to promote OpenJDK and make it more appealing to community users, this feature provides a default set of root Certification Authority (CA) certificates in the JDK. This will also mean that both Oracle & Open JDK binaries will be functionally the same. Critical security components such as TLS will work by default in OpenJDK builds going forward.
+** 30. ### Thread-Local Handshakes (JEP 312)
+This is an internal JVM feature to improve performance. A handshake operation is a callback that is executed for each JavaThread while that thread is in a safepoint state. The callback is executed either by the thread itself or by the VM thread while keeping the thread in a blocked state. This feature provides a way to execute a callback on threads without performing a global VM safepoint. Make it both possible and cheap to stop individual threads and not just all threads or none.
+** 31. ### Heap Allocation on Alternative Memory Devices (JEP 316)
+Applications have become memory hungry, there’s an increase in cloud-native applications, in-memory databases, streaming applications. In order to cater to these services, there are various memory architectures available. This feature enhances the capability of HotSpot VM to allocate the Java object heap on an alternative memory device, such as an NV-DIMM, specified by the user. This JEP targets alternative memory devices that have the same semantics as DRAM, including the semantics of atomic operations, and can, therefore, be used instead of DRAM for the object heap without any change to existing application code.
+** 32. ### Remove the Native-Header Generation Tool – javah (JEP 313)
+This is a housekeeping change to remove javah tool from JDK. The tool functionality is added in javac as part of JDK 8, which provides ability to write native header files at the compile-time rendering javah useless.
+
+** 35. ### Consolidate the JDK Forest into a Single Repository (JEP 296)
+
+Over the years there have been various Mercurial repositories in for JDK codebase. Different repositories do provide some advantage, but they also had various operational downsides. As part of this change, numerous repositories of the JDK forest are combined into a single repository in order to simplify and streamline development.
+
+** 36. ### API Changes
+
+Java 10 has added and removed (Yes It’s not a Typo) API’s. Java 9 introduced enhanced deprecation where certain API’s were marked to be removed in future releases. API’s Removed: You can find the API’s removed here: https://cr.openjdk.org/~iris/se/10/latestSpec/#APIs-removed. API’s Added: 73 new API’s was added in Java 10. You can find the API’s added along with comparison here: https://cr.openjdk.org/~iris/se/10/latestSpec/apidiffs/overview-summary.html.
+Let’s go through a few additions:
+
+*** List, Map & Set Interfaces are added with a static copyOf(Collection) method. Its returns an unmodifiable List, Map or Set containing the entries provided. For a List, if the given List is subsequently modified, the returned List will not reflect such modifications.
+*** Optional & its primitive variations get a method orElseThrow(). This is exactly same as get(), however the java doc states that it is a preferred alternative then get()
+*** Collectors class gets various methods for collecting unmodifiable collections (Set, List, Map)
+*** Examples
+List<String> actors = new ArrayList<>();
+actors.add("Jack Nicholson");
+actors.add("Marlon Brando");
+System.out.println(actors); // prints [Jack Nicholson, Marlon Brando]
+// New API added - Creates an UnModifiable List from a List.
+List<String> copyOfActors = List.copyOf(actors);
+System.out.println(copyOfActors); // prints [Jack Nicholson, Marlon Brando]
+// copyOfActors.add("Robert De Niro"); Will generate an
+// UnsupportedOperationException
+actors.add("Robert De Niro");
+System.out.println(actors);// prints [Jack Nicholson, Marlon Brando, Robert De Niro]
+System.out.println(copyOfActors); // prints [Jack Nicholson, Marlon Brando]
+		
+String str = "";
+Optional<String> name = Optional.ofNullable(str);
+// New API added - is preferred option then get() method
+name.orElseThrow(); // same as name.get()  
+
+// New API added - Collectors.toUnmodifiableList
+List<String> collect = actors.stream().collect(Collectors.toUnmodifiableList());
+// collect.add("Tom Hanks"); // Will generate an
+// UnsupportedOperationException
+* JDK_11
+** fontes
+https://www.journaldev.com/24601/java-11-features
+ https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
+** Quick View
+Some of the important Java 11 features are:
+
+Running Java File with single command
+New utility methods in String class
+Local-Variable Syntax for Lambda Parameters
+Nested Based Access Control
+JEP 321: HTTP Client
+Reading/Writing Strings to and from the Files
+JEP 328: Flight Recorder
+Let’s discuss the new features introduced with Java 11 from the JEP Process.
+** 1 Running Java File with single command
+One major change is that you don’t need to compile the java source file with javac tool first. You can directly run the file with java command and it implicitly compiles. This feature comes under JEP 330. 
+
+** 2 Java String Methods
+Following is a sneak peek at the new methods of Java String class introduced in Java 11: https://www.digitalocean.com/community/tutorials/java-string
+
+*** isBlank() - This instance method returns a boolean value. Empty Strings and Strings with only white spaces are treated as blank.
+
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // Your code here!
+        
+        System.out.println(" ".isBlank()); //true
+        
+        String s = "Anupam";
+        System.out.println(s.isBlank()); //false
+        String s1 = "";
+        System.out.println(s1.isBlank()); //true
+    }
+}
+
+*** lines() This method returns a stream of strings, which is a collection of all substrings split by lines.
+
+import java.util.stream.Collectors;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        
+        String str = "JD\nJD\nJD"; 
+        System.out.println(str);
+        System.out.println(str.lines().collect(Collectors.toList()));
+    }
+}
+The output of the above code is:
+JD
+JD
+JD
+[JD, JD, JD]
+
+*** strip(), stripLeading(), stripTrailing() strip() - Removes the white space from both, beginning and the end of string.
+
+But we already have trim(). Then what’s the need of strip()? strip() is “Unicode-aware” evolution of trim(). When trim() was introduced, Unicode wasn’t evolved. Now, the new strip() removes all kinds of whitespaces leading and trailing(check the method Character.isWhitespace(c) to know if a unicode is whitespace or not)
+
+An example using the above three methods is given below:
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // Your code here!
+        
+        String str = " JD "; 
+        System.out.print("Start");
+        System.out.print(str.strip());
+        System.out.println("End");
+        
+        System.out.print("Start");
+        System.out.print(str.stripLeading());
+        System.out.println("End");
+        
+        System.out.print("Start");
+        System.out.print(str.stripTrailing());
+        System.out.println("End");
+    }
+}
+The output in the console from the above code is:
+StartJDEnd
+StartJD End
+Start JDEnd
+*** repeat(int) The repeat method simply repeats the string that many numbers of times as mentioned in the method in the form of an int.
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // Your code here!
+        
+        String str = "=".repeat(2);
+        System.out.println(str); //prints ==
+    }
+}
+** 3 Local-Variable Syntax for Lambda Parameters
+JEP 323, Local-Variable Syntax for Lambda Parameters is the only language feature release in Java 11. In Java 10, Local Variable Type Inference was introduced. Thus we could infer the type of the variable from the RHS - var list = new ArrayList<String>(); JEP 323 allows var to be used to declare the formal parameters of an implicitly typed lambda expression. We can now define :
+
+(var s1, var s2) -> s1 + s2
+This was possible in Java 8 too but got removed in Java 10. Now it’s back in Java 11 to keep things uniform. But why is this needed when we can just skip the type in the lambda? If you need to apply an annotation just as @Nullable, you cannot do that without defining the type. Limitation of this feature - You must specify the type var on all parameters or none. Things like the following are not possible:
+
+(var s1, s2) -> s1 + s2 //no skipping allowed
+(var s1, String y) -> s1 + y //no mixing allowed
+
+var s1 -> s1 //not allowed. Need parentheses if you use var in lambda.
+*** fonte:https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
+antes poderíamos escrever o seguinte trecho de código:
+
+(valor, conversorMoeda) -> conversorMoeda.converter(valor);
+Agora, uma vez que var pode ser utilizada em um parâmetro formal para um tipo implícito em uma expressão lambda, podemos utilizar esse recurso em conjunto com outras funcionalidades aplicáveis a tipos, como anotações. Vejamos o mesmo código acima, desta vez reescrito utilizando a inferência de tipos para variáveis locais em expressões lambda:
+
+	(@Nonnull var valor, @Nonnull var conversorMoeda) -> conversorMoeda.converter(valor);
+
+Existem inúmeras vantagens em reescrever o código dessa forma, tantas quantas forem aquelas que justificam as notações de tipo incluídas no Java 8. Dentre as principais entre elas podemos citar o fato de que anotações de tipo adicionam metadados que ajudam a reduzir o número de erros no código. Baseado nessas anotações, o compilador pode emitir alertas ao concluir que o código não atende a certos requerimentos.
+
+Ao executar o código acima teríamos a oportunidade de capturar o seguinte erro em tempo de compilação:
+
+	Null type mismatch: required ''@NonNull Double'' but the provided value is null
+
+** 4 Nested Based Access Control
+Before Java 11 this was possible:
+
+public class Main {
+ 
+    public void myPublic() {
+    }
+ 
+    private void myPrivate() {
+    }
+ 
+    class Nested {
+ 
+        public void nestedPublic() {
+            myPrivate();
+        }
+    }
+}
+private method of the main class is accessible from the above-nested class in the above manner. But if we use Java Reflection (https://www.digitalocean.com/community/tutorials/java-reflection-example-tutorial), it will give an IllegalStateException.
+
+Method method = ob.getClass().getDeclaredMethod("myPrivate");
+method.invoke(ob);
+Java 11 nested access control addresses this concern in reflection. java.lang.Class introduces three methods in the reflection API: getNestHost(), getNestMembers(), and isNestmateOf().
+
+** 5 JEP 309: Dynamic Class-File Constants
+The Java class-file format now extends support a new constant pool form, CONSTANT_Dynamic. The goal of this JEP is to reduce the cost and disruption of developing new forms of materializable class-file constraints, by creating a single new constant-pool form that can be parameterized with user-provided behavior. This enhances performance.
+
+** 6 JEP 318: Epsilon: A No-Op Garbage Collector
+Unlike the JVM GC which is responsible for allocating memory and releasing it, Epsilon only allocates memory. It allocates memory for the following things:
+       Performance testing.
+       Memory pressure testing.
+       VM interface testing.
+       Extremely short lived jobs.
+       Last-drop latency improvements.
+       Last-drop throughput improvements.
+Now Elipson is good only for test environments. It will lead to OutOfMemoryError in production and crash the applications. The benefit of Elipson is no memory clearance overhead. Hence it’ll give an accurate test result of performance and we can no longer GC for stopping it. Note: This is an experimental feature.
+
+** 7 JEP 320: Remove the Java EE and CORBA Modules
+The modules were already deprecated in Java 9. They are now completely removed. Following packages are removed: java.xml.ws, java.xml.bind, java.activation, java.xml.ws.annotation, java.corba, java.transaction, java.se.ee, jdk.xml.ws, jdk.xml.bind
+
+** 8 JEP 328: Flight Recorder
+Flight Recorder which earlier used to be a commercial add-on in Oracle JDK is now open-sourced since Oracle JDK is itself not free anymore. JFR is a profiling tool used to gather diagnostics and profiling data from a running Java application. Its performance overhead is negligible and that’s usually below 1%. Hence it can be used in production applications.
+
+** 9 JEP 321: HTTP Client
+Java 11 standardizes the Http Client API. The new API supports both HTTP/1.1 and HTTP/2. It is designed to improve the overall performance of sending requests by a client and receiving responses from the server. It also natively supports WebSockets.
+*** fonte: https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
+No exemplo a seguir temos um código completo para uma requisição ao endpoint de uma API:
+
+HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create("http://www.api.com/recursos"))
+          .build();
+
+HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+
+HttpClient client = HttpClient.newHttpClient();
+CompletableFuture<HttpResponse<String>> future = client.sendAsync(request, bodyHandler);
+future.thenApply(HttpResponse::body)
+          .thenAccept(System.out::println)
+          .join();
+
+Com esse trecho de código podemos nos comunicar de forma assíncrona através do protocolo HTTP, o que torna possível a realização de testes para APIs com maior facilidade. Caso você já desenvolva com Spring já deve ter certa familiaridade com classes como HttpRequest, mas nota que para testar essa funcionalidade devemos utilizar o pacote java.net.http.
+
+Além da interface Future, a qual implementa CompletableFuture, o pacote java.net.http adicionou outras classes importantes também presentes no exemplo anterior. São elas:
+
+**** HttpClient
+Usamos essa classe para enviar requisições e obter respostas. Seu principal método é HttpClient.sendAsync(), usado para enviar uma requisição de forma assíncrona e retornar um objeto do tipo CompletableFuture.
+**** HttpRequest
+Essa classe encapsula uma requisição e a sua URI, seus cabeçalhos, bem como o seu corpo.
+**** HttpResponse
+Em resposta ao envio de um HttpRequest recebemos um objeto do tipo HttpResponse, a partir do qual podemos ler a resposta enviada de volta para o cliente. Por exemplo, para ler o corpo da resposta podemos utilizar a interface estática HttpResponse.BodyHandler, que implementa diversas funcionalidades, incluindo o retorno dos dados em uma String.
+**** HttpRequest.Builder
+Trata-se de uma fábrica para a montagem e preparação de objetos do tipo HttpRequest. Quando utilizamos essa fábrica, todas as chamadas aos seus setters retornam o mesmo objeto fábrica, o que permite chamadas encadeadas. Ao final de todas as configurações necessárias, podemos chamar o método HttpRequest.build() retorna uma nova instância de HttpRequest.
+** 10 Reading/Writing Strings to and from the Files
+Java 11 strives to make reading and writing of String convenient. It has introduced the following methods for reading and writing to/from the files:
+
+readString()
+writeString()
+Following code showcases an example of this
+
+Path path = Files.writeString(Files.createTempFile("test", ".txt"), "This was posted on JD");
+System.out.println(path);
+String s = Files.readString(path);
+System.out.println(s); //This was posted on JD
+
+** 11 JEP 329: ChaCha20 and Poly1305 Cryptographic Algorithms
+Java 11 provides ChaCha20 and ChaCha20-Poly1305 cipher implementations. These algorithms will be implemented in the SunJCE provider.
+
+** 12 JEP 315: Improve Aarch64 Intrinsics
+Improve the existing string and array intrinsics, and implement new intrinsics for the java.lang.Math sin, cos, and log functions, on AArch64 processors.
+
+** 13 JEP 333: ZGC: A Scalable Low-Latency Garbage Collector (Experimental)
+Java 11 has introduced a low latency GC. This is an experimental feature. It’s good to see that Oracle is giving importance to GC’s.
+
+** 14 JEP 335: Deprecate the Nashorn JavaScript Engine
+Nashorn JavaScript script engine and APIs are deprecated thereby indicating that they will be removed in the subsequent releases.
+** ver ainda:
+https://winterbe.com/posts/2018/09/24/java-11-tutorial/
+
+* JDK_12
+** fontes
+melhor site: https://www.journaldev.com/28666/java-12-features
+
+https://www.youtube.com/watch?v=xgJyQVeJltA
+** Quick View
+Some of the important Java 12 features are;
+
+JVM Changes - JEP 189, JEP 346, JEP 344, and JEP 230.
+Switch Expressions
+File mismatch() Method
+Compact Number Formatting
+Teeing Collectors in Stream API
+Java Strings New Methods - indent(), transform(), describeConstable(), and resolveConstantDesc().
+JEP 334: JVM Constants API
+JEP 305: Pattern Matching for instanceof
+Raw String Literals is Removed From JDK 12.
+** JVM Changes
+*** 1. JEP 189 - Shenandoah: A Low-Pause-Time Garbage Collector (Experimental)
+RedHat initiated Shenandoah Garbage Collector to reduce GC pause times. The idea is to run GC concurrently with the running Java threads. It aims at consistent and predictable short pauses irrelevant of the heap size. So it does not matter if the heap size is 15 MB or 15GB. It is an experimental feature in Java 12.
+
+*** 2. JEP 346 - Promptly Return Unused Committed Memory from G1
+Stating Java 12, G1 will now check Java Heap memory during inactivity of application and return it to the operating system. This is a preemptive measure to conserve and use free memory.
+
+*** 3. JEP 344 : Abortable Mixed Collections for G1
+Improvements in G1 efficiency include making G1 mixed collections abortable if they might exceed the defined pause target. This is done by splitting the mixed collection set into mandatory and optional. Thus the G1 collector can prioritize on collecting the mandatory set first to meet the pause time goal.
+
+*** 4. JEP 230 and 344
+Microbenchmark Suite, JEP 230 feature adds a basic suite of microbenchmarks to the JDK source code. This makes it easy for developers to run existing microbenchmarks and create new ones. One AArch64 Port, Not Two, JEP 344, removes all of the sources related to the arm64 port while retaining the 32-bit ARM port and the 64-bit aarch64 port. This allows contributors to focus their efforts on a single 64-bit ARM implementation
+
+*** 5. JEP 341 Default CDS Archives
+This enhances the JDK build process to generate a class data-sharing (CDS) archive, using the default class list, on 64-bit platforms. The goal is to improve startup time. From Java 12, CDS is by default ON. To run your program with CDS turned off do the following:
+
+java -Xshare:off HelloWorld.java
+Now, this would delay the startup time of the program.
+
+** Language Changes And Features
+Java 12 has introduced many language features. Let us look at a few with implementations.
+
+*** 1. Switch Expressions (Preview)
+Java 12 has enhanced Switch expressions for Pattern matching. Introduced in JEP 325, as a preview language feature, the new Syntax is L ->. Following are some things to note about Switch Expressions:
+
+The new Syntax removes the need for break statement to prevent fallthroughs.
+Switch Expressions don’t fall through anymore.
+Furthermore, we can define multiple constants in the same label.
+default case is now compulsory in Switch Expressions.
+break is used in Switch Expressions to return values from a case itself.
+Classic switch statement:
+
+String result = "";
+        switch (day) {
+            case "M":
+            case "W":
+            case "F": {
+                result = "MWF";
+                break;
+            }
+            case "T":
+            case "TH":
+            case "S": {
+                result = "TTS";
+                break;
+            }
+        };
+
+        System.out.println("Old Switch Result:");
+        System.out.println(result);
+With the new Switch expression, we don’t need to set break everywhere thus prevent logic errors!
+
+String result = switch (day) {
+            case "M", "W", "F" -> "MWF";
+            case "T", "TH", "S" -> "TTS";
+            default -> {
+                if(day.isEmpty())
+                    break "Please insert a valid day.";
+                else
+                    break "Looks like a Sunday.";
+            }
+
+        };
+
+        System.out.println(result);
+
+Let’s run the below program containing the new Switch Expression using JDK 12.
+
+public class SwitchExpressions {
+
+    public static void main(String[] args)
+    {
+        System.out.println("New Switch Expression result:");
+        executeNewSwitchExpression("M");
+        executeNewSwitchExpression("TH");
+        executeNewSwitchExpression("");
+        executeNewSwitchExpression("SUN");
+    }
+
+    public static void executeNewSwitchExpression(String day){
+
+        String result = switch (day) {
+            case "M", "W", "F" -> "MWF";
+            case "T", "TH", "S" -> "TTS";
+            default -> {
+                if(day.isEmpty())
+                    break "Please insert a valid day.";
+                else
+                    break "Looks like a Sunday.";
+            }
+
+        };
+
+        System.out.println(result);
+    }
+}
+
+Since this is a preview feature, please ensure that you have selected the Language Level as Java 12 preview. To compile the above code run the following command:
+
+javac -Xlint:preview --enable-preview -source 12 src/main/java/SwitchExpressions.java
+After running the compiled program, we get the following in the console
+
+		New Switch Expression result:
+      MWF	
+      TTS
+      Please insert a valid day.
+      Looks like a sunday.
+
+Switch expressions is a preview language feature. This means that even though it is complete, it may not be confirmed in the future Java Release.
+** 2. File.mismatch method
+Java 12 added the following method to compare two files:
+
+public static long mismatch(Path path, Path path2) throws IOException
+This method returns the position of the first mismatch or -1L if there is no mismatch. Two files can have a mismatch in the following scenarios:
+     If the bytes are not identical. In this case, the position of the first mismatching byte is returned.
+     File sizes are not identical. In this case, the size of the smaller file is returned.
+
+Example code snippet from IntelliJ Idea is given below:
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class FileMismatchExample {
+
+    public static void main(String[] args) throws IOException {
+        Path filePath1 = Files.createTempFile("file1", ".txt");
+        Path filePath2 = Files.createTempFile("file2", ".txt");
+        Files.writeString(filePath1,"JournalDev Test String");
+        Files.writeString(filePath2,"JournalDev Test String");
+
+        long mismatch = Files.mismatch(filePath1, filePath2);
+
+        System.out.println("File Mismatch position... It returns -1 if there is no mismatch");
+
+        System.out.println("Mismatch position in file1 and file2 is >>>>");
+        System.out.println(mismatch);
+
+        filePath1.toFile().deleteOnExit();
+        filePath2.toFile().deleteOnExit();
+
+        System.out.println();
+
+        Path filePath3 = Files.createTempFile("file3", ".txt");
+        Path filePath4 = Files.createTempFile("file4", ".txt");
+        Files.writeString(filePath3,"JournalDev Test String");
+        Files.writeString(filePath4,"JournalDev.com Test String");
+
+        long mismatch2 = Files.mismatch(filePath3, filePath4);
+
+        System.out.println("Mismatch position in file3 and file4 is >>>>");
+        System.out.println(mismatch2);
+
+        filePath3.toFile().deleteOnExit();
+        filePath4.toFile().deleteOnExit();
+    }
+
+}
+The output when the above Java Program is compiled and run is:
+	File Mismatch position... It returns -1 if there is no mismatch
+	Mismatch position in file1 and file2 is >>>>
+	-1
+	Mismatch position in file3 and file4 is >>>>
+	10
+
+** 3. Compact Number Formatting
+import java.text.NumberFormat;
+import java.util.Locale;
+
+public class CompactNumberFormatting {
+
+
+    public static void main(String[] args)
+    {
+        System.out.println("Compact Formatting is:");
+        NumberFormat upvotes = NumberFormat
+                .getCompactNumberInstance(new Locale("en", "US"), NumberFormat.Style.SHORT);
+        upvotes.setMaximumFractionDigits(1);
+
+        System.out.println(upvotes.format(2592) + " upvotes");
+
+
+        NumberFormat upvotes2 = NumberFormat
+                .getCompactNumberInstance(new Locale("en", "US"), NumberFormat.Style.LONG);
+        upvotes2.setMaximumFractionDigits(2);
+        System.out.println(upvotes2.format(2011) + " upvotes");
+    }
+}
+
+Saída:
+Compact Formatting is:
+2.6k upvotes
+2.01 thousand upvotes
+
+** 4. Teeing Collectors
+Teeing Collector is the new collector utility introduced in the Streams API. This collector has three arguments - Two collectors and a Bi-function. All input values are passed to each collector and the result is available in the Bi-function.
+
+double mean = Stream.of(1, 2, 3, 4, 5)
+                .collect(Collectors.teeing(
+                        summingDouble(i -> i),
+                        counting(),
+                        (sum, n) -> sum / n));
+
+System.out.println(mean);
+The output is 3.0.
+** 5. Java Strings New Methods
+4 new methods have been introduced in Java 12 which are:
+
+indent(int n)
+transform(Function f)
+Optional describeConstable()
+String resolveConstantDesc​(MethodHandles.Lookup lookup)
+
+*** exemplo de código:
+	   private static void newStringMethods() {
+        String result = "Hello\nWorld!".indent(3);
+        System.out.println(result);
+/*
+Saída:
+   Hello
+   World!
+*/
+
+        result = "Hello".transform(s -> s + ", World!");
+        System.out.println(result); // Hello, World!
+
+        result = "hello"
+                .transform(s -> s + ", world!")
+                .transform(String::toUpperCase);
+        System.out.println(result); // HELLO, WORLD!
+    }
+
+
+
+** 6. JEP 334: JVM Constants API
+A new package java.lang.constant is introduced with this JEP. This is not that useful for those developers who don’t use constants pool.
+
+** 7. JEP 305: Pattern Matching for instanceof (Preview)
+Another Preview Language feature! The old way to typecast a type to another type is:
+if (obj instanceof String) {
+    String s = (String) obj;
+    // use s in your code from here
+}
+
+The new way is :
+if (obj instanceof String s) {
+    // can use s directly here
+} 
+
+This saves us some typecasting which were unnecessary.
+
+Raw String Literals is Removed From JDK 12.
+ 	
+* JDK_13
+** fontes
+melhor site: https://www.journaldev.com/33204/java-13-features
+https://github.com/loiane/java13-examples
+** Quick View
+Some of the important Java 13 features are:
+
+Text Blocks - JEP 355
+New Methods in String Class for Text Blocks
+Switch Expressions Enhancements - JEP 354
+Reimplement the Legacy Socket API - JEP 353
+Dynamic CDS Archive - JEP 350
+ZGC: Uncommit Unused Memory - JEP 351
+FileSystems.newFileSystem() Method
+Support for Unicode 12.1
+DOM and SAX Factories with Namespace Support
+
+** 1. Text Blocks - JEP 355
+This is a preview feature. It allows us to create multiline strings easily. The multiline string has to be written inside a pair of triple-double quotes. The string object created using text blocks has no additional properties. It’s an easier way to create multiline strings. We can’t use text blocks to create a single-line string. The opening triple-double quotes must be followed by a line terminator.
+
+package com.journaldev.java13.examples;
+
+public class TextBlockString {
+
+	/**
+	 * JEP 355: Preview Feature
+	 */
+	@SuppressWarnings("preview")
+	public static void main(String[] args) {
+		String textBlock = """
+				Hi
+				Hello
+				Yes""";
+
+		String str = "Hi\nHello\nYes";
+
+		System.out.println("Text Block String:\n" + textBlock);
+		System.out.println("Normal String Literal:\n" + str);
+
+		System.out.println("Text Block and String Literal equals() Comparison: " + (textBlock.equals(str)));
+		System.out.println("Text Block and String Literal == Comparison: " + (textBlock == str));
+	}
+
+}
+Output:
+
+     Text Block String:
+     Hi
+     Hello
+     Yes
+     Normal String Literal:
+     Hi
+     Hello
+     Yes
+     Text Block and String Literal equals() Comparison: true
+     Text Block and String Literal == Comparison: true
+
+It’s useful in easily creating HTML and JSON strings in our Java program.
+
+String textBlockHTML = """
+		<html>
+		<head>
+			<link href='/css/style.css' rel='stylesheet' />
+		</head>
+		<body>
+                        <h1>Hello World</h1>
+                </body>
+                </html>""";
+
+String textBlockJSON = """
+		{
+			"name":"Pankaj",
+			"website":"JournalDev"
+		}""";
+** 2. New Methods in String Class for Text Blocks
+There are three new methods in the String class, associated with the text blocks feature.
+
+*** formatted(Object… args)
+it’s similar to the String format() method. It’s added to support formatting with the text blocks.
+*** stripIndent()
+used to remove the incidental white space characters from the beginning and end of every line in the text block. This method is used by the text blocks and it preserves the relative indentation of the content.
+*** translateEscapes()
+returns a string whose value is this string, with escape sequences translated as if in a string literal.
+*** exemplos
+package com.journaldev.java13.examples;
+
+public class StringNewMethods {
+
+	/***
+	 * New methods are to be used with Text Block Strings
+	 * @param args
+	 */
+	@SuppressWarnings("preview")
+	public static void main(String[] args) {
+		
+		String output = """
+			    Name: %s
+			    Phone: %d
+			    Salary: $%.2f
+			    """.formatted("Pankaj", 123456789, 2000.5555);
+		
+		System.out.println(output);
+		
+		
+		String htmlTextBlock = "<html>   \n"+
+				                    "\t<body>\t\t \n"+
+				                        "\t\t<p>Hello</p>  \t \n"+
+				                    "\t</body> \n"+
+				                "</html>";
+		System.out.println(htmlTextBlock.replace(" ", "*"));
+		System.out.println(htmlTextBlock.stripIndent().replace(" ", "*"));
+		
+		String str1 = "Hi\t\nHello' \" /u0022 Pankaj\r";
+		System.out.println(str1);
+		System.out.println(str1.translateEscapes());
+		
+	}
+
+}
+Output:
+
+Name: Pankaj
+Phone: 123456789
+Salary: $2000.56
+
+<html>***
+	<body>		*
+		<p>Hello</p>**	*
+	</body>*
+</html>
+<html>
+	<body>
+		<p>Hello</p>
+	</body>
+</html>
+Hi	
+Hello' " /u0022 Pankaj
+Hi	
+Hello' " /u0022 Pankaj
+** 3. Switch Expressions Enhancements - JEP 354
+Switch expressions were added as a preview feature in Java 12 release. It’s almost same in Java 13 except that the “break” has been replaced with “yield” to return a value from the case statement.
+
+package com.journaldev.java13.examples;
+
+/**
+ * JEP 354: Switch Expressions
+ * https://openjdk.java.net/jeps/354
+ * @author pankaj
+ *
+ */
+public class SwitchEnhancements {
+
+	@SuppressWarnings("preview")
+	public static void main(String[] args) {
+		int choice = 2;
+
+		switch (choice) {
+		case 1:
+			System.out.println(choice);
+			break;
+		case 2:
+			System.out.println(choice);
+			break;
+		case 3:
+			System.out.println(choice);
+			break;
+		default:
+			System.out.println("integer is greater than 3");
+		}
+
+		// from java 13 onwards - multi-label case statements
+		switch (choice) {
+		case 1, 2, 3:
+			System.out.println(choice);
+			break;
+		default:
+			System.out.println("integer is greater than 3");
+		}
+
+		// switch expressions, use yield to return, in Java 12 it was break
+		int x = switch (choice) {
+		case 1, 2, 3:
+			yield choice;
+		default:
+			yield -1;
+		};
+		System.out.println("x = " + x);
+
+	}
+
+	enum Day {
+		SUN, MON, TUE
+	};
+
+	@SuppressWarnings("preview")
+	public String getDay(Day d) {
+		String day = switch (d) {
+		case SUN -> "Sunday";
+		case MON -> "Monday";
+		case TUE -> "Tuesday";
+		};
+		return day;
+	}
+}
+
+** 4. Reimplement the Legacy Socket API - JEP 353
+The underlying implementation of the java.net.Socket and java.net.ServerSocket APIs have been rewritten. The new implementation, NioSocketImpl, is a drop-in replacement for PlainSocketImpl. It uses java.util.concurrent locks rather than synchronized methods. If you want to use the legacy implementation, use the java option -Djdk.net.usePlainSocketImpl.
+
+** 5. Dynamic CDS Archive - JEP 350
+This JEP extends the class-data sharing feature, which was introduced in Java 10. Now, the creation of CDS archive and using it is much easier.
+
+$ java -XX:ArchiveClassesAtExit=my_app_cds.jsa -cp my_app.jar
+
+$ java -XX:SharedArchiveFile=my_app_cds.jsa -cp my_app.jar
+
+** 6. ZGC: Uncommit Unused Memory - JEP 351
+This JEP has enhanced ZGC to return unused heap memory to the operating system. The Z Garbage Collector was introduced in Java 11. It adds a short pause time before the heap memory cleanup. But, the unused memory was not being returned to the operating system. This was a concern for devices with small memory footprint such as IoT and microchips. Now, it has been enhanced to return the unused memory to the operating system.
+
+** 7. FileSystems.newFileSystem() Method
+Three new methods have been added to the FileSystems class to make it easier to use file system providers, which treats the contents of a file as a file system.
+
+    1. newFileSystem(Path)
+    2. newFileSystem(Path, Map<String, ?>)
+    3. newFileSystem(Path, Map<String, ?>, ClassLoader)
+
+** 8. DOM and SAX Factories with Namespace Support
+There are new methods to instantiate DOM and SAX factories with Namespace support.
+
+     1. newDefaultNSInstance()
+     2. newNSInstance()
+     3. newNSInstance(String factoryClassName, ClassLoader classLoader)
+
+//java 13 onwards
+DocumentBuilder db = DocumentBuilderFactory.newDefaultNSInstance().newDocumentBuilder(); 
+
+// before java 13
+DocumentBuilderFactory dbf = DocumentBuilderFactory.newDefaultInstance(); 
+dbf.setNamespaceAware(true); 
+DocumentBuilder db = dbf.newDocumentBuilder();
+
+** Exemplo de classe implementada do github da Loiane
+public class Java13Features {
+
+    private enum DAY_OF_WEEK { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
+
+    public static void main(String[] args) {
+        System.out.println(traditionalSwitch(DAY_OF_WEEK.MONDAY));
+        System.out.println(switchJava13(DAY_OF_WEEK.SATURDAY));
+        System.out.println(enhancedSwitchCase(DAY_OF_WEEK.FRIDAY));
+        textBlocks();
+    }
+
+    private static String traditionalSwitch(DAY_OF_WEEK dayOfWeek) {
+        String result;
+        switch (dayOfWeek) {
+            case MONDAY:
+            case TUESDAY:
+            case WEDNESDAY:
+            case THURSDAY:
+            case FRIDAY:
+                result = "Weekday";
+                break;
+            case SATURDAY:
+            case SUNDAY:
+                result = "Weekend";
+                break;
+            default:
+                result = "Invalid day!";
+        }
+        return result;
+    }
+
+    /* private String switchJava12(DAY_OF_WEEK dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY:
+            case TUESDAY:
+            case WEDNESDAY:
+            case THURSDAY:
+            case FRIDAY:
+                break "Weekday";
+            case SATURDAY:
+            case SUNDAY:
+                break "Weekend";
+        };
+    } */
+
+    private static String switchJava13(DAY_OF_WEEK dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY:
+            case TUESDAY:
+            case WEDNESDAY:
+            case THURSDAY:
+            case FRIDAY:
+                yield "Weekday";
+            case SATURDAY:
+            case SUNDAY:
+                yield "Weekend";
+        };
+    }
+
+    private static String enhancedSwitchCase(DAY_OF_WEEK dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> "Weekday";
+            case SATURDAY, SUNDAY -> "Weekend";
+        };
+    }
+
+    private static void textBlocks() {
+
+        String beforeQuery = "update products\n" +
+                             "    set quantityInStock = ?\n" +
+                             "    ,modifiedDate = ?\n" +
+                             "    ,modifiedBy = ?\n" +
+                             "where productCode = ?\n";
+
+        String updateQuery = """
+                update products
+                    set quantityInStock = ?
+                    ,modifiedDate = ?
+                    ,modifiedBy = ?
+                where productCode = ?
+                """;
+        System.out.println(updateQuery);
+    }
+}
+* JDK_14
+*** novidades trazidas
+melhor site: https://www.journaldev.com/37273/java-14-features
+https://github.com/loiane/java14-examples
+
+referência para consultas: https://openjdk.org/projects/jdk/14/
+** Quick View
+Here’s the list of Java 14 features:
+
+Switch Expressions (Standard) - JEP 361
+Pattern Matching for instanceof (Preview) - JEP 305
+Helpful NullPointerExceptions - JEP 358
+Records (Preview) - JEP 359
+Text Blocks (Second Preview) - JEP 368
+Packaging Tool (Incubator) - JEP 343
+NUMA-Aware Memory Allocation for G1 - JEP 345
+JFR Event Streaming - JEP 349
+Non-Volatile Mapped Byte Buffers - JEP 352
+ZGC on macOS - JEP 364
+ZGC on Windows - JEP 365
+Foreign-Memory Access API (Incubator) - JEP 370
+
+** 1. Switch Expressions
+Switch Expressions after staying a preview feature in the last two releases --Java 12 and Java 13 have finally attained permanent status in Java 14.
+
+*** Java 12 
+introduced the lambda syntax for switch expressions thereby allowing multiple case labels for pattern matching as well as preventing fall-throughs which lead to verbose code. It also enforced exhaustive cases wherein a compilation error would be thrown if all the input cases aren’t covered.
+*** Java 13
+the second preview introduced yield statements instead of break for returning values from an expression.
+*** Java 14 has finally made these features a standard now.
+String result = switch (day) {
+            case "M", "W", "F" -> "MWF";
+            case "T", "TH", "S" -> "TTS";
+            default -> {
+                if(day.isEmpty())
+                    yield "Please insert a valid day.";
+                else
+                    yield "Looks like a Sunday.";
+            }
+
+        };
+System.out.println(result);
+Note: Yield isn’t a new keyword in Java. It’s just used in switch expressions.
+** 2. Pattern Matching for instanceof (Preview)
+Ask any Java developer to show their codebase and you’ll a good use of instanceof conditions throughout the code. Specifically, an instanceof conditional check is generally followed by a typecasting.
+
+Java 14, gets rid of this verbosity by making conditional extraction a lot more concise.
+
+*** Before Java 14:
+
+if (obj instanceof Journaldev) {
+  Journaldev jd = (Journaldev) obj;
+  System.out.println(jd.getAuthor());
+}
+*** Java 14 Onwards:
+
+if (obj instanceof Journaldev jd) {
+  System.out.println(jd.getAuthor());
+}
+In the above code, the instance jd would be only assigned if obj is of type Journaldev. The scope of the variable is limited to the conditional block only.
+** 3. Helpful NullPointerExceptions
+Null Pointer Exceptions are a nightmare for any developer. Previously, until Java 13, it was tricky to debug the infamous NPEs. Developers had to fall onto other debugging tools or manually figure the variable/method that was null since the stack trace would only show the line number.
+
+Before Java 14:
+String name = jd.getBlog().getAuthor()
+//Stacktrace
+Exception in thread "main" java.lang.NullPointerException
+    at NullPointerExample.main(NullPointerExample.java:5)
+
+
+Java 14 introduced a new JVM feature which gives better insights with a more descriptive stack as shown below:
+Exception in thread "main" java.lang.NullPointerException: Cannot invoke "Blog.getAuthor()" because the return value of "Journaldev.getBlog()" is null
+    at NullPointerExample.main(NullPointerExample.java:4)
+
+Note: The above feature is not a language feature. It’s an enhancement in the runtime environment.
+** 4. Records (Preview)
+A record is a data class that stores pure data. The idea behind introducing records is to quickly create simple and concise classes devoid of boilerplate code.
+
+Normally a class in Java would require you to implement equals(), hashCode() , the getters and setters methods. While some IDEs support auto-generation of such classes, the code is still verbose. With a record you need to simply define a class in the following way.
+
+record Author(){}
+//or
+record Author (String name, String topic) {}
+
+The Java compiler will generate a constructor, private final fields, accessors, equals/hashCode and toString methods automatically. The auto-generated getter methods of the above class are name() and topic().
+
+To look into the generated code, use 
+	javap Author
+ after you’ve compiled the program using javac.
+
+Furthermore, we can add additional fields, methods, and constructor to the record in the following way:
+
+record Author (int id, String name, String topic) {
+    static int followers;
+
+    public static String followerCount() {
+        return "Followers are "+ followers;
+    }
+
+    public String description(){
+        return "Author "+ name + " writes on "+ topic;
+    }
+
+    public Author{
+    if (id < 0) {
+        throw new IllegalArgumentException( "id must be greater than 0.");
+     }
+   }
+}
+
+The additional constructor defined inside the record is called a Compact constructor. It doesn’t consist of any parameters and is just an extension of the canonical constructor.
+
+A compact constructor wouldn’t be generated as a separate constructor by the compiler. Instead, it is used for validation cases and would be invoked at the start of the main constructor.
+
+Few important things to note about Records:
+
+    - A record can neither extend a class nor it can be extended by another class. It’s a final class.
+    - Records cannot be abstract
+    - Records cannot extend any other class and cannot define instance fields inside the body. Instance fields must be defined in the state description only
+    - Declared fields are private and final
+    - The body of a record allows static fields and methods
+
+*** 4.1) Values Inside Reference Fields Of A Record Can Be Mutated
+It’s important to note that for fields defined which are objects, only the reference is immutable. The underlying values can be modified. 
+
+*** 4.2) Records Can Implement Interfaces
+The following code shows an example of implementing an interface with records:
+
+record Author(String name, String topic) implements Information {
+  public String getFullName() {
+    return "Author "+ name + " writes on " + topic;
+  }
+}
+
+interface Information {
+  String getFullName();
+}
+
+*** 4.3) Records support multiple constructors
+Records allow declaring multiple constructors with or without parameters as shown below:
+
+record Author(String name, String topic) {
+  public Author() {
+
+    this("NA", "NA");
+  }
+
+  public Author(String name) {
+
+    this(name, "NA");
+  }
+}
+*** 4.4) Records Allow Modifying Accessor Methods
+Though records do generate public accessor methods for the fields defined in the state description, they also allow you to redefine the accessor methods in the body as shown below:
+
+record Author(String name, String topic) {
+  public String name() {
+        return "This article was written by " + this.name;
+    }
+}
+*** 4.5) Check Record and its Components at Runtime
+Records provide us with isRecord() and getRecordComponents() to check if the class is a record and also look into its fields and types. The following code shows how it is done:
+
+AP/Pro
+	var author  = new Author("Anselm Grün", "Religion"); // Using an Author Record class
+	author.getClass().isRecord(); // returns true
+	author.getClass().getRecordComponents(); // returns the fields
+
+While we did add additional fields and methods to the record in the above code examples, make sure you don’t overdo this. Records are designed as plain data carriers and if you’re looking to implement a lot of additional methods, it’s better to fall back onto the normal class.
+*** Record não tem setters
+os campos do record são imutáveis (não tem setters).
+*** Obs: Records é ainda preview no Java 15
+** 5. Text Blocks (Preview)
+Text Blocks were introduced as a preview feature in Java 13 with the goal to allow easy creation of multiline string literals. It’s useful in easily creating HTML and JSON or SQL query strings.
+
+In Java 14, Text Blocks are still in preview with some new additions. We can now use:
+
+Backslash for displaying nice-looking multiline string blocks.
+\s is used to consider trailing spaces which are by default ignored by the compiler. It preserves all the spaces present before it.
+String text = """
+                Did you know \
+                Java 14 \
+                has the most features among\
+                all non-LTS versions so far\
+                """;
+
+String text2 = """
+                line1
+                line2 \s
+                line3
+                """;
+
+
+String text3 = "line1\nline2 \nline3\n"
+
+//text2 and text3 are equal.
+
+* JDK_15 (continuar nesse)
+*** novidades trazidas
+https://github.com/loiane/java-15_16-examples
+melhor site: https://www.journaldev.com/44681/java-15-features
+** Quick View
+Java 15 Features
+Here’s a quick look at features that are a part of Java 15:
+
+Sealed Classes (Preview) – JEP 360
+Pattern Matching for instanceof (Second Preview) – JEP 375
+Records (Second Preview) – JEP 359
+Text Blocks (Standard) – JEP 378
+Hidden Classes – JEP 371
+Remove the Nashorn JavaScript Engine – JEP 372
+Reimplement the Legacy DatagramSocket API – JEP 373
+Disable and Deprecate Biased Locking – JEP 374
+Shenandoah: A Low-Pause-Time Garbage Collector – JEP 379
+Remove the Solaris and SPARC Ports – JEP 381
+Foreign-Memory Access API (Second Incubator) – JEP 383
+Deprecate RMI Activation for Removal – JEP 385
+
+** 1. Sealed Classes (Preview)
+Sealed classes have been there in Kotlin since a while and Java 15 finally introduces this feature for better control over inheritance.
+
+As the name suggests, Sealed classes let you restrict or permit class hierarchies to only certain types.
+
+This is incredibly useful for pattern matching as you have a specific number of classes to switch between.
+
+The following syntax defines a sealed class in Java 15:
+
+public sealed class Vehicle permits Car, Bike, Truck {
+...
+}
+So, the above code means, only the classes defined after the keyword "permits" are allowed to extend the "Vehicle sealed" class.
+ 
+In case, you’ve defined the classes Car, Bike and Truck in the same file as Vehicle, you can omit the keyword permits and the compiler will take care of it implicitly as shown below:
+
+sealed class Vehicle {...}
+
+final class Car extends Vehicle {...}
+final class Bike extends Vehicle {...}
+final class Truck extends Vehicle {...}
+
+As you can see above, we’ve defined the final modifier of each of the classes. Now, that’s an important rule of sealed class that you need to keep in mind: Every permitted class must be set with an explicit modifier. It can either be "final" or "sealed" or "non-sealed".
+
+Here’s how each of the modifiers impact inheritance:
+   - A permitted subclass that’s declared "final" cannot be extended further.
+   - A permitted subclass that’s declared "sealed" can be extended further but only by classes that are permitted by the subclass.
+   - A permitted subclass may be declared "non-sealed" can be extended further by any class. The superclass cannot restrict the subclasses further down this class hierarchy.
+
+Before Java 15, developers could only use final keyword or scope modifiers to control inheritance. So, sealed classes brings the added flexibility for Java developers when defining class hierarchies.
+
+Java’s Reflection API also gets two new methods for dealing with sealed classes:
+	java.lang.constant.ClassDesc[] getPermittedSubclasses();
+	boolean isSealed()
+
+** 2. Records (Second Preview)
+Records were introduced as a preview feature in Java 14, in an effort to reduce boilerplate code when writing POJO based data carrier classes. This is something that’s been there in Kotlin for long in the form of data classes.
+
+Now, with Java 15, Records get their second preview. While there aren’t any major changes(just some minor additions), still there are a few major clarifications and restrictions that you should know:
+
+    - Prior to Java 15, one could declare native methods in records(though it wasn’t a good idea). Now the JEP explicitly prohibits against declaring native methods in records. Understandably, defining a native method steals away the USP of records by bringing an external state dependency.
+    - The implicitly declared fields corresponding to the record components of a record class are final and should not  be modified via reflection now as it will throw IllegalAccessException.
+
+Records are meant to be data carrier classes and you should totally avoid defining native methods in them.
+*** Records with Sealed Types
+We know that records are final and cannot be extended. Gladly, records can implement interfaces.
+
+So you can define a sealed interface and implement them on your records in the following ways:
+
+sealed interface Car permits BMW, Audi { ... }
+
+record BMW(int price) implements Car { ... }
+
+record Audi(int price, String model) implements Car { ... }
+*** Local Records
+Records can also be defined within methods to store intermediate values. Unlike local classes, a local record is implicitly static. This means they cannot access variables and instance members of the enclosing methods which is actually great since it prevents capturing of values by the record.
+
+Local records are a great boon for Java developers who would earlier have to create helper records.
+
+See how the introduction of a local records helps perform computation of values in a stream API with the following method:
+
+List<Merchant> findTopMerchants(List<Merchant> merchants, int month) {
+    // Local record
+    record MerchantSales(Merchant merchant, double sales) {}
+
+    return merchants.stream()
+        .map(merchant -> new MerchantSales(merchant, computeSales(merchant, month)))
+        .sorted((m1, m2) -> Double.compare(m2.sales(), m1.sales()))
+        .map(MerchantSales::merchant)
+        .collect(toList());
+}
+** Conclusion
+While the above two were the two major language features in Java 15, we also have Pattern Matching in the second preview for user feedback, Text Blocks as a standard feature now and most importantly a new Hidden classes feature.
+
+Hidden classes are a JVM feature which is relevant for framework developers. It allows class implementations to be made non-discoverable by defining them using Lookup::defineHiddenClass. In doing so, such classes can neither be found using Class.forName nor by referring them in bytecode.
+
+These are the major changes introduced in Java 15.
+
+**  como dito na conclusão acima há outros tópicos do java 15 e 16 no link abaixo
+https://github.com/loiane/java-15_16-examples
+posso começar estudando esse abaixo (obs: tirei o link do site acima)
+JEP 375: Pattern Matching for instanceof (Second Preview) (fonte: https://openjdk.org/jeps/375)
 
 * Java 16 API Documentation
 ler só o que é dito no index.html geral facilmente pode deixar passar o que o pacote/classe/recurso/tool faz... tem que abrir o link e ler com mais detalhes
@@ -655,64 +2188,24 @@ If you receive this error, you forgot to include the .java suffix when compiling
 
 
 
-* JDK_11
-*** novidades trazidas
-https://www.journaldev.com/24601/java-11-features
-* JDK_12
-*** novidades trazidas
-melhor site: https://www.journaldev.com/28666/java-12-features
-ver tb: https://currere.co/knowledge/java12-new-language-features
-com as novas funcionalidades trazidas com a versão 12
+* ver
+https://github.com/loiane/java8-tutorial
 
+#+BEGIN_SRC markdown	
+## Where to go from here?
 
-https://loiane.com/2019/03/what-is-new-in-java-12-api-for-developers/
-https://github.com/loiane/java12-examples
+My programming guide to Java 8 ends here. If you want to learn more about all the new classes and features of the JDK 8 API, check out my [JDK8 API Explorer](http://winterbe.com/projects/java8-explorer/). It helps you figuring out all the new classes and hidden gems of JDK 8, like `Arrays.parallelSort`, `StampedLock` and `CompletableFuture` - just to name a few.
 
-https://www.youtube.com/watch?v=xgJyQVeJltA
+I've also published a bunch of follow-up articles on my [blog](http://winterbe.com) that might be interesting to you:
+- [Java 8 Nashorn Tutorial](http://winterbe.com/posts/2014/04/05/java8-nashorn-tutorial/)
+- [Java 8 Concurrency Tutorial: Threads and Executors](http://winterbe.com/posts/2015/04/07/java8-concurrency-tutorial-thread-executor-examples/)
+- [Java 8 Concurrency Tutorial: Synchronization and Locks](http://winterbe.com/posts/2015/04/30/java8-concurrency-tutorial-synchronized-locks-examples/)
+- [Java 8 API by Example: Strings, Numbers, Math and Files](http://winterbe.com/posts/2015/03/25/java8-examples-string-number-math-files/)
+- [Avoid Null Checks in Java 8](http://winterbe.com/posts/2015/03/15/avoid-null-checks-in-java/)
+- [Fixing Java 8 Stream Gotchas with IntelliJ IDEA](http://winterbe.com/posts/2015/03/05/fixing-java-8-stream-gotchas-with-intellij-idea/)
+- [Using Backbone.js with Java 8 Nashorn](http://winterbe.com/posts/2014/04/07/using-backbonejs-with-nashorn/)
 
-* JDK_13
-
-*** novidades trazidas
-melhor site: https://www.journaldev.com/33204/java-13-features
-https://github.com/loiane/java13-examples
-
-* JDK_14
-*** novidades trazidas
-melhor site: https://www.journaldev.com/37273/java-14-features
-https://github.com/loiane/java14-examples
-
-* JDK_15_e_16
-*** novidades trazidas
-https://github.com/loiane/java-15_16-examples
-
-
-melhor site: https://www.journaldev.com/44681/java-15-features
-** generics
-AP: Para definir que será usado um generics existem 2 modos:
-*** modo 1
-#+BEGIN_SRC java
-class Printer
-{
-	public <T> void  printArray(T a[]) {   /// O <T> vem antes do void. Depois dentro da definição dos argumentos aparece sem os "< >"
-		for(T b:a) {
-			System.out.println(b);
-		}
-	}
- 
-}
-#+END_SRC
-
-*** modo 2
-#+BEGIN_SRC java
-class Printer<T>                      /// Ou o <T> vem do lado do nome da classe. Nesse caso não precisa vir ali no método
-{ 
-	public void  printArray(T a[]) {      // O "T" que aparece aqui deve estar fora dos "< >"
-		for(T b:a) {
-			System.out.println(b);
-		}
-	}
- 
-}
+You should [follow me on Twitter](https://twitter.com/winterbe_). Thanks for reading!
 #+END_SRC
 * Coisas interessantes para falar na apresentação do Meeting sobre Avanços do Java
 ** Usando o jshell pode-se passar código como literal, mesmo os imports.
@@ -730,4 +2223,42 @@ HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 System.out.println("Response was " + response.body());
 
+** isBlank() - This instance method returns a boolean value. Empty Strings and Strings with only white spaces are treated as blank.
+
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // Your code here!
+        
+        System.out.println(" ".isBlank()); //true
+        
+        String s = "Anupam";
+        System.out.println(s.isBlank()); //false
+        String s1 = "";
+        System.out.println(s1.isBlank()); //true
+    }
+}
+** local record: java 15
+** Map.of()
+em que versão do java surgiu o Map.of?
+ChatGPT
+O método Map.of() foi introduzido na versão Java 9. Ele faz parte das "Java Collections Factory Methods" adicionadas no Java 9, que permitem criar coleções imutáveis de forma concisa.
+
+exemplo:
+		Map<Long, ReplacementDto> expectedMap = Map.of(personReplacement1.getAbsenteeId(), personReplacement1,
+														personReplacement2.getAbsenteeId(), personReplacement2,
+														personReplacement3.getAbsenteeId(), personReplacement3);
+
+
+        // Verificar se o mapaResposta contém todos os elementos do mapaEsperado
+        boolean contemTodos = mapaResposta.entrySet().containsAll(mapaEsperado.entrySet());
+
 * cavar mais depois para completar os avanços nas versões lançadas do java
+* NOTA A RESPEITO DAS PREVIEW FEATURES
+How to Enable Preview Features
+Switch expressions and text blocks are preview features. So you will have to enable the preview-feature settings in your project. If you are running a java program from the command line, you can enable it using the --enable-preview switch. You can use this switch to start JShell with preview features enabled.
+
+$ jshell --enable-preview
+
+$ java --enable-preview --source 13 Test.java

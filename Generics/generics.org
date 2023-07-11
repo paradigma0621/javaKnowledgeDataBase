@@ -1,0 +1,27 @@
+* generics
+AP: Para definir que será usado um generics existem 2 modos:
+*** modo 1
+#+BEGIN_SRC java
+class Printer
+{
+	public <T> void  printArray(T a[]) {   /// O <T> vem antes do void. Depois dentro da definição dos argumentos aparece sem os "< >"
+		for(T b:a) {
+			System.out.println(b);
+		}
+	}
+ 
+}
+#+END_SRC
+
+*** modo 2
+#+BEGIN_SRC java
+class Printer<T>                      /// Ou o <T> vem do lado do nome da classe. Nesse caso não precisa vir ali no método
+{ 
+	public void  printArray(T a[]) {      // O "T" que aparece aqui deve estar fora dos "< >"
+		for(T b:a) {
+			System.out.println(b);
+		}
+	}
+ 
+}
+#+END_SRC

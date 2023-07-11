@@ -279,3 +279,5 @@ Variável local pode ser chamada de campo? Ou o nome correto para elas é apenas
 Uma declaração como: 
 User operadorDoSistema = new User();
 declarada dentro de um método (variável local), pode ser chamada de instância? 	
+
+pode uma instância ser estática?
