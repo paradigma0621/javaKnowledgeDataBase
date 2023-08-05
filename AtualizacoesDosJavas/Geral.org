@@ -1,5 +1,6 @@
-
-
+* O que é JEP, e seu processo
+(fonte: curso da Udemy)
+Uma JEP (JDK Enhancement Proposal) (serve para documentar uma new feature ou seja: uma melhoria, mas que ainda não está oficiliza pela Oracle) é uma proposta de aprimoramento, que pode ser tornar definitiva na linguagem à partir do momento que se torna uma numa JSR (Java Specification Request), que é um documento formal que passa para aprovação mediante análise de um comite JCP (Java Community Process).
 * JDK_7
 https://loiane.com/2011/07/novidades-java-7-project-coin/
 https://github.com/loiane/Java7HelloWorld
@@ -911,7 +912,27 @@ for (var number : numbers) {
 for (var i = 0; i < numbers.size(); i++) {
 	System.out.println(numbers.get(i));
 }
+*** inferência de tipos em variáveis locais
+**** principal vantagem: tornar o código mai enxuto e legível, principalmente quando a variável for de uma classe de nome extremamento longo
+		ArrayIndexOutOfBoundsException e = new ArrayIndexOutOfBoundsException();
 
+		var e = new ArrayIndexOutOfBoundsException();
+**** Variável deve ser local e inicializada
+var a; //não aceita
+**** Pode ser usado em Enhanced For Loop		
+		var listaDeFrutas = List.of("banana", "maçã", "abacaxi");
+		
+		//Enhanced For
+		for(var fruta : listaDeFrutas) {
+			System.out.println(fruta);
+		}
+**** Pode ser usado como índice de For tradicional
+		var listaDeFrutas = List.of("banana", "maçã", "abacaxi"); 
+
+		//Índice laço For
+		for(var i=0; i < listaDeFrutas.size(); i++) {
+			System.out.println(listaDeFrutas.get(i));
+		}
 ** 13. ### Experimental Java-Based JIT Compiler (JEP 317)
 
 This feature enables the Java-based JIT compiler, Graal, to be used as an experimental JIT compiler on the Linux/x64 platform. This is by far the most futuristic inclusion in the Java 10 feature list. Graal was introduced in Java 9. It’s an alternative to the JIT compiler which we have been used to. It’s a plugin to the JVM, which means that the JIT compiler is not tied to JVM and it can be dynamically plugged in and replaced with any another plugin which JVMCI compliant (Java-Level JVM Compiler Interface). It also brings Ahead of Time (AOT) compilation in java world. It also supports polyglot language interpretation. “A Java-based Just in Time Compiler written in Java to convert the java bytecode to machine code.” Is it confusing? If JVM is written in Java, then don’t you need a JVM to run the JVM? The JVM can be compiled AOT and then JIT compiler can be used within JVM it for enhancing performance through live code optimization. Graal is a complete rewrite of the JIT compiler in Java from scratch. Previous JIT compiler was written in c++. It’s considered one for the final stage of evolution for any programming language. You can switch to Graal with following jvm parameters:
@@ -1044,7 +1065,8 @@ public class Main {
     }
 }
 
-*** lines() This method returns a stream of strings, which is a collection of all substrings split by lines.
+*** lines() This method returns a stream of strings, which is a collection of all substrings split by lines ("\n")
+lines() retorna uma Stream
 
 import java.util.stream.Collectors;
 
@@ -1091,6 +1113,8 @@ StartJDEnd
 StartJD End
 Start JDEnd
 *** repeat(int) The repeat method simply repeats the string that many numbers of times as mentioned in the method in the form of an int.
+repete concatenando o conteúdo
+
 public class Main {
     public static void main(String[] args) throws Exception {
         // Your code here!
@@ -1099,7 +1123,7 @@ public class Main {
         System.out.println(str); //prints ==
     }
 }
-** 3 Local-Variable Syntax for Lambda Parameters
+** 3 Local-Variable Syntax for Lambda Parameters ("var" em parâmetros lambda)
 JEP 323, Local-Variable Syntax for Lambda Parameters is the only language feature release in Java 11. In Java 10, Local Variable Type Inference was introduced. Thus we could infer the type of the variable from the RHS - var list = new ArrayList<String>(); JEP 323 allows var to be used to declare the formal parameters of an implicitly typed lambda expression. We can now define :
 
 (var s1, var s2) -> s1 + s2
@@ -1109,6 +1133,12 @@ This was possible in Java 8 too but got removed in Java 10. Now it’s back in J
 (var s1, String y) -> s1 + y //no mixing allowed
 
 var s1 -> s1 //not allowed. Need parentheses if you use var in lambda.
+
+*** exemplo
+		Function<String, String> concatena = (String s) -> s + ". ";
+		//var em lambda expression
+		Function<String, String> concatena2 = (var s) -> s + ". ";
+
 *** fonte:https://www.devmedia.com.br/as-boas-partes-do-java-11/40193
 antes poderíamos escrever o seguinte trecho de código:
 
@@ -1123,6 +1153,8 @@ Ao executar o código acima teríamos a oportunidade de capturar o seguinte erro
 
 	Null type mismatch: required ''@NonNull Double'' but the provided value is null
 
+*** vantagem dessa forma
+poder especificar o parâmetro lambda sem a necessidade de tipar o nome por completo - acaba encurtando a expressão lambda
 ** 4 Nested Based Access Control
 Before Java 11 this was possible:
 
@@ -1206,7 +1238,27 @@ Path path = Files.writeString(Files.createTempFile("test", ".txt"), "This was po
 System.out.println(path);
 String s = Files.readString(path);
 System.out.println(s); //This was posted on JD
-
+*** escreve em arquivo
+		String caminho = "meutexto.txt";
+		String meutexto = "Curso Java Tópicos Avançados";
+		try {
+			Files.writeString(new File(caminho).toPath(), meutexto, StandardCharsets.ISO_8859_1); //Se não especificar o tipo da codificação é assumido UTF-8
+													// pode ser que gere símbolos estranhos dependendo do sistmea operacional
+		} 
+		catch (IOException e) {
+		}
+*** lê arquivo
+		String caminho = "meutexto.txt";
+		
+		String s;
+		try {
+			s = Files.readString(new File(caminho).toPath(), StandardCharsets.ISO_8859_1); //Se não especificar o tipo da codificação é assumido UTF-8 - dependendo
+											// da codificação do arquivo pode gerar erro e não ler
+			System.out.println(s);
+		} 
+		catch (IOException e) {
+			System.out.println(e);
+		}
 ** 11 JEP 329: ChaCha20 and Poly1305 Cryptographic Algorithms
 Java 11 provides ChaCha20 and ChaCha20-Poly1305 cipher implementations. These algorithms will be implemented in the SunJCE provider.
 
@@ -1222,6 +1274,8 @@ Nashorn JavaScript script engine and APIs are deprecated thereby indicating that
 https://winterbe.com/posts/2018/09/24/java-11-tutorial/
 
 * JDK_12
+** obs
+as previews features trazidas no curso do Udemy "Java Avançado" se tornaram permanentes nos javas 14 e 16
 ** fontes
 melhor site: https://www.journaldev.com/28666/java-12-features
 
@@ -1259,8 +1313,8 @@ Now, this would delay the startup time of the program.
 
 ** Language Changes And Features
 Java 12 has introduced many language features. Let us look at a few with implementations.
-
-*** 1. Switch Expressions (Preview)
+*** 1. Switch Expressions (Preview, mas que no Java 14 foi consolidada. Principal feature do Java 12)
+**** conteúdo
 Java 12 has enhanced Switch expressions for Pattern matching. Introduced in JEP 325, as a preview language feature, the new Syntax is L ->. Following are some things to note about Switch Expressions:
 
 The new Syntax removes the need for break statement to prevent fallthroughs.
@@ -1347,6 +1401,63 @@ After running the compiled program, we get the following in the console
       Looks like a sunday.
 
 Switch expressions is a preview language feature. This means that even though it is complete, it may not be confirmed in the future Java Release.
+
+**** exemplo com 2, com observações importantes
+***** cabeçalho
+		System.out.println("Digite o dia da semana: ");
+		Scanner input = new Scanner(System.in);
+		String dia = input.nextLine();
+		input.close();
+		
+		String resultado = "";		
+***** modo antigo (com switch case)
+/*switch (dia) {
+			case "segunda":
+				resultado = "dia útil";
+				break;
+			case "terça":
+				resultado = "dia útil";
+				break;
+			case "quarta":
+				resultado = "dia útil";
+				break;
+			case "quinta":
+				resultado = "dia útil";
+				break;
+			case "sexta":
+				resultado = "dia útil";
+				break;
+			case "sábado":
+				resultado = "final de semana";
+				break;
+			case "domingo":
+				resultado = "final de semana";
+				break;
+			default:
+				resultado = "dia inválido";
+		}
+		
+		System.out.println(resultado);*/
+		
+***** modo novo (com switch expressions)
+		resultado = switch (dia) {  	// obs1: Usamos lambda ->
+						// obs2: faz-se uma única atribuição de "resultado =" - comparar no switch case que era feita pra cada caso
+						// obs3: não precisa usar break
+						// obs4: múltiplas constantes num único case
+						// obs5: sintaxe mais compacta e legível
+						// 
+			case "segunda", "terça", "quarta", "quinta", "sexta" -> "dia útil";
+			case "sábado", "domingo" -> "final de semana";
+			default -> "dia inválido";
+		
+		};
+		
+		System.out.println(resultado);
+
+**** mais notas importantes
+Switch Expressions lembra lâmbda expressions
+detalhe adicionar que o switch case (modo antigo) não tem: tem que finalizar com ";" e que por obrigatório temos que ter uma condição "default" (esse última não era obrigatório na switch case).
+
 ** 2. File.mismatch method
 Java 12 added the following method to compare two files:
 
@@ -1356,7 +1467,7 @@ This method returns the position of the first mismatch or -1L if there is no mis
      File sizes are not identical. In this case, the size of the smaller file is returned.
 
 Example code snippet from IntelliJ Idea is given below:
-
+*** exemplo de código 1: criar arquivos em tempo de execução
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1402,8 +1513,25 @@ The output when the above Java Program is compiled and run is:
 	-1
 	Mismatch position in file3 and file4 is >>>>
 	10
-
+*** exemplo 2 - usa arquivos já existentes
+		File f1 = new File ("texto1.txt");
+		
+		File f2 = new File ("texto2.txt");
+		
+		
+		try {
+			long resultado = Files.mismatch(f1.toPath(), f2.toPath());
+			
+			System.out.println(resultado);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 ** 3. Compact Number Formatting
+Serve para formatar número decimal numa forma compacta
+Primeiro argumetno de getCompactNumberInstance recebe a região, e o segundo o formato.
+*** exemplo 1
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -1432,9 +1560,22 @@ Compact Formatting is:
 2.6k upvotes
 2.01 thousand upvotes
 
+*** exemplo 2
+		//escolhendo o tipo de Locale (região) de forma 1
+		NumberFormat nf1 = CompactNumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.LONG); //Poderia ser com Locale.ITALY , ...
+		
+		System.out.println(nf1.format(50000));  //mostra: "50 thousand
+
+		//escolhendo o tipo de Locale (região) de forma 2 - quando para a região que queremos não temos o Locale.X (ex: Brasil)
+		NumberFormat nf2 = CompactNumberFormat.getCompactNumberInstance(new Locale("pt", "BR"), NumberFormat.Style.LONG);
+		
+		System.out.println(nf2.format(50000)); //mostra: "50 mil"
+
 ** 4. Teeing Collectors
 Teeing Collector is the new collector utility introduced in the Streams API. This collector has three arguments - Two collectors and a Bi-function. All input values are passed to each collector and the result is available in the Bi-function.
 
+Pega 2 fluxos (2 coleções) e une elas num resultado. Imagem de analogia: a peça "T" de cano de água.
+*** exemplo 1
 double mean = Stream.of(1, 2, 3, 4, 5)
                 .collect(Collectors.teeing(
                         summingDouble(i -> i),
@@ -1443,6 +1584,18 @@ double mean = Stream.of(1, 2, 3, 4, 5)
 
 System.out.println(mean);
 The output is 3.0.
+
+*** exemplo 2
+		//Collectors.teeing(soma, qtde, média)
+
+
+// aqui apenas mostrando que a chamada vem da classe Collectors. A mesma possui uma gama de funcões matemáticas prontas
+		double resultado = Stream.of(50, 10 ,3, 19, 11, 22, 19).collect(
+				
+				Collectors.teeing(Collectors.summingDouble(i -> i), Collectors.counting(), (soma, qtde) -> soma / qtde)
+				
+		);
+
 ** 5. Java Strings New Methods
 4 new methods have been introduced in Java 12 which are:
 
@@ -1451,6 +1604,9 @@ transform(Function f)
 Optional describeConstable()
 String resolveConstantDesc​(MethodHandles.Lookup lookup)
 
+Obs: .indent() recebe como parâmetro um valor inteiro - pode ser positivo, negativo ou zero. Se for negativo o texto tem um retrocesso. Se for zero não acontece nada.
+
+.transform  recebe como parâmetro uma função como argumento	para ser aplicada à string.
 *** exemplo de código:
 	   private static void newStringMethods() {
         String result = "Hello\nWorld!".indent(3);
@@ -1472,6 +1628,10 @@ Saída:
 
 
 
+		String texto = "Olá Mundo!";		
+		String textoInvertido = texto.transform(s -> new StringBuilder(s).reverse().toString());
+		System.out.println(textoInvertido); // !odnuM álO
+		
 ** 6. JEP 334: JVM Constants API
 A new package java.lang.constant is introduced with this JEP. This is not that useful for those developers who don’t use constants pool.
 
@@ -1508,7 +1668,7 @@ FileSystems.newFileSystem() Method
 Support for Unicode 12.1
 DOM and SAX Factories with Namespace Support
 
-** 1. Text Blocks - JEP 355
+** 1. Text Blocks - JEP 355 (preview no java 13, porém que se tornou definitiva no Java 15)
 This is a preview feature. It allows us to create multiline strings easily. The multiline string has to be written inside a pair of triple-double quotes. The string object created using text blocks has no additional properties. It’s an easier way to create multiline strings. We can’t use text blocks to create a single-line string. The opening triple-double quotes must be followed by a line terminator.
 
 package com.journaldev.java13.examples;
@@ -1633,6 +1793,8 @@ Hello' " /u0022 Pankaj
 ** 3. Switch Expressions Enhancements - JEP 354
 Switch expressions were added as a preview feature in Java 12 release. It’s almost same in Java 13 except that the “break” has been replaced with “yield” to return a value from the case statement.
 
+yield apareceu para substituir o comando break e também já fazer o papel do retorno.
+*** código 1
 package com.journaldev.java13.examples;
 
 /**
@@ -1696,6 +1858,27 @@ public class SwitchEnhancements {
 	}
 }
 
+*** código 2 - para fazer um comparativo com o código que eu apresentei no exemplo 2 da seção do Java 12
+		String resultado =switch (dia) {
+			case "segunda":
+				yield "dia útil";
+			case "terça":
+				yield "dia útil";
+			case "quarta":
+				yield "dia útil";
+			case "quinta":
+				yield "dia útil";
+			case "sexta":
+				yield "dia útil";
+			case "sábado":
+				yield "final de semana";
+			case "domingo":
+				yield "final de semana";
+			default:
+				yield "dia inválido";
+		};
+		
+		System.out.println(resultado);
 ** 4. Reimplement the Legacy Socket API - JEP 353
 The underlying implementation of the java.net.Socket and java.net.ServerSocket APIs have been rewritten. The new implementation, NioSocketImpl, is a drop-in replacement for PlainSocketImpl. It uses java.util.concurrent locks rather than synchronized methods. If you want to use the legacy implementation, use the java option -Djdk.net.usePlainSocketImpl.
 
@@ -1859,7 +2042,7 @@ String result = switch (day) {
         };
 System.out.println(result);
 Note: Yield isn’t a new keyword in Java. It’s just used in switch expressions.
-** 2. Pattern Matching for instanceof (Preview)
+** 2. Pattern Matching for instanceof (Preview no Java 14, mas que se consolidou no Java 16)
 Ask any Java developer to show their codebase and you’ll a good use of instanceof conditions throughout the code. Specifically, an instanceof conditional check is generally followed by a typecasting.
 
 Java 14, gets rid of this verbosity by making conditional extraction a lot more concise.
@@ -1872,7 +2055,7 @@ if (obj instanceof Journaldev) {
 }
 *** Java 14 Onwards:
 
-if (obj instanceof Journaldev jd) {
+if (obj instanceof Journaldev jd) { //type casting se torna implícito para o instanceof
   System.out.println(jd.getAuthor());
 }
 In the above code, the instance jd would be only assigned if obj is of type Journaldev. The scope of the variable is limited to the conditional block only.
@@ -1892,6 +2075,48 @@ Exception in thread "main" java.lang.NullPointerException: Cannot invoke "Blog.g
 
 Note: The above feature is not a language feature. It’s an enhancement in the runtime environment.
 ** 4. Records (Preview)
+Simplifica implementação POJO (Plain Old Java Object). (esta expressão "POJO" é quando o desenho está simplificado sem estar amarrado a nenhum framework, também conhecido como objeto clássico em Java. Segue uma implementação minimalista: apenas construtor default (sem parâmetros) + métodos getters e setters)
+
+O record gera automaticamente métodos de construção, getters, equals, hashCode e toString.
+Pode-se escrever o nome da instância do record (ex: retangulo) + o ponto, e apertar TAB, para ver os métodos criados.
+
+Todos atributos são definidos como private e final.
+
+*** O record não pode extender nem ser estendido. É entendido pelo compilador como sendo uma classe do tipo final.
+classs Figura2D {
+	
+}
+
+record Retangulo(double largura, double altura) extends Figura2D {  //Erro de compilação nessa linha
+*** Records não podem ser abstratos
+*** Não podem haver variáveis de instância na estrutura
+Exemplo de onde ocorro um erro de compilação, pois, não são permitido membros static.
+
+record Retangulo(double largura, double altura) { 
+	private String nome;
+}
+
+*** a estrutura permite implementar interfaces
+interface Figura2D {
+	
+}
+
+record Retangulo(double largura, double altura) implements Figura2D{ }
+
+
+*** a estrutura permite métodos static	
+interface Figura2D {
+	
+}
+
+record Retangulo(double largura, double altura) implements Figura2D{ }
+	public static void imprimeNome() {
+		System.out.println("Olá ! Eu sou um retângulo.");
+	}
+}
+
+*** continuação
+
 A record is a data class that stores pure data. The idea behind introducing records is to quickly create simple and concise classes devoid of boilerplate code.
 
 Normally a class in Java would require you to implement equals(), hashCode() , the getters and setters methods. While some IDEs support auto-generation of such classes, the code is still verbose. With a record you need to simply define a class in the following way.
@@ -1988,13 +2213,18 @@ While we did add additional fields and methods to the record in the above code e
 *** Record não tem setters
 os campos do record são imutáveis (não tem setters).
 *** Obs: Records é ainda preview no Java 15
-** 5. Text Blocks (Preview)
+** 5. Text Blocks (Preview no Java 13, porém que se torna definitiva no Java 15)
+Introduzidos 2 caracteres de escape, ou sequências de escape.
+
+
 Text Blocks were introduced as a preview feature in Java 13 with the goal to allow easy creation of multiline string literals. It’s useful in easily creating HTML and JSON or SQL query strings.
 
 In Java 14, Text Blocks are still in preview with some new additions. We can now use:
 
-Backslash for displaying nice-looking multiline string blocks.
-\s is used to consider trailing spaces which are by default ignored by the compiler. It preserves all the spaces present before it.
+Backslash ("\") for displaying nice-looking multiline string blocks. É utilizada no fim da linha que a quebra de linha não seja inserida.
+\s is used to consider trailing spaces (espaço único)  which are by default ignored by the compiler. It preserves all the spaces present before it.
+
+*** exemplo 1
 String text = """
                 Did you know \
                 Java 14 \
@@ -2012,6 +2242,17 @@ String text2 = """
 String text3 = "line1\nline2 \nline3\n"
 
 //text2 and text3 are equal.
+
+*** exemplo 2
+		
+		String texto = """
+				Olá\s\s\s\s\s\sMundo! \
+				Este é o módulo Java 14. \
+				Curso Java - Tópicos Avançados \
+				""";
+
+		System.out.println(texto); //Olá      Mundo! Este é o módulo Java 14. Curso Java - Tópicos Avançados
+		
 
 * JDK_15 (continuar nesse)
 *** novidades trazidas
@@ -2034,7 +2275,14 @@ Remove the Solaris and SPARC Ports – JEP 381
 Foreign-Memory Access API (Second Incubator) – JEP 383
 Deprecate RMI Activation for Removal – JEP 385
 
+** Text Block passa a ser definitiva (não mais preview)
+** Classes Ocultas (Hidden Classes)
+permitir a criação em tempo de execução de classes que não podem ser descobertas = não podem ser vinculadas por outras classes, nem descobertas por meio de reflexão.
+
+útil para quem programa com byte codes ou customizando JVM.
 ** 1. Sealed Classes (Preview)
+Até então o Java não permitia o controle de herança refinado. Não conseguia definir restringir hierarquia de classes, definindo quais classes podiam ter hierarquias com outras.
+
 Sealed classes have been there in Kotlin since a while and Java 15 finally introduces this feature for better control over inheritance.
 
 As the name suggests, Sealed classes let you restrict or permit class hierarchies to only certain types.
@@ -2043,7 +2291,7 @@ This is incredibly useful for pattern matching as you have a specific number of 
 
 The following syntax defines a sealed class in Java 15:
 
-public sealed class Vehicle permits Car, Bike, Truck {
+public sealed class Vehicle permits Car, Bike, Truck { //permits especifica quais classes ou interfaces podem extendê-la
 ...
 }
 So, the above code means, only the classes defined after the keyword "permits" are allowed to extend the "Vehicle sealed" class.
@@ -2055,6 +2303,11 @@ sealed class Vehicle {...}
 final class Car extends Vehicle {...}
 final class Bike extends Vehicle {...}
 final class Truck extends Vehicle {...}
+
+non-sealed class SomeClass {...}
+non-sealed class SomeClass extends Zclass {...}
+
+abstract sealed class AnotherClass permits XClass {...}
 
 As you can see above, we’ve defined the final modifier of each of the classes. Now, that’s an important rule of sealed class that you need to keep in mind: Every permitted class must be set with an explicit modifier. It can either be "final" or "sealed" or "non-sealed".
 
@@ -2068,7 +2321,139 @@ Before Java 15, developers could only use final keyword or scope modifiers to co
 Java’s Reflection API also gets two new methods for dealing with sealed classes:
 	java.lang.constant.ClassDesc[] getPermittedSubclasses();
 	boolean isSealed()
+*** código 1
+package ex1;
 
+import ex1.Carnivoro;
+import ex1.Coelho;
+import ex1.Herbivoro;
+import ex1.Leao;
+
+abstract class Carnivoro {
+	
+	public void euSou() {
+		System.out.print(" eu sou carnívoro.\n");
+	}
+}
+
+abstract class Herbivoro {
+	
+	public void euSou() {
+		System.out.print(" eu sou herbívoro.\n");
+	}
+}
+
+class Leao extends Carnivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um leão,");
+		super.euSou();
+	}
+}
+
+class Gato extends Carnivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um gato,");
+		super.euSou();
+	}
+}
+
+class Vaca extends Herbivoro {
+
+	public void euSou() {
+		System.out.print("eu sou uma vaca,");
+		super.euSou();
+	}
+}
+
+class Coelho extends Herbivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um coelho,");
+		super.euSou();
+	}
+}
+
+
+public class ClassesSeladasEx {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		Leao l = new Leao();
+		l.euSou();
+		
+		Coelho c = new Coelho();
+		c.euSou();
+	}
+
+}
+*** código 2
+package ex2;
+
+abstract sealed class Carnivoro permits Leao, Gato {
+	
+	public void euSou() {
+		System.out.print(" eu sou carnívoro.\n");
+	}
+}
+
+abstract sealed class Herbivoro permits Vaca, Coelho {
+	
+	public void euSou() {
+		System.out.print(" eu sou herbívoro.\n");
+	}
+}
+
+non-sealed class Leao extends Carnivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um leão,");
+		super.euSou();
+	}
+}
+
+final class Gato extends Carnivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um gato,");
+		super.euSou();
+	}
+}
+
+sealed class Vaca extends Herbivoro permits X {
+
+	public void euSou() {
+		System.out.print("eu sou uma vaca,");
+		super.euSou();
+	}
+}
+
+final class X extends Vaca{
+	
+}
+
+final class Coelho extends Herbivoro {
+	
+	public void euSou() {
+		System.out.print("eu sou um coelho,");
+		super.euSou();
+	}
+}
+
+public class ClassesSeladasEx2 {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		Leao l = new Leao();
+		l.euSou();
+		
+		Coelho c = new Coelho();
+		c.euSou();
+	}
+}
 ** 2. Records (Second Preview)
 Records were introduced as a preview feature in Java 14, in an effort to reduce boilerplate code when writing POJO based data carrier classes. This is something that’s been there in Kotlin for long in the form of data classes.
 
@@ -2078,6 +2463,50 @@ Now, with Java 15, Records get their second preview. While there aren’t any ma
     - The implicitly declared fields corresponding to the record components of a record class are final and should not  be modified via reflection now as it will throw IllegalAccessException.
 
 Records are meant to be data carrier classes and you should totally avoid defining native methods in them.
+
+Obs: método nativo é aquele que está vinculado à uma biblioteca nativa (sua declaração é: public native void nomeDoMetodo(); )
+Obs2: Reflexão nada mais é que a capacidade da linguagem de programação em inspecionar dinamicamente as chamadas às classes, método e atributos em tempo de execução e manipular suas propriedades internas. Reflexão é usada para burlar o código.
+*** exemplo de reflexão simulando, que à partir do Java 15 não poderia ser aplicado para burlar a classe se ela fosse um record (seria lançada uma IllegalAccessException)
+import java.lang.reflect.Field;
+
+class Produto {
+	
+	private final Integer codigo = 12345;
+	
+	public Integer getCodigo() {
+		return codigo;
+	}
+}
+
+public class ReflexaoEx {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		Produto geladeira = new Produto();
+		//Imprime código
+		System.out.println(geladeira.getCodigo());  //12345
+		
+		try {
+			//Obter o atributo (field)
+			Field atributo = geladeira.getClass().getDeclaredField("codigo");
+			
+			//Alterar o modificador de acesso para o atributo se tornar acessível - uma vez que "codigo" é private
+			atributo.setAccessible(true);
+			
+			//Atribuir um novo valor no atributo
+			atributo.set(geladeira, 54321);
+			
+			//Imprime novo código			
+			System.out.println(geladeira.getCodigo()); //54321
+			
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+}
 *** Records with Sealed Types
 We know that records are final and cannot be extended. Gladly, records can implement interfaces.
 
@@ -2112,7 +2541,7 @@ Hidden classes are a JVM feature which is relevant for framework developers. It 
 
 These are the major changes introduced in Java 15.
 
-**  como dito na conclusão acima há outros tópicos do java 15 e 16 no link abaixo
+** como dito na conclusão acima há outros tópicos do java 15 e 16 no link abaixo
 https://github.com/loiane/java-15_16-examples
 posso começar estudando esse abaixo (obs: tirei o link do site acima)
 JEP 375: Pattern Matching for instanceof (Second Preview) (fonte: https://openjdk.org/jeps/375)
@@ -2254,6 +2683,11 @@ exemplo:
         // Verificar se o mapaResposta contém todos os elementos do mapaEsperado
         boolean contemTodos = mapaResposta.entrySet().containsAll(mapaEsperado.entrySet());
 
+** sublist
+não tirei do curso de Avanços do Java da Udemy, mas do curso de Processamento Assíncrono da Udemy:
+As List tem um método chamado:
+ lista.sublist(0,lista.size())
+que retona uma sublista
 * cavar mais depois para completar os avanços nas versões lançadas do java
 * NOTA A RESPEITO DAS PREVIEW FEATURES
 How to Enable Preview Features

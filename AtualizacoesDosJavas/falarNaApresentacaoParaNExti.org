@@ -1,0 +1,98 @@
+* dar esse exemplo de vantagem de uso do jshell
+** exemplo 1 
+supondo que quero aprender como funciona as melhorias do Java 9 de takeWhile e dropWhile: posso abrir o JShell e colar do código abaixo a
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+*** bloco para colar primeiro
+class Produto {
+	
+	private Integer codigo;
+	private String nome;
+	private Double preco;
+	
+	public Produto() {
+		this.codigo = 0;
+		this.nome = "";
+		this.preco = 0.0;
+	}
+
+	public Produto(Integer codigo, String nome, Double preco) {
+		this.codigo = codigo;
+		this.nome = nome;
+		this.preco = preco;
+	}
+
+	public Integer getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(Integer codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public Double getPreco() {
+		return preco;
+	}
+
+	public void setPreco(Double preco) {
+		this.preco = preco;
+	}
+}
+
+*** bloco para colar segundo
+//Dizer para o pessoal evitar os códigos que estão em comentários abaixo, eles impedem que seja executado o código no momento que ele é colado
+//public class Exemplo01 {
+
+//	public static void main(String[] args) {
+		
+		List<Produto> listaProdutos = new ArrayList<Produto>(); 
+		
+		listaProdutos.add(new Produto(1000, "Geladeira 470L", 2999.00));
+		listaProdutos.add(new Produto(2000, "TV UHD 50''", 3500.00));
+		listaProdutos.add(new Produto(1001, "TV UHD 65''", 5000.00));
+		listaProdutos.add(new Produto(3000, "Microondas 20L", 399.00));
+		listaProdutos.add(new Produto(1001, "Geladeira 120L", 900.00));
+		listaProdutos.add(new Produto(4000, "Computador i5 2.9Ghz 4GB 1TB HD", 2429.00));
+		listaProdutos.add(new Produto(1002, "Geladeira 500L", 3100.00));
+		
+ 		
+		listaProdutos.stream()
+		//.takeWhile(p -> p.getNome().contains("Geladeira"))
+		.dropWhile(p -> p.getNome().contains("Geladeira")) //oposto do .takeWhile
+		
+		.map(p -> p.getNome())
+		
+		.forEach(System.out::println);
+//	}
+
+//}
+** exemplo 2 - talvez antes tenha que passar os imports
+colando esse bloco 1 abaixo não funciona direto, antes tem que passar o bloco 2
+*** bloco 1
+		//escolhendo o tipo de Locale (região) de forma 1
+		NumberFormat nf1 = CompactNumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.LONG); //Poderia ser com Locale.ITALY , ...
+		
+		System.out.println(nf1.format(50000));  //mostra: "50 thousand
+
+		//escolhendo o tipo de Locale (região) de forma 2 - quando para a região que queremos não temos o Locale.X (ex: Brasil)
+		NumberFormat nf2 = CompactNumberFormat.getCompactNumberInstance(new Locale("pt", "BR"), NumberFormat.Style.LONG);
+		
+		System.out.println(nf2.format(50000)); //mostra: "50 mil"
+*** bloco 2
+//antes precisamos passar esses imports
+import java.text.CompactNumberFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+* no Text Block
+fazer um comparativo da string com concatenções e a do Text Block e mencionar que fica mais fácil de ser lido.

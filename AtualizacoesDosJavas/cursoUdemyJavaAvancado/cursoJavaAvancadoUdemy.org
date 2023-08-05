@@ -136,6 +136,36 @@ public class MethodReferencesExemplo04 {
 	}
 
 }
+** o que é uma classe interna anônima
+#+BEGIN_SRC markdown
+Uma classe interna anônima em Java é uma classe sem nome e é uma extensão de uma classe ou uma implementação de uma interface. As classes internas anônimas são úteis quando você precisa criar uma instância de um objeto com certas "modificações" ao comportamento da classe, sem explicitamente criar uma subclasse separada.
+
+Aqui está um exemplo que ilustra uma classe interna anônima em Java. Imagine que você tenha uma interface chamada `Greeting` que define um método `sayHello`. Você pode criar uma classe interna anônima que implementa essa interface da seguinte maneira:
+
+```java
+interface Greeting {
+    void sayHello();
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Criando uma classe interna anônima que implementa a interface Greeting
+        Greeting greeting = new Greeting() {
+            @Override
+            public void sayHello() {
+                System.out.println("Olá mundo!");
+            }
+        };
+        
+        greeting.sayHello(); // Saída: Olá mundo!
+    }
+}
+```
+
+Neste exemplo, a classe interna anônima está implementando a interface `Greeting` e fornecendo uma implementação para o método `sayHello`. Você pode pensar nisso como uma forma concisa de criar uma subclasse "temporária" de uma classe ou interface existente sem realmente ter que nomear ou definir essa subclasse em um arquivo separado.
+
+As classes internas anônimas são frequentemente usadas em Java para manipulação de eventos em interfaces gráficas, onde elas permitem que você escreva o código de manipulação de eventos diretamente no lugar onde o evento está sendo registrado. Isso pode tornar o código mais legível e conciso, especialmente para classes pequenas e simples que são usadas em apenas um lugar no código.
+#+END_SRC
 * java 8
 ** Operador method reference
 Foi adicionado no Java 8.
@@ -159,7 +189,10 @@ Ao invés de utilizar classe anônima para implementar interfaces funcionais: op
 de lambda expression. Porém se a lambda expression não envolver o uso de múltiplos métodos, opte
 pelo uso de Method Reference para obter um código mais conciso.
 *** Obs
-Assim como lambda expressions, method reference também está relacionado a interfaces funcionais.									
+**** Assim como lambda expressions, method reference também está relacionado a interfaces funcionais.									
+
+**** exemplos de uso
+workplacesRepository.forEach(this::processMapping);  (dica: uso do "this" quando a classe possui o método em questão)
 ** Streams
 Streams são pipelines.
 A ideia que do pipeline é que a saída de uma operação é a entrada da próxima.
@@ -335,7 +368,6 @@ ordenaria do primeiro elemento inclusivo, até o último elemento exclusivo.
 //Inferência de tipo na chamada ao método especializado imprime da classe ImprimeProdutos
 		ImprimeProdutos.imprime(new ArrayList<>()); //Passou a não ser mais necessário escrever new ArrayList<Produto> aqui, ele entende que é uma lista de Produto's  olhando o parâmetro do método "imprime".
 
-
 ** Reflexão de métodos e parâmetros
 Para que serve: obter informações sobre métodos e parâmetros de uma classe ou de uma instância em tempo de execução.
 Pode também modificar o outro código. Seu uso indevido pode acarretar risco à segurança do código e violação dos conceitos de orientação a objetos.
@@ -471,6 +503,228 @@ public class AnnotationsExemplo {
 	}
 
 }
+** adicionada a possibilidade de implementação de métodos dentro de interfaces
+para isso usamos a palavra chafe "default". Ex:
+#+BEGIN_SRC java
+public interface LogEventosI {
+	
+	default void logInfo(String mensagem) {
+		System.out.println("Info: " + mensagem);
+	}
+
+	default void logWarn(String mensagem) {
+		System.out.println("Warn: " + mensagem);
+	}
+}
+#+END_SRC
+
+Obs1: uma interface, além de métodos abstratos, pode ter também atributos públicos inicializados.
+Obs2: tendo vários métodos como sendo default, sobrando apenas um não implementado, essa interface é uma Interface Funcional. 
+
 * java 9
 ** Sistema de módulos (Projeto Jigsaw)
-**
+** adicionada possibilidade de implementação de método privado dentro de interfaces
+Desde que ele seja implementado dentro da interface.
+É obrigatório implementar o método dentro da interface.
+ Ex:
+#+BEGIN_SRC java
+public interface LogEventosI {
+	
+	default void logInfo(String mensagem) {
+		log(mensagem, "INFO");
+	}
+
+	default void logWarn(String mensagem) {
+		log(mensagem, "WARN");
+	}
+
+	default void logError(String mensagem) {
+		log(mensagem, "ERROR");
+	}
+
+	default void logFatal(String mensagem) {
+		log(mensagem, "FATAL");
+	}
+	
+	//New feature Java 9
+	private void log(String mensagem, String tipo) {
+		System.out.println("INÍCIO DA MENSAGEM");
+		
+		System.out.println(tipo + ": " + mensagem);
+		
+		System.out.println("FIM DA MENSAGEM");
+	}
+#+END_SRC
+
+
+}
+** try-catch com recursos
+Se o bloco try tiver um recurso que implementa a interfaces AutoCloseable é possível fazer uso desse avanço.
+Ex: leitura de arquivo:
+#+BEGIN_SRC java
+public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		try {
+			TryCatchExemplo.leArquivoBlocoTryComRecurso("file.txt");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	//Antes do Java 7 - "modo tradicional"
+	public static void leArquivoComBlocoTryCatchFinally(String path) throws IOException {
+		String linha = "";
+		
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		
+		try { 
+			while((linha = br.readLine()) != null) {
+				System.out.println(linha);
+			}
+		}
+		catch(IOException e) { 
+			throw e; 
+		}
+		finally { 
+	        if (br != null) {
+	        	br.close(); 
+	        }
+	    }
+	}
+	
+	//A partir do Java 9
+	public static void leArquivoBlocoTryComRecurso(String path) throws IOException {
+		String linha = "";
+		
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		
+		try(br) { 
+
+			while((linha = br.readLine()) != null) { 
+				System.out.println(linha);
+			}
+		}
+	}
+#+END_SRC
+** Inferências de tipos em classes internas anônimas
+ver o que é classe anônima no tópico de * Conceitos
+*** feature apresentada no curso
+**** Interface
+#+BEGIN_SRC java
+public interface SomaTudo<T> {
+
+	
+	T soma(T a, T b);
+	
+}
+#+END_SRC
+**** MainClass
+#+BEGIN_SRC java
+public class InferenciaExemplo {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		//Classe interna anônima
+		SomaTudo<String> somaString = new SomaTudo<>() {
+// Se estivéssemos usando java 8 precisaríamos de usar o "String" dentro do segundo diamond:
+//		SomaTudo<String> somaString = new SomaTudo<String>() {
+
+			@Override
+			public String soma(String a, String b) {
+				// TODO Auto-generated method stub
+				return a + b;
+			}
+		};
+		
+		System.out.println(somaString.soma("Olá", " mundo!"));
+
+	}
+
+}
+#+END_SRC
+** Factory Method de coleções
+List.of("a", "b", "c");
+Set.of(1, 2, 3);
+Map.of(1L, 11L, 2L, 22L);
+
+Não são permitodos elementos nulos.
+
+Para as interfaces Map e Set: não é permitido elementos repetidos. A ordem que os elemento são percorridos não é a ordem que eles foram inseridos.
+** jshell
+*** não precisamos colocar ";" no final das sentenças
+
+*** Não precisamos criar variáveis para armazenar valores próprios
+int a = 10
+int b = 20
+a+b   (o próprio java cria uma variável implícita)
+
+*** para sair do jshell: /exit
+*** dar a dica de autocompletamento da sentença com TAB
+** Melhorias na API Stream 
+*** cenário para base de estudo
+**** código
+		List<Produto> listaProdutos = new ArrayList<Produto>(); 
+		
+		listaProdutos.add(new Produto(1000, "Geladeira 470L", 2999.00));
+		listaProdutos.add(new Produto(2000, "TV UHD 50''", 3500.00));
+		listaProdutos.add(new Produto(1001, "TV UHD 65''", 5000.00));
+		listaProdutos.add(new Produto(3000, "Microondas 20L", 399.00));
+		listaProdutos.add(new Produto(1001, "Geladeira 120L", 900.00));
+		listaProdutos.add(new Produto(4000, "Computador i5 2.9Ghz 4GB 1TB HD", 2429.00));
+		listaProdutos.add(new Produto(1002, "Geladeira 500L", 3100.00));
+**** imprimindo apenas o nome dos produtos - saída
+Geladeira 470L
+TV UHD 50''
+TV UHD 65''
+Microondas 20L
+Geladeira 120L
+Computador i5 2.9Ghz 4GB 1TB HD
+Geladeira 500L
+*/
+ 		
+*** apenas com filter: nada de novo
+**** código
+		listaProdutos.stream()
+		.filter(p -> p.getNome().contains("Geladeira"))
+		.map(p -> p.getNome())
+		.forEach(System.out::println);
+**** Saída
+Geladeira 470L
+Geladeira 120L
+Geladeira 500L
+*** takeWhile
+funciona semelhante ao ".filter()" - só que processa o elemento apenas enquanto o predicado for verdadeiro 
+**** códgo		
+		listaProdutos.stream()
+		.takeWhile(p -> p.getNome().contains("Geladeira"))    //enquanto o produto tiver "Geladeira" roda o map abaixo
+		.map(p -> p.getNome())
+		.forEach(System.out::println);
+**** saída
+Geladeira 470L
+
+(pois o segundo elemento (TV UHD 50'') não contém o a String "Geladeira" - então para aí)
+*** dropWhile
+Espelho do takeWhile acima: processa à partir do próximo elemento que não for o predicado
+**** código		
+		listaProdutos.stream()
+		.dropWhile(p -> p.getNome().contains("Geladeira")) //oposto do .takeWhile	
+		.map(p -> p.getNome())
+		.forEach(System.out::println);
+**** saída:
+TV UHD 50''
+TV UHD 65''
+Microondas 20L
+Geladeira 120L
+Computador i5 2.9Ghz 4GB 1TB HD
+Geladeira 500L
+
+** HTTP/2 (preview)
+Passou a ser protocolo de rede binário, ao contrário de como era no HTTP 1.1 que era de texto. Permite multiplexar inúmeras requisições numa única conexão TCP.
+
+HttpClient client = HttpClient.newHttpClient();
+
+caso um código gerado pelo chatGPT com a linha não funcione, reassistir o video da aula pois o código da aula precisou usar modules.info.
