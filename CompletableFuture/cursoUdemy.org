@@ -1,0 +1,116 @@
+* História
+Java 1 foi criado em 1996, e desde lá havia a implementaçãod e Threads.
+Em 2004 foi expandido a implementação de multiplos núcleos no mercado de hardware, e com o Java 5, nesse ano, lançadas novas funcionalidade de manipulação de Threads.
+
+* Atentar
+Concurrency é diferente de Paralellism (ver imagens explicativas na pasta 01_Concurrency_x_Parallelism)
+* Códigos interessantes
+** Uso do StartWatch / StopWatch (dá de usar no Nexti)
+main/java/com/learnjava/util/CommonUtil.java:3:import org.apache.commons.lang3.time.StopWatch;
+main/java/com/learnjava/util/CommonUtil.java:10:    public static StopWatch stopWatch = new StopWatch();
+main/java/com/learnjava/util/CommonUtil.java:27:        stopWatchReset();
+main/java/com/learnjava/util/CommonUtil.java:28:        stopWatch.start();
+main/java/com/learnjava/util/CommonUtil.java:32:        stopWatch.stop();
+main/java/com/learnjava/util/CommonUtil.java:33:        log("Total Time Taken : " +stopWatch.getTime());
+main/java/com/learnjava/util/CommonUtil.java:36:    public static void stopWatchReset(){
+main/java/com/learnjava/util/CommonUtil.java:37:        stopWatch.reset();
+	
+
+* Considerações gerais
+Ao rodar os testes no IntelliJ dá de ver o tempo de execução dos CompletableFuture no canto inferior esquerdo ao lado do nome dos testes.
+
+* outras fontes
+https://www.youtube.com/watch?v=3rJBLFA95Io
+https://spring.io/guides/gs/async-method/
+https://github.com/spring-guides/gs-async-method
+* aprendizados de outras fontes
+** código que informa no tempo de execução quais núcleos estão executando cada thread (imprimindo logs no console)
+*** classe config (bean de config)
+package com.example.asyncmethod;
+	
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+
+@SpringBootApplication
+@EnableAsync
+public class AsyncMethodApplication {
+
+	public static void main(String[] args) {
+		// close the application context to shut down the custom ExecutorService
+		SpringApplication.run(AsyncMethodApplication.class, args).close();
+	}
+
+	@Bean //há um valor default para esse bean se ele não é declarado. Ou seja:
+		//não é obrigatório
+	public Executor taskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(2);
+		executor.setMaxPoolSize(2);
+		executor.setQueueCapacity(500);
+		executor.setThreadNamePrefix("GithubLookup-"); //esse cara é importante
+		executor.initialize();
+		return executor;
+	}
+}
+*** trecho da service
+//Esse método faz processamento paralelo e emite no console o prefixo da thread-número do core que está processando a thread
+    @Async
+    public CompletableFuture<List<User>> saveUsers(MultipartFile file) throws Exception {
+        long start = System.currentTimeMillis();
+        List<User> users = parseCSVFile(file);
+        logger.info("saving list of users of size {}", users.size(), "" + Thread.currentThread().getName());
+        users = repository.saveAll(users);
+        long end = System.currentTimeMillis();
+        logger.info("Total time {}", (end - start));
+        return CompletableFuture.completedFuture(users);
+    }
+* perguntas que fiz ao ChatGPT
+** qual a vantagem de usar supplyAsync em relação a fazer métodos com @Async? (ChatGPT 4)
+`supplyAsync` é um método fornecido pela classe `CompletableFuture` do Java 8+, que permite criar tarefas assíncronas de uma maneira fácil e rápida. Ele é amplamente utilizado para operações assíncronas que não dependem de outras operações anteriores.
+
+`@Async` é uma anotação fornecida pelo Spring Framework e é usada para declarar que um método deve ser executado em um thread separado. Isso é particularmente útil ao usar o Spring, já que ele cuida de toda a configuração do executor de thread.
+
+Cada um tem suas próprias vantagens, dependendo do contexto.
+
+Vantagens de usar `supplyAsync`:
+
+1. **Universalidade**: É uma característica padrão do Java 8+, não precisando de nenhum framework específico para usá-lo.
+2. **Encadeamento de tarefas**: É fácil encadear várias tarefas assíncronas, transformar o resultado, combinar resultados de várias tarefas assíncronas, etc., usando o API de CompletableFuture.
+3. **Controle de exceções**: Ele fornece métodos de manipulação de exceção, como exceptionally, que podem ser muito úteis.
+
+Vantagens de usar `@Async`:
+
+1. **Simplicidade**: O Spring cuida da configuração do executor de threads. Você só precisa anotar o método com `@Async` e o Spring se encarregará de executá-lo em um thread separado.
+2. **Integração com Spring**: Se você já estiver usando o Spring em seu projeto, então o `@Async` provavelmente será uma escolha melhor, pois ele se integra bem com outros componentes do Spring.
+3. **Gestão de Transações**: No caso de precisar de suporte para transações Spring em seus métodos assíncronos, `@Async` será mais adequado.
+
+Então, a escolha entre `supplyAsync` e `@Async` depende do seu caso de uso específico, do ambiente em que você está trabalhando e das funcionalidades que você precisa.
+
+** qual a vantagem de usar supplyAsync em relação a fazer métodos com @Async? (ChatGPT 3.5)
+Tanto o método `supplyAsync` do `CompletableFuture` quanto a anotação `@Async` em um método são mecanismos para realizar operações assíncronas em Java, mas eles têm propósitos diferentes e são mais adequados para contextos distintos.
+
+Vantagens do `CompletableFuture.supplyAsync`:
+
+1. Flexibilidade de composição: O `CompletableFuture` permite encadear várias operações assíncronas usando métodos como `thenApply`, `thenCompose`, `thenCombine`, entre outros. Isso torna a composição de tarefas assíncronas mais flexível e fácil de entender.
+
+2. Controle mais granular: Você tem mais controle sobre a execução assíncrona e a manipulação de erros usando o `CompletableFuture`. É possível especificar um executor personalizado para controlar onde a tarefa assíncrona será executada e também lidar com exceções específicas.
+
+3. Compatibilidade com APIs legadas: O `CompletableFuture` pode ser facilmente integrado com APIs legadas e bibliotecas que não usam anotações `@Async`.
+
+Vantagens da anotação `@Async`:
+
+1. Simplicidade de uso: A anotação `@Async` é mais simples de usar, pois requer apenas a anotação do método que deve ser executado assincronamente, sem a necessidade de criar explicitamente um `CompletableFuture`.
+
+2. Configuração centralizada: Com a anotação `@Async`, a configuração de executores assíncronos é feita de forma centralizada, geralmente através de um bean `TaskExecutor`, o que facilita a configuração e a gestão de tarefas assíncronas em um aplicativo.
+
+3. Integração com o Spring Framework: A anotação `@Async` é particularmente útil em aplicativos Spring, pois o Spring fornece suporte integrado para tarefas assíncronas usando o `TaskExecutor`.
+
+Em resumo, o `CompletableFuture.supplyAsync` oferece mais controle e flexibilidade para tarefas assíncronas, especialmente quando se trata de composição de operações e manipulação de erros. Por outro lado, a anotação `@Async` é mais simples de usar e é mais conveniente em aplicativos Spring, onde a configuração assíncrona é centralizada e a integração é facilitada. A escolha entre eles depende das necessidades específicas do seu projeto e do grau de controle que você deseja sobre as tarefas assíncronas.
+* tentar usar na Nexti
+ CompletableFuture<Review> cfReview = CompletableFuture.supplyAsync(() -> reviewService.retrieveReviews(productId));
+códigos semelhante à esse acima para obter uso de processamento paralelo.

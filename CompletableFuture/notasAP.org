@@ -1,0 +1,50 @@
+* Em relação à código que usa @Autowired e @Async
+Dependendo não tem como declarar tanto @Autowired como @Async numa mesma classe
+** ChatGpt + AP
+#+BEGIN_SRC markdown
+A anotação `@Async` no Spring é usada para indicar que um método deve ser executado de forma assíncrona, ou seja, em um thread separado. Quando usamos a anotação `@Async`, o Spring cria um proxy em torno da classe que contém o método anotado para lidar com a execução assíncrona.
+
+Quando você tenta usar `@Autowired` para injetar uma dependência em um campo de uma classe que também contém um método anotado com `@Async`, pode enfrentar problemas se a injeção ocorrer depois da chamada do método anotado. O que acontece é que, devido à criação do proxy, o Spring pode não ter uma referência direta ao bean original, e isso pode levar a problemas com a injeção de dependência.
+
+Para resolver esse problema e garantir que as dependências sejam injetadas corretamente, você pode seguir uma das seguintes abordagens (AP: As 2 primeiras abordagens não funcionaram)
+
+1. **Injeção via construtor** (AP: não funcionou para mim): Ao invés de usar `@Autowired` em campos, use injeção via construtor. Isto é, declare todas as suas dependências como argumentos no construtor e anote o construtor com `@Autowired`. Isso geralmente é considerado uma boa prática porque torna as dependências mais explícitas e evita problemas relacionados a proxies.
+
+   ```java
+   private final SeuServico servico;
+
+   @Autowired
+   public SuaClasse(SeuServico servico) {
+       this.servico = servico;
+   }
+   ```
+
+2. **Use `@Lazy` com `@Autowired`**  (AP: não funcionou para mim): Se você realmente quiser usar a injeção de dependência em campos, pode combinar a anotação `@Autowired` com `@Lazy` para garantir que o bean seja injetado quando realmente for acessado:
+
+   ```java
+   @Autowired
+   @Lazy
+   private SeuServico servico;
+   ```
+
+3. (AP: Desse modo funcionou!!) **Mova os métodos `@Async` para outra classe**: Outra abordagem é separar os métodos que você deseja executar de forma assíncrona em uma classe diferente. Desta forma, a classe original não será um proxy e a injeção de dependência funcionará como esperado.
+AP: O que fiz foi usar o modelo do Core. A classe que tem o @Async é a mesma que chama por primeiro o campo que vai ser utilizado. Depois deixo a query num método externo (nessa query que eu precisava rodar: 
+    ```
+        customerId = customerService.getCurrentCustomerIdWithoutQuery();
+    ```
+que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não funcionava
+
+#+END_SRC
+
+* JUnit
+** Testando o allOf(...).join() da classe CompletableFuture
+
+    @Mock
+    private CompletableFuture<Void> ans;
+
+...
+
+            PowerMockito.mockStatic(CompletableFuture.class);
+            PowerMockito.when(CompletableFuture.allOf(any(),any())).thenReturn(ans);
+
+        when(ans.join()).thenReturn(null);

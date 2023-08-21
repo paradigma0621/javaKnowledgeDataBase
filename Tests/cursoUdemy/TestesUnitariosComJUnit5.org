@@ -1,0 +1,7 @@
+* dados do curso
+no curso a versão usada do java é: 11
+* Quando é "preciso" usar try/catch dentro de um teste
+quando não se faz necessário operação específico dentro desse catch: pode-se declarar na assinatura do método do teste um throws - ex:
+    @Test
+    void meuTeste() throws Exception { 
+O próprio JUnit lida com a exceção depois

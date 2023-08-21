@@ -1,0 +1,1 @@
+ver a pasta de imagens os imports que devem ser adicionados no gradle.

@@ -1,0 +1,30 @@
+a biblioteca que apontei nas imagens da Aula_59 (que é a API que será consultada) deve estar rodando como servidora.
+------------------------------------------
+Na classe de testes:
+    @RepeatedTest(10)   // O porque de ele rodar 10 vezes é que na primeira requisição é feita uma conexão com o servidor de API (e o estabelecimento da mesma é demorado)
+    void retrieveMovie() {
+
+-------------------------------------------
+
+    public Movie retrieveMovie(Long movieInfoId){   //Faz requisição SEM CompletableFuture
+
+    public List<Movie> retrieveMovies(List<Long> movieInfoIds){  //Faz requisição SEM CompletableFuture
+ 
+    public List<Movie> retrieveMovieList_CF(List<Long> movieInfoIds){ //Faz requisição COM CompletableFuture
+
+    public CompletableFuture<Movie> retrieveMovie_CF(Long movieInfoId){ //Faz requisição COM CompletableFuture
+-------------------------------
+Não usar o código dessa pasta no que se refere a serem feito:
+    public List<Movie> retrieveMovieList_CF(List<Long> movieInfoIds){ //Faz requisição COM CompletableFuture
+
+        var movieFutures = movieInfoIds
+                .stream()
+                .map(this::retrieveMovie_CF)
+                .collect(Collectors.toList());
+
+        return movieFutures
+                .stream()
+                .map(CompletableFuture::join)      // Esse cara pode ser refatorado para allOf - ganha performance
+                .collect(Collectors.toList());
+    }
+mas sim usar o da Secal20/Aula_64_allOf

@@ -248,3 +248,15 @@ System.out.println(String.format("parallel sort took: %d ms", millis));
 
 As you can see both code snippets are almost identical but the parallel sort is roughly 50% faster. All you have to do is change `stream()` to `parallelStream()`.
 #+END_SRC
+* exemplo de uso de .map
+achei interessante pois tem o "return productOption" dentro do map
+        List<ProductOption> productOptionList = productInfo.getProductOptions()
+                .stream()
+                .map(productOption -> {
+                    Inventory inventory = inventoryService.retrieveInventory(productOption);
+                    productOption.setInventory(inventory);
+                    return productOption;
+                })
+                .collect(Collectors.toList());
+* Somar em um Long todos os campos de uma lista
+Long soma = combinedResult.stream().mapToLong(VacancyDto::getCountVacancies).sum();

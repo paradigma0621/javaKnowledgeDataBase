@@ -1,0 +1,94 @@
+* Leitura de arquivos
+Obs: os modos abaixo não esgotam as possibilidades de formas de leitura de arquivos
+** forma 1
+		String caminho = "meutexto.txt";
+		
+		/*
+		 * Leitura fluxos de caracteres (string).
+		 * Maneira mais simples até então. 
+		 * Indicado para poucas operações de leitura.
+		 */
+		
+		try(FileReader myReader = new FileReader(caminho)) { 
+			int i;
+			
+	        while((i=myReader.read())!=-1) //-1 = EOF   
+	        	System.out.print((char)i);   
+	        
+	        System.out.println();
+		} 
+		catch (IOException e) {
+		}
+		
+** forma 2	
+		String caminho = "meutexto.txt";
+			
+		/*
+		 * Lê o texto em uma stream de entrada, usando mecanismo de buffer
+		 * para leitura mais eficiente de caracteres.
+		 */
+		
+		try(BufferedReader bufferedReader = new BufferedReader(new FileReader(caminho))) {
+			String s;
+			
+			while ((s = bufferedReader.readLine()) != null) { //null = EOF
+				System.out.println(s);
+			}
+		} 
+		catch (IOException e) {
+		}
+		
+** forma 3 (java 11)
+		String caminho = "meutexto.txt";
+		
+		String s;
+		try {
+			s = Files.readString(new File(caminho).toPath(), StandardCharsets.ISO_8859_1); //Se não especificar o tipo da codificação é assumido UTF-8 - dependendo
+											// da codificação do arquivo pode gerar erro e não ler
+			System.out.println(s);
+		} 
+		catch (IOException e) {
+			System.out.println(e);
+		}
+		
+* escrita de arquivos
+Obs: os modos abaixo não esgotam as possibilidades de formas de escrita de arquivos
+** forma 1
+		String caminho = "meutexto.txt";
+		String meutexto = "Curso Java Tópicos Avançados";		
+
+		/*
+		 * Escreve fluxos de caracteres (string) em arquivo.
+		 * Maneira mais simples até então. 
+		 * Indicado para poucas operações de escrita.
+		 */
+		
+		try(FileWriter myWriter = new FileWriter(caminho)) { 
+			myWriter.write(meutexto);
+		} 
+		catch (IOException e) {
+		}
+** forma 2	
+		String caminho = "meutexto.txt";
+		String meutexto = "Curso Java Tópicos Avançados";		
+
+		/*
+		 * Grava o texto em uma stream de saída, usando mecanismo de buffer
+		 * para gravação mais eficiente de caracteres.
+		 */
+		
+		try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(caminho))) {
+		    bufferedWriter.write(meutexto);
+		} 
+		catch (IOException e) {
+		}
+** forma 3 (java 11)
+		String caminho = "meutexto.txt";
+		String meutexto = "Curso Java Tópicos Avançados";
+
+		try {
+			Files.writeString(new File(caminho).toPath(), meutexto, StandardCharsets.ISO_8859_1); //Se não especificar o tipo da codificação é assumido UTF-8
+													// pode ser que gere símbolos estranhos dependendo do sistmea operacional
+		} 
+		catch (IOException e) {
+		}

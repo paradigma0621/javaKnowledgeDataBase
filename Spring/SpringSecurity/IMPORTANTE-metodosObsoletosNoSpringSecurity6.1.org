@@ -1,0 +1,2 @@
+Métodos obsoletos da HttpSecurity no Spring Security 6.1
+https://dev.to/wldomiciano/metodos-obsoletos-da-httpsecurity-no-spring-security-61-5033?fbclid=IwAR23WQOlLKOJS8XHGQu5wqkZhW1qjldYOnksk2WIkIWJUyp7ERLyDihm0YU

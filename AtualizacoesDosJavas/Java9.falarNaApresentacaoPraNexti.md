@@ -14,19 +14,20 @@
 --------------------------
 Não sei se é do java 9, mas em src/main/java/com/nexti/operationdesk/service/filterofuser/HandleUserFiltersService.java temos:
     private FiltersOfUserDto returnFiltersOfUserDto() {
-        var filters = new FiltersOfUserDto();
-        filtersUserDto.forEach(operationDesk -> {
-            switch (operationDesk.type()) {
-                case CLIENT -> filters.addItem(filters.getClients(), operationDesk.id());
-                case AREA -> filters.addItem(filters.getAreas(), operationDesk.id());
-                case COMPANY -> filters.addItem(filters.getCompanys(), operationDesk.id());
-                case WORKPLACE -> filters.addItem(filters.getWorkplaces(), operationDesk.id());
-                case CLIENT_TYPE -> filters.addItem(filters.getClientTypes(), operationDesk.id());
-                case BUSINESS_UNIT -> filters.addItem(filters.getBusinessunits(), operationDesk.id());
-                case SERVICE_TYPE -> filters.addItem(filters.getServiceTypes(), operationDesk.id());
+
+        filtersUserDto.forEach(filterUserDto -> {
+            switch (filterUserDto.type()) {
+                case CLIENT -> filters.addItem(filters.getClients(), filterUserDto.id());
+                case AREA -> filters.addItem(filters.getAreas(), filterUserDto.id());
+                case COMPANY -> filters.addItem(filters.getCompanys(), filterUserDto.id());
+                case WORKPLACE -> filters.addItem(filters.getWorkplaces(), filterUserDto.id());
+                case CLIENTTYPE -> filters.addItem(filters.getClientTypes(), filterUserDto.id());
+                case BUSINESSUNIT -> filters.addItem(filters.getBusinessunits(), filterUserDto.id());
+                case SERVICETYPE -> filters.addItem(filters.getServiceTypes(), filterUserDto.id());
             }
         });
-        return filters;
+		
+		return filters;
     }
 -------------------------
 a funcionalidade de passar um Map groupVacanciesJobByWorkplaceId como argumento no exemplo abaixo:

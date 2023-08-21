@@ -281,3 +281,40 @@ User operadorDoSistema = new User();
 declarada dentro de um método (variável local), pode ser chamada de instância? 	
 
 pode uma instância ser estática?
+* O que é uma variável de instância
+** perguntando pro Luigi (da empresa)
+#+BEGIN_SRC java
+class Produto {
+    private String nome; //nome é uma variável de instância? R:  Sim
+    private String sobrenome = "Silva"; //sobrenome é uma variável de instância?  Sim(Apesar de ter uma valor inicial pode ser modificado em cada instância do objeto, supondo que exista um setter definido)
+    private static Double preco; //preco é uma variável de instância?  Não(Como é estático todas as classes compartilham)
+    private int x = 1; //x é uma variável de instância?  Sim(Mesmo caso da 2)
+	private int m;   //m é uma variável de instância?  Sim
+
+    public void outroMetodo() {
+//pessoa, outraPessoa, z, k = Esses eu to na dúvida, porque essas variáveis só existem dentro do método, mas cada instância teria as suas. Segundo ChatGPT não são.... ver tópico "** Código acima, segundo ChatGPT"
+
+        Person pessoa;  //pessoa é uma variável de instância?
+        Person outraPessoa = new Person(); //outraPessoa é uma variável de instância?
+        int z = 2; //z é uma variável de instância?
+        double k; //k é uma variável de instância?
+    }
+}
+#+END_SRC
+** Código acima, segundo ChatGPT
+#+BEGIN_SRC markdown
+Vamos esclarecer:
+
+Variáveis de instância são variáveis que estão no escopo da classe, mas não são estáticas. Elas pertencem a uma instância (objeto) da classe. Portanto, cada vez que um novo objeto é criado, uma nova cópia das variáveis de instância é criada para esse objeto.
+
+Com base na definição acima, no código fornecido, as variáveis de instância são:
+
+1. `nome`
+2. `sobrenome`
+3. `x`
+4. `m`
+
+A variável `preco` não é uma variável de instância, pois é estática. Variáveis estáticas pertencem à classe e não a uma instância específica da classe. Assim, todas as instâncias da classe compartilham a mesma variável estática.
+
+As variáveis `pessoa`, `outraPessoa`, `z` e `k` dentro do método `outroMetodo` são variáveis locais ao método. Elas não são variáveis de instância, pois existem apenas durante a execução do método e não estão no escopo da classe. Cada vez que o método é chamado, essas variáveis são criadas e depois descartadas ao final da execução do método. Mesmo que cada instância possa chamar o método e ter sua "própria" versão das variáveis enquanto o método está sendo executado, isso não as torna variáveis de instância. Variáveis de instância estão no escopo da classe e têm uma duração de vida que é a mesma da instância da classe à qual pertencem.
+#+END_SRC

@@ -1,0 +1,75 @@
+* Chamar um método de uma classe mockada como se ela não estivesse mockada
+when(myClass.method()).thenCallRealMethod();
+ 
+* Verifique se a operação assíncrona foi concluída com sucesso (sem exceções)
+  assertTrue(reponseCompletableFuture.isDone());
+  assertFalse(reponseCompletableFuture.isCompletedExceptionally());
+* Mockito
+** Precisa ter na classe de testes
+@ExtendWith(MockitoExtension.class)
+class WorkplaceServiceTests {
+
+* JUnit 5
+Segundo colega de trabalho não tem como mockar método static no junit 5.
+** testar lançamento de exceção
+esses 2 modos funcionam:
+    Mockito.doThrow(new RuntimeException()).when(workplaceRepository)
+                        .countWorkplaces(anyLong(), anyLong(), any());
+
+    when(workplaceRepository.countWorkplaces( anyLong(), anyLong(), any()))
+                .thenThrow(new RuntimeException());
+** Teste de CompletableFuture
+    assertTrue(reponseCompletableFuture.isDone());
+    assertFalse(reponseCompletableFuture.isCompletedExceptionally());
+    assertNotNull(response);
+    
+* Assertions gerais
+** 1
+
+		var expected = Map.of(personReplacement1.getAbsenteeId(), personReplacement1,
+							  personReplacement2.getAbsenteeId(), personReplacement2,
+							  personReplacement3.getAbsenteeId(), personReplacement3);
+		when(repo.findReplacementPersonByWorkplaceIds(any(), anyList())).thenReturn(replacements);
+		var response = service.getReplacementPersonByWorkplaceIds(date, List.of(1L, 2L));
+		assertThat(response.get(), hasEntry(personReplacement1.getAbsenteeId(), personReplacement1));
+		assertThat(response.get(), hasEntry(personReplacement2.getAbsenteeId(), personReplacement2));
+		assertThat(response.get(), hasEntry(personReplacement3.getAbsenteeId(), personReplacement3));
+		assertThat(response.get(), allOf(hasKey(personReplacement1.getAbsenteeId()), hasKey(personReplacement2.getAbsenteeId()), hasKey(personReplacement3.getAbsenteeId())));
+		assertThat(response.get(), allOf(hasValue(personReplacement1), hasValue(personReplacement2), hasValue(personReplacement3)));
+		assertEquals(response.get().size(), expected.size()); 
+** 2
+	void deveRetornarMapaComColaboradoresAdicionadosAEstruturaDePostos() {
+		// Given
+		PersonSimplifiedDto person1 = new PersonSimplifiedDto(1L);
+		person1.setWorkplaceId(111L);
+		personReplacement2.setWorkplaceId(111L);
+		personReplacement3.setWorkplaceId(111L);
+		PersonSimplifiedDto person2 = new PersonSimplifiedDto();
+		person2.setId(personReplacement2.getPersonId());
+		PersonSimplifiedDto person3 = new PersonSimplifiedDto();
+		person3.setId(personReplacement3.getPersonId());
+		Map<Long, ReplacementDto> replacementDtoByAbsenteeId = Map.of(personReplacement2.getAbsenteeId(), personReplacement2);
+		List<ReplacementDto> workplaceReplacements = List.of(personReplacement3);
+		Map<Long, PersonSimplifiedDto> personDtoByPersonId = Map.of(person1.getId(), person1);
+		Map<Long, WorkplaceSimplifiedDto> workplaceDtoByWorkplaceId = Map.of(workplace.getId(), workplace);
+		// When
+		service.addAllPersonsToInsideWorkplaceMap(workplaceDtoByWorkplaceId, personDtoByPersonId,
+												  replacementDtoByAbsenteeId, workplaceReplacements);
+		// Then
+		assertThat(workplaceDtoByWorkplaceId.get(workplace.getId()).getPersons()).containsExactlyInAnyOrderElementsOf(List.of(person2, person3));		
+** 3
+
+		var expectedMap = Map.of(workplaceDto1.getId(), workplaceDto1,
+				workplaceDto2.getId(), workplaceDto2, workplaceDto3.getId(), workplaceDto3);
+		var responseMap = service.makeMapWorkplaceDtoByWorkplaceId(clientSet);
+		assertThat(responseMap, hasEntry(workplaceDto1.getId(), workplaceDto1));
+		assertThat(responseMap, hasEntry(workplaceDto2.getId(), workplaceDto2));
+		assertThat(responseMap, hasEntry(workplaceDto3.getId(), workplaceDto3));
+		assertThat(responseMap, allOf(hasKey(workplaceDto1.getId()), hasKey(workplaceDto2.getId()), hasKey(workplaceDto3.getId())));
+		assertThat(responseMap, allOf(hasKey(workplaceDto1.getId()), hasKey(workplaceDto2.getId()), hasKey(workplaceDto3.getId())));
+		assertThat(responseMap, allOf(hasValue(workplaceDto1), hasValue(workplaceDto2), hasValue(workplaceDto3)));
+		assertEquals(responseMap.size(), expectedMap.size());
+	}
+	
+		assertThat(workplaceIds, containsInAnyOrder(workplace1Id, workplace2Id, workplace3Id));
+		assertEquals(workplaceIds.size(), workplaceDtoList.size());	
