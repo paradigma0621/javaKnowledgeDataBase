@@ -1,0 +1,332 @@
+essas notas vieram do curso da Alura de SOLID
+Obs: tirei vários PrintScreen (estão na pasta de imagens, não presente nesse repositório)
+* Princípios relativo à orientação de objetos
+** coesão
+Cada classe deve ser responsável por apenas uma coisa, e deve executar esta tarefa muito bem.
+
+Uma classe coesa faz bem uma única coisa
+Classes coesas não devem ter várias responsabilidades
+
+** encapsulamento
+Começamos a entender agora que encapsulamento é uma forma de manter os objetos das nossas classes protegidos, fornecendo apenas o que é estritamente necessário para o mundo exterior.
+
+Getters e setters por si só não fornecem nenhum tipo de encapsulamento.
+
+Ao encapsular o acesso a determinados dados, liberando acesso apenas ao necessário, os objetos da nossa classe se tornam mais fáceis de serem utilizados.
+
+Getters e setters não são formas eficientes de aplicar encapsulamento.
+
+O encapsulamento torna o uso das nossas classes mais fácil e intuitivo
+
+** acoplamento
+Qualquer mudança num ponto pode gerar impacto em muitos outros pontos. 
+
+Pro:
+Alternativa correta! É fato que, se estamos organizando o nosso código, seguindo as recomendações da orientação a objetos, algum acoplamento acontecerá. Algumas classes precisarão de outras, para que não tenham muitas responsabilidades. Cabe a nós medir quando faz sentido adicionar tal acoplamento com as dependências e como depender do que é seguro, ao invés de classes concretas. 
+* Single Responsibility Principle (SRP)
+Bastante relacionado com coesão.
+Toda mudança eu deveria mexer num único ponto, e não em vários do sistema.
+
+Ao extrair uma nova classe, vimos que agora temos classes com menos responsabilidades, o que facilita na manutenção. Esse é o conceito de Single Responsibility Principle.
+
+Qual é a definição mais formal do princípio de responsabilidade única?
+R: Uma classe (ou módulo, função, etc) deve ter um e apenas um motivo para mudar
+* Princípio Aberto/Fechado (OCP)
+Cada classe deve conhecer e ser responsável por suas próprias regras de negócio;
+
+O princípio Aberto/Fechado (OCP) diz que um sistema deve ser aberto para a extensão, mas fechado para a modificação. (AP: extensão aqui não se refere apenas à herança, mas sim implementar de mais código).
+
+Isso significa que devemos poder criar novas funcionalidades e estender o sistema sem precisar modificar muitas classes já existentes. (AP: Foi usada uma analogia no começo da aula que para vestir um casaco em uma pessoa não precisamos fazer uma operação onde se abre a caixa toráxica da pessoa!)
+
+Uma classe que tende a crescer "para sempre" é uma forte candidata a sofrer alguma espécie de refatoração.
+* Princípio da Substituição de Liskov (LSP) 
+Quando herança não fizer sentido. Em geral o problema de LSP aparece relacionado à herança.
+
+Sabemos que, ao estender uma classe através da herança, devemos sempre respeitar os contratos (interfaces) de seus métodos.
+
+Por que nossa classe Terceirizado estava estendendo de forma indesejada um comportamento? R: Alguns métodos herdados não deveriam existir nessa classe (ex: promoverDeCargo()).
+
+Quando herança ("é um") não faz sentido uma boa solução é usar composição ("tem um").
+No exemplo do curso da Alura: não fazia sentido extender "Funcionario" para "Terceirizado" pois havia atributos/métodos que não eram apropriados. O recurso que se usou foi passar os atributos para uma classe "DadosPessoais" que faziam sentido para ambos e adicionar os que eram específicos a cada um em suas próprias classe. Dessa forma se aplicou a composição.
+** o que vimos
+Que, embora a herança favoreça o reaproveitamento de código, ela pode trazer efeitos colaterais quando não utilizada da maneira correta;
+
+Que o Princípio de Substituição de Liskov (LSP) diz que devemos poder substituir classes base por suas classes derivadas em qualquer lugar, sem problema.
+
+** código do exemplo da Alura
+Ao invés de colocar todos os dados da classe DadosPessoais para ambos tipos de funcionários (classe Funcionario e classe Terceirizado) pode-se isolar os que são comuns a ambos na classe DadosPessoais.
+
+Deve-se evitar que a classe Terceirizado tenha o método atualizarSalario, ou seja: deve-se evitar que Terceirizado extenda a classe Funcionario, da qual ela herdaria esse citado método (e outros que não correspondem às possibilidades da mesma, a saber, ter aumento).
+
+*** classe DadosPessoais
+public class DadosPessoais {
+	private String nome;
+	private String cpf;
+	private Cargo cargo;
+	private BigDecimal salario;
+
+*** classe Funcionario
+public class Funcionario {
+
+	private DadosPessoais dadosPessoais;
+	private LocalDate dataUltimoReajuste;
+
+	public void atualizarSalario(BigDecimal novoSalario) {
+		this.dadosPessoais.setSalario(novoSalario);
+		this.dataUltimoReajuste = LocalDate.now();
+	}
+
+	public void promover(Cargo novoCargo) {
+		this.dadosPessoais.setCargo(novoCargo);
+	}
+*** classe Terceirizado
+
+public class Terceirizado {
+	
+	private DadosPessoais dadosPessoais;
+	private String empresa;
+
+* Princípio de Segregação de Interfaces (ISP)
+Que as interfaces devem definir apenas os métodos que fazem sentido para seu contexto;
+
+Que o Princípio de Segregação de Interfaces (ISP) diz que uma classe não deve ser obrigada a implementar um método que ela não precisa. Se estiver precisando talvez seja conveniente criar uma nova interface mais adequada à mesma.
+
+ Uma classe não deve ser obrigada a implementar um método de determinada interface, se ele não será útil. Para isso, uma interface deverá ser extraída apenas com os métodos necessários.
+
+** exemplo da Alura
+obs: os códigos abaixo apresentam a configuração final do projeto
+*** Reajuste (interface)
+public interface Reajuste {
+	
+	BigDecimal valor();
+	LocalDate data();
+	// Pro: Não converia declarar aqui: valorImpostoDeRenda() .... a classe Anuenio não paga impostos, ficaria esquisito ter que declarar esse método na mesma
+}
+
+*** Anuenio (na qual não faz sentido ter que implementar método valorImpostoDeRenda(), caso houvesse a declaração de valorImpostoDeRenda() na interface Reajuste)
+public class Anuenio implements Reajuste {
+
+	private BigDecimal valor;
+	private LocalDate data;
+
+	public Anuenio(BigDecimal valor) {
+		this.valor = valor;
+		this.data = LocalDate.now();
+	}
+
+	@Override
+	public BigDecimal valor() {
+		return valor;
+	}
+
+	@Override
+	public LocalDate data() {
+		return data;
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*** Promoção (nessa sim faz sentido declarar valorImpostoDeRenda())
+
+public class Promocao implements ReajusteTributavel {
+
+	private BigDecimal valor;
+	private LocalDate data;
+
+	public Promocao(BigDecimal valor) {
+		this.valor = valor;
+		this.data = LocalDate.now();
+	}
+
+	@Override
+	public BigDecimal valor() {
+		return valor;
+	}
+
+	@Override
+	public LocalDate data() {
+		return data;
+	}
+	
+	@Override
+	public BigDecimal valorImpostoDeRenda() {
+		return valor.multiply(new BigDecimal("0.1"));
+	}
+*** recurso: declarar uma nova interface: ReajusteTributavel
+public interface ReajusteTributavel extends Reajuste {
+	
+	BigDecimal valorImpostoDeRenda();
+	
+}
+* Princípio de Inversão de Dependência (DIP)
+** o que vimos
+Que é mais interessante e mais seguro para o nosso código depender de interfaces (classes abstratas, assinaturas de métodos e interfaces em si) do que das implementações de uma classe;
+
+Que as interfaces são menos propensas a sofrer mudanças enquanto implementações podem mudar a qualquer momento;
+
+Que o Princípio de Inversão de Dependência (DIP) diz que implementações devem depender de abstrações e abstrações não devem depender de implementações;
+
+Se um método muda a forma como realiza sua tarefa, desde que a interface se mantenha, não vamos precisar nos preocupar nem em editar o nosso código.
+** exemplo do curso da Alura de SOLID
+*** ReajusteService (ver comentário dessa classe)
+public class ReajusteService {
+	
+	private List<ValidacaoReajuste> validacoes;
+
+	public ReajusteService(List<ValidacaoReajuste> validacoes) {
+		this.validacoes = validacoes;
+	}
+
+	public void reajustarSalarioDoFuncionario(Funcionario funcionario, BigDecimal aumento) {
+	
+	this.validacoes.forEach(v -> v.validar(funcionario, aumento));
+	 /*****************************************************
+
+ AQUI é varrida a lista de todos tipos  de validações, fazendo em cada uma a verificação se é permitido o reajuste.  
+
+
+	O método do forEach apresentado percorre todas a lista de todas as validações que são de interesse de se avaliar, todas são implementações da interface ValidacaoReajuste e cabem na lista. 
+
+
+	Se não fosse assim deveríamos usar o código abaixo:
+			 ValidacaoPeriodicidadeEntreReajustes vper = ne ValidacaoPeriodicidadeEntreReajustes()
+			 ValidacaoPercentualReajuste vpr = new ValidacaoPercentualReajuste();
+			 vper.validar(funcionario, aumento); //lança um throw caso encontrou motivo de não ser possível
+			 vpr.validar(funcionario, aumento);  //lança um throw caso encontrou motivo de não ser possível
+
+************************************************/
+
+		//Se não foi dado throw em uma validação específica chamada no forEach acima ele concede abaixo o aumento
+		BigDecimal salarioReajustado = funcionario.getSalario().add(aumento);
+		funcionario.atualizarSalario(salarioReajustado);
+	}
+*** ValidacaoReajuste (interface)
+public interface ValidacaoReajuste {
+	
+	void validar(Funcionario funcionario, BigDecimal aumento);
+
+}
+*** ValidacaoPercentualReajuste (implementa interface ValidacaoReajuste)
+public class ValidacaoPercentualReajuste implements ValidacaoReajuste {
+	
+	public void validar(Funcionario funcionario, BigDecimal aumento) {
+		BigDecimal salarioAtual = funcionario.getSalario();
+		BigDecimal percentualReajuste = aumento.divide(salarioAtual, RoundingMode.HALF_UP);
+		if (percentualReajuste.compareTo(new BigDecimal("0.4")) > 0) {
+			throw new ValidacaoException("Reajuste nao pode ser superior a 40% do salario!");
+		}
+	}
+*** ValidacaoPercentualReajusteValidacaoPeriodicidadeEntreReajustes (implementa interface ValidacaoReajuste)
+public class ValidacaoPeriodicidadeEntreReajustes  implements ValidacaoReajuste {
+	
+	public void validar(Funcionario funcionario, BigDecimal aumento) {
+		LocalDate dataUltimoReajuste = funcionario.getDataUltimoReajuste();
+		LocalDate dataAtual = LocalDate.now();
+		long mesesDeseUltimoReajuste = ChronoUnit.MONTHS.between(dataUltimoReajuste, dataAtual);
+		if (mesesDeseUltimoReajuste < 6) {
+			throw new ValidacaoException("Intervalo entre reajustes deve ser de no minimo 6 meses!");
+		}
+	}
+** exemplo que pedi pro ChatGPT
+
+A inversão de dependência é um dos princípios SOLID do design orientado a objetos, especificamente o "D" em SOLID. A ideia básica é que os módulos de alto nível não devem depender de módulos de baixo nível, mas ambos devem depender de abstrações.
+
+Vamos ilustrar isso com um exemplo.
+
+Suponha que temos um botão de luz e uma lâmpada. Em uma implementação simples, sem seguir a inversão de dependência:
+
+```java
+// Sem inversão de dependência
+
+class LightBulb {
+    public void turnOn() {
+        System.out.println("LightBulb: Bulb turned on...");
+    }
+
+    public void turnOff() {
+        System.out.println("LightBulb: Bulb turned off...");
+    }
+}
+
+class Switch {
+    private LightBulb lightBulb;
+
+    public Switch(LightBulb lightBulb) {
+        this.lightBulb = lightBulb;
+    }
+
+    public void operate() {
+        // Alguma lógica para verificar o estado e alternar
+        // Para simplificar, apenas ligaremos a lâmpada
+        lightBulb.turnOn();
+    }
+}
+```
+
+No exemplo acima, a classe `Switch` está diretamente dependente da classe `LightBulb`. Se quisermos usar o `Switch` para outro dispositivo, como um ventilador, não poderíamos sem alterar a classe `Switch`.
+
+Agora, vamos reestruturar o código usando a inversão de dependência:
+
+```java
+// Com inversão de dependência
+
+interface Device {
+    void turnOn();
+    void turnOff();
+}
+
+class LightBulb implements Device {
+    @Override
+    public void turnOn() {
+        System.out.println("LightBulb: Bulb turned on...");
+    }
+
+    @Override
+    public void turnOff() {
+        System.out.println("LightBulb: Bulb turned off...");
+    }
+}
+
+class Fan implements Device {
+    @Override
+    public void turnOn() {
+        System.out.println("Fan: Fan turned on...");
+    }
+
+    @Override
+    public void turnOff() {
+        System.out.println("Fan: Fan turned off...");
+    }
+}
+
+class Switch {
+    private Device device;
+
+    public Switch(Device device) {
+        this.device = device;
+    }
+
+    public void operate() {
+        // Alguma lógica para verificar o estado e alternar
+        // Para simplificar, apenas ligaremos o dispositivo
+        device.turnOn();
+    }
+}
+```
+
+Neste exemplo reformulado, tanto a classe `Switch` quanto as classes de dispositivos (como `LightBulb` e `Fan`) dependem da interface `Device`. Isso significa que a classe `Switch` foi invertida para depender de uma abstração, ao invés de uma implementação concreta. Isso torna nosso código mais modular e fácil de estender. Podemos adicionar mais dispositivos sem ter que alterar a classe `Switch`.#
+
+

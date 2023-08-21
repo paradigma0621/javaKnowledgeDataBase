@@ -1,3 +1,5 @@
+Obs: tirei vários PrintScreen (estão na pasta de imagens, não presente nesse repositório)
+
 * História
 Java 1 foi criado em 1996, e desde lá havia a implementaçãod e Threads.
 Em 2004 foi expandido a implementação de multiplos núcleos no mercado de hardware, e com o Java 5, nesse ano, lançadas novas funcionalidade de manipulação de Threads.
