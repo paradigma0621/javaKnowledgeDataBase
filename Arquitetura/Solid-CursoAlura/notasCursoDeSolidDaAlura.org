@@ -32,11 +32,12 @@ Ao extrair uma nova classe, vimos que agora temos classes com menos responsabili
 Qual é a definição mais formal do princípio de responsabilidade única?
 R: Uma classe (ou módulo, função, etc) deve ter um e apenas um motivo para mudar
 * Princípio Aberto/Fechado (OCP)
+(Open Closed Principle)
 Cada classe deve conhecer e ser responsável por suas próprias regras de negócio;
 
 O princípio Aberto/Fechado (OCP) diz que um sistema deve ser aberto para a extensão, mas fechado para a modificação. (AP: extensão aqui não se refere apenas à herança, mas sim implementar de mais código).
 
-Isso significa que devemos poder criar novas funcionalidades e estender o sistema sem precisar modificar muitas classes já existentes. (AP: Foi usada uma analogia no começo da aula que para vestir um casaco em uma pessoa não precisamos fazer uma operação onde se abre a caixa toráxica da pessoa!)
+Isso significa que devemos poder criar novas funcionalidades e estender o sistema sem precisar modificar muitas classes já existentes. (AP: Foi usada uma analogia no começo da aula que para vestir um casaco em uma pessoa não precisamos fazer uma operação onde se abra a caixa toráxica da pessoa!)
 
 Uma classe que tende a crescer "para sempre" é uma forte candidata a sofrer alguma espécie de refatoração.
 * Princípio da Substituição de Liskov (LSP) 
@@ -46,7 +47,7 @@ Sabemos que, ao estender uma classe através da herança, devemos sempre respeit
 
 Por que nossa classe Terceirizado estava estendendo de forma indesejada um comportamento? R: Alguns métodos herdados não deveriam existir nessa classe (ex: promoverDeCargo()).
 
-Quando herança ("é um") não faz sentido uma boa solução é usar composição ("tem um").
+Quando herança ("é um") não faz sentido, uma boa solução é usar composição ("tem um").
 No exemplo do curso da Alura: não fazia sentido extender "Funcionario" para "Terceirizado" pois havia atributos/métodos que não eram apropriados. O recurso que se usou foi passar os atributos para uma classe "DadosPessoais" que faziam sentido para ambos e adicionar os que eram específicos a cada um em suas próprias classe. Dessa forma se aplicou a composição.
 ** o que vimos
 Que, embora a herança favoreça o reaproveitamento de código, ela pode trazer efeitos colaterais quando não utilizada da maneira correta;

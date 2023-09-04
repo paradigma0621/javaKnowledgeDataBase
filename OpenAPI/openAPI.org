@@ -1,0 +1,233 @@
+* IMPORTANTE: 
+declarar servers:
+  - url:
+    description
+
+e testar fazer requisição via o editor.swagger.io  - deve mostrar reposposta  na page
+
+exemplo de uso:
+servers:
+- url: https://6096015d116f3f00174b29ba.mockapi.io/
+  description: API de Teste
+paths:
+  /especialidades:
+    get:
+      summary: Recupera todas as especialidades
+      responses:
+        200:
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  descricao:
+                    type: string
+* live code
+abrir o editor do swagger para ir vendo em live code se tem erro enquanto vai digitando o yaml:
+	editor.swagger.io
+* editor.swagger.io
+funciona CTRL+tab. Aceita CTRL+tab mesmo quando ainda não digitou nada, mostrando todas as opções disponíveis para se usar, seja para uma propriedade de uma tag, ou a própria tab principal.
+* mockapi.io
+* components
+podemos definir objetos (schemas, responses, ...) / qualquer coisa que são usadas em vários lugares
+
+esses caras aparecem lá embaixo na página do swagger quando carregada
+** exemplos de referência para fazer uso de um component
+      responses:
+        200:
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Especialidades"           ******** esse # no começo diz que é pra olhar à partir da raiz desse documento
+** exemplo de declaração de components
+components:
+  schemas:
+    Especialidade:
+      type: object
+      properties:
+        id:
+          type: integer
+        descricao:
+          type: string
+    Especialidades:
+      type: array
+      items:
+        $ref: "#/components/schemas/Especialidade"           ******** atentar que quando abre o "schemas" do objeto, esse cara vem com os "[" e "]"
+* tipos de dados
+ver todos tipos aqui: 
+** string
+pode ter:
+StringX:
+  type: string
+  format: date
+
+ou
+
+  format: date-time
+** number
+NumberX:
+  type: number
+  format: decimal              # ******* algo com mais precisão que float
+ou
+  format: float
+** array
+tem que declarar "items" nesse cara
+ex:
+    Especialidades:
+      type: array
+      items:
+        $ref: "#/components/schemas/Especialidade"
+* outros
+** colocar um dois pontos dentro de uma string
+AP: ele entende como uma propriedade o que vem antes do ':'. Basta colocar o texto entre aspas. Ex:
+license:
+  name: "Licença: GPLv3"
+** string não precisa necessariamente de aspas (desde que não tenha caracter especial nela)??? Em summary é certeza que não precisa, fiquei em dúvida pois o professor do curso usou aspas na description 
+exemplo:
+    get:
+      summary: Recupera todas as especialidades    #está correto
+
+** infra
+é possível rodar o editor do swagger como subir a página do yaml renderizada através do docker. Ver page do github onde diz o comando do docker para ambos casos.
+* seções
+** X - cabeçalho
+openapi: 3.0.1
+info:
+  title: API de consultório
+  description: API para controlar médicos e suas especialidades dentro do consultório.
+  version: 0.0.1
+  termsOfService: https://mockapi.io
+  contact:
+    name: Suporte a Devs
+    email: contato@example.com
+    url: https://mockapi.io
+  license:
+    name: "Lincença: GPLv3"
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+externalDocs:
+  description: Documentação burocrática
+  url: https://mockapi.io
+servers:
+- url: https://6096015d116f3f00174b29ba.mockapi.io/
+  description: API de Teste
+
+** 03 - Definindo endpoint
+*** nota 01
+  /especialidades/{id}:
+    parameters:      # ************************* Esse cara (parameters) pode tanto ir dentro do get: , post: , put:, delete: ,  como aqui fora, de modo se tívessemos mais de um método (get, post,...) usando o {id}, não precisaríamos ter que ficar redeclarando-o dentro de cada método (o "id")
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+    get:
+      summary: Recupera uma entidade pelo ID      #****************** poderia declarar o "parameters" aqui dentro tb, se por exemplo o usássemos apenas num método (nesse caso get)
+      responses:
+        200:
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  descricao:
+                    type: string
+        404:
+          description: Especialidade não encontrada
+          content:
+            application/json:
+              example: "Not Found"
+* segurança
+Autenticação por token é um conhecimento mais do que necessário quando se trata de desenvolvimento de APIs. Vou deixar aqui 2 vídeos para explicar melhor o funcionamento desse tipo de autenticação:
+
+Autenticação por token: https://www.youtube.com/watch?v=MZetkcs2xIo
+Autenticação com JWT: https://www.youtube.com/watch?v=B-7e-ZpIWAs
+** 1
+security: 
+- auth: []         #poderia escrever:      - pepino: []    e usar essa mesma palavra nas outras referências à mesma
+                   #requere autenticação pra todos endpoints. Obs: pode-se tb especificar para endpoints isolados apenas
+components:
+  schemas:
+	...
+  securitySchemes:
+    auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+* perguntas/respostas
+** 01
+*** pergunta
+Vimos neste vídeo como definir um parâmetro, e uma chave obrigatória de parameters é a in que indica onde esse parâmetro será enviado na requisição.
+Qual dos valores a seguir NÃO é válido para a chave in de um parameter?
+
+a)header
+b) body
+c) cookie
+*** resposta
+b) body
+Alternativa correta! Para identificarmos o corpo de uma requisição, não usamos parameters. Os valores possíveis para in de cada um dos parameters são: query, header, path ou cookie.
+** 02
+*** pergunta
+Neste vídeo nós definimos o que deve ser enviado no corpo de uma requisição de nossa API através da chave requestBody. O requestBody possui uma propriedade content que é um mapa (ou dicionário).
+
+O que significa cada chave do mapa content?
+a) As propriedades a serem enviadas
+b) O formato da requisição
+c) O esquema da requisição
+*** respota
+b) O formato da requisição
+Alternativa correta! Cada chave do mapa é um tipo de mídia que será enviado como o cabeçalho Content-Type. Em nosso exemplo, como a API só suporta JSON, informamos apenas application/json.
+* documentação
+Como foi mostrado nesse vídeo, OpenAPI é a especificação utilizada pelo Swagger. No próprio site do Swagger há uma versão da especificação para consulta, mas caso você queira a versão "oficial" da especificação, pode consultar: https://www.openapis.org/
+
+No momento da escrita desta atividade a última versão é a 3.1.0 e pode ser conferida aqui: https://spec.openapis.org/oas/v3.1.0
+
+* Aprendemos neste vídeo o que é o Swagger.
+
+** Qual das definições a seguir pode ser considerada mais correta?
+
+Alternativa correta
+Um conjunto de ferramentas para auxiliar o desenvolvimento de APIs.
+
+
+
+Alternativa correta! O Swagger fornece um conjunto de ferramentas, dentre eles: Swagger Editor para escrevermos a documentação da API, Swagger UI para disponibilizarmos essa documentação e Swagger Codegen para gerar código a partir da documentação.
+
+* disponibilizar estrutura de combo box que permite escolha de múltiplos valores
+    - name: types
+      in: path
+      description: Uma lista de tipos de registros de histórico
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - LACK_OF_STAFF
+            - DEVICE_DISCONNECTED
+            - DEVICE_RECONNECTED
+            - DEVICE_UNPLUGGED
+            - DEVICE_PLUGGED
+            - CHECKLIST_REJECTED
+            - NOTICE_NOT_CONFIRMED
+            - CONTACT
+            - PANIC_MONITORED
+            - PANIC
+            - CHECKLIST_NOT_ANSWERED
+            - VISIT_NOT_ACCOMPLISHED
+            - KEEP_IN_TOUCH_ANSWERED_AND_IDENTIFIED
+            - WORKPLACE_TRANSFER
+            - REPLACEMENT_WORKPLACE
+            - REPLACEMENT_EMPLOYEE
+            - REPLACEMENT_SHIFT
+            - DEVICE_TRANSFER
+            - WORKPLACE_BOOK            
+        example: [LACK_OF_STAFF, DEVICE_DISCONNECTED]
+

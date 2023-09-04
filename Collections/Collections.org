@@ -429,6 +429,9 @@ map.get(9);             // val9concat
 
 Merge either put the key/value into the map if no entry for the key exists, or the merging function will be called to change the existing value.
 #+END_SRC
+** confirmar validade de aplicação para declarar um elemento do Map (Map.Entry<String, Claim> entry)
+        Map<String, Object> claimsMap = new HashMap<>();
+        for (Map.Entry<String, Claim> entry : claims.entrySet()) {
 * Fazer collect
 ** exemplo 1
       final Set<Long> personIdsToSendTemplates = Stream.of(personLinkedToWorkplaceDevice, personReplacementLinkedToWorkplaceDevice, personIdsLinkedToPersonDevice)
