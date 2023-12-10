@@ -1,3 +1,5 @@
+* continuar em
+livro: pg 13 (43) - Cap 2: Getting set up to make API requests
 * IMPORTANTE: 
 declarar servers:
   - url:
@@ -189,16 +191,17 @@ Como foi mostrado nesse vídeo, OpenAPI é a especificação utilizada pelo Swag
 
 No momento da escrita desta atividade a última versão é a 3.1.0 e pode ser conferida aqui: https://spec.openapis.org/oas/v3.1.0
 
-* Aprendemos neste vídeo o que é o Swagger.
-
-** Qual das definições a seguir pode ser considerada mais correta?
-
+* Definições
+** o que é o OpenAPI e o que é Swagger? 
+*** segundo Alura
 Alternativa correta
 Um conjunto de ferramentas para auxiliar o desenvolvimento de APIs.
 
-
-
 Alternativa correta! O Swagger fornece um conjunto de ferramentas, dentre eles: Swagger Editor para escrevermos a documentação da API, Swagger UI para disponibilizarmos essa documentação e Swagger Codegen para gerar código a partir da documentação.
+
+*** Segundo literatura
+We are encouraged to use the term “OpenAPI” to refer the heart of this ecosystem — the specification — 
+Use “Swagger” to refer to the specific set of tools managed by SmartBear (which includes Swagger UI, Swagger Editor, Swagger Parser, and at least a dozen more). Many, many other tools are also built to use OpenAPI.
 
 * disponibilizar estrutura de combo box que permite escolha de múltiplos valores
     - name: types
@@ -230,4 +233,139 @@ Alternativa correta! O Swagger fornece um conjunto de ferramentas, dentre eles: 
             - DEVICE_TRANSFER
             - WORKPLACE_BOOK            
         example: [LACK_OF_STAFF, DEVICE_DISCONNECTED]
+
+* Formatos de data/hora vindos do Java 
+todos esses exemplos abaixo, quando usados com a específicação no OpenAPI:
+** sem específicar 'format' no openAPI
+*** conteúdo
+  clockingDateTime:
+    type: string
+    description: Data e hora do registro X
+    example: "um exemplo de formato citado abaixo"
+(obs: nesses casos, não deixat o "format: date", ou "format: date-time")
+
+possuirão os possíveis formatos abaixo:
+	private Date startDate; //apresenta como em formato de milissegundos: 1694538024818
+
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "ddMMyyyyHHmmss")
+	private Date startDateTime; //apresenta com a formatação citada: "12092023170024"
+
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private Date finishDate;  //apresenta como: "2023-04-25"
+*** dúvida interessante
+AP: devo deixar o tipo do campo date que tem um formato "YYYYMMddhhmmss" no openapi como integer ou string?
+chatGPT:
+#+BEGIN_SRC markdown
+Quando você tem um campo de data com o formato "YYYYMMddhhmmss", é mais adequado representá-lo como `string` em vez de `integer` na especificação OpenAPI. Embora numericamente pareça um inteiro, a representação de datas como strings é preferível por várias razões:
+
+1. **Legibilidade**: Como uma string, é mais fácil reconhecer a estrutura da data ao lê-la.
+2. **Manipulação**: Muitas ferramentas, bibliotecas e sistemas esperam que as datas sejam representadas como strings, facilitando sua manipulação e formatação.
+3. **Flexibilidade**: Se houver alguma mudança no formato da data no futuro (por exemplo, se você decidir incluir separadores), uma string pode acomodar essas mudanças sem problemas.
+
+Aqui está como você pode representar o campo na especificação OpenAPI:
+
+```yaml
+properties:
+  yourDateField:
+    type: string
+    pattern: '^\d{14}$'
+    example: '20230912153000'
+    description: 'Data e hora no formato YYYYMMddhhmmss.'
+```
+
+Observe o uso da chave `pattern` com uma expressão regular para descrever o formato esperado da string. Isso ajuda a garantir que a string contenha exatamente 14 dígitos, como esperado pelo formato "YYYYMMddhhmmss".
+#+END_SRC
+
+** especificando 'format: date'
+*** chatGPT
+apresente os possíveis formatos de saída da propriedade abaixo do openapi:  finishDate:
+    type: string
+    format: date
+    description: Data de término
+#+BEGIN_SRC markdown
+Dado que a propriedade `finishDate` especificada em sua definição OpenAPI tem um `type` de `string` e um `format` de `date`, a propriedade deve seguir o padrão de datas completo conforme definido pela [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339), que é uma variação do ISO 8601.
+
+O formato para `date` segundo RFC 3339 é `YYYY-MM-DD`.
+
+Aqui estão os possíveis formatos de saída para `finishDate`:
+
+1. `2023-01-01`: 1 de janeiro de 2023
+2. `1995-12-31`: 31 de dezembro de 1995
+3. `2020-02-29`: 29 de fevereiro de 2020 (um ano bissexto)
+4. ... e assim por diante para qualquer data válida.
+
+Não inclui horário, apenas a data. Se você precisasse de data e hora, o `format` teria sido `date-time` em vez de `date`.
+
+A descrição que você forneceu, "Data de término", é um metadado explicativo sobre a propriedade para ajudar os usuários a entender o propósito ou uso pretendido da propriedade, mas não afeta o formato de saída.
+#+END_SRC
+** especificando 'format: date-time'
+*** chatGPT
+apresente os possíveis formatos de saída da propriedade abaixo do openapi:  finishDate:
+    type: string
+    format: date-time
+    description: Data de término
+#+BEGIN_SRC markdown
+Quando você tem um campo `date-time` em OpenAPI, ele segue o formato de data e hora conforme definido pela RFC 3339, que é uma variação do padrão ISO 8601.
+
+Para o formato `date-time`, as representações possíveis são:
+
+1. **UTC Time**:
+   - `2023-09-12T15:30:00Z`: Isso representa 15h30m no dia 12 de setembro de 2023 em UTC.
+
+2. **Com deslocamentos de fuso horário**:
+   - `2023-09-12T10:30:00-05:00`: Isso representa 10h30m no dia 12 de setembro de 2023, em um fuso horário que está 5 horas atrás de UTC.
+   - `2023-09-12T20:30:00+05:00`: Isso representa 20h30m no dia 12 de setembro de 2023, em um fuso horário que está 5 horas à frente de UTC.
+
+3. **Com frações de segundo**:
+   - `2023-09-12T15:30:00.500Z`: Isso representa 15h30m e 500 milissegundos no dia 12 de setembro de 2023 em UTC.
+   - `2023-09-12T10:30:00.500-05:00`: Com deslocamento de fuso horário e frações de segundo.
+
+Essas são as representações comuns para `date-time` conforme definido pela RFC 3339. Pode haver mais granularidade em frações de segundo, mas esses são os formatos mais típicos que você verá.
+#+END_SRC
+* nomes
+** client.yaml
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/counters/find-one-conter-response.yaml"
+#Tirar o "counter", pois seria redundante
+#Procurar não usar plural no nome do arquivo acima... poderia ser só "counter".
+
+*** operationId
+a ideia é que o operationId reflita o próprio nome do método que temos no java
+
+**** caso bom 
+esse é um nome bom de operationId: workplaceDeviceCount
+pois em /modules/workplace/device/count.yaml temos:
+get:
+  tags:
+    - Workplace
+  summary: Retorna os contadores de terminais e dispositivos do posto
+  operationId: workplaceDeviceCount      #estamos em workplace. Pegamos em device, no método count
+
+na minha task: usar só "find" ou "find-one"
+
+se eu tenho um método, e esse método está retornando todos os dados de alguma coisa, usar: "find-all"
+*** levantar ponto com o pessoal do backend
+Foi sugerido que para as próximas tasks que se um campo possui, por exemplo, nomes como abaixo:
+  clientResponseDto
+ou
+  workplaceResponseDtos
+que os chamássemos apenas de "client" e "workplace"
+(obs: esse comentário foi feito na task do carregamento principal da mesa (/workplaces/load) - mas deixou de sugestão para tasks futuras)
+
+
+Outra coisa: sobre os operationId (das documentações), ele sugeriu que usássemos os nomes dos métodos que utilizamos no código do java. Ou que padronizemos como:
+    operationId: workplaceDeviceCount
+#    pois em /modules/workplace/device/count.yaml temos:
+    get:
+      tags:
+        - Workplace
+      summary: Retorna os contadores de terminais e dispositivos do posto
+      operationId: workplaceDeviceCount      #estamos em workplace. Pegamos em device, no método count
+
+ou como qualquer outro padrão, contanto que mantenhamos o padrão.
 

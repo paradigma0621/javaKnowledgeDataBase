@@ -432,6 +432,40 @@ Merge either put the key/value into the map if no entry for the key exists, or t
 ** confirmar validade de aplicação para declarar um elemento do Map (Map.Entry<String, Claim> entry)
         Map<String, Object> claimsMap = new HashMap<>();
         for (Map.Entry<String, Claim> entry : claims.entrySet()) {
+** Usando groupingBy do Map (modo automático usando biblioteca do Java)
+ // ver task: https://presenca.atlassian.net/browse/OD-423
+// que tem o código em: https://bitbucket.org/presenca/%7B5c4f67ee-2ef9-4348-8936-d82b11661389%7D/pull-requests/60          ver classe: src/main/java/com/nexti/operationdesk/service/load/MapsWorkplaceLoadResponseService.java
+
+    private List<WorkplaceLoadResponseDto> returnMapping(List<WorkplaceDto> workplacesRepository) {
+        return workplacesRepository.stream()
+                .collect(Collectors.groupingBy(
+                        this::returnClientResponseDto,
+                        LinkedHashMap::new,
+                        Collectors.mapping(this::returnWorkplaceResponseDto, Collectors.toSet())
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> new WorkplaceLoadResponseDto(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+    private ClientResponseDto returnClientResponseDto(WorkplaceDto workplaceDto) {
+        return new ClientResponseDto(workplaceDto.clientId(), workplaceDto.clientName());
+    }	
+** EnumMap<>(Weekday.class)
+// ver task: https://presenca.atlassian.net/browse/OD-423
+// que tem o código em: https://bitbucket.org/presenca/%7B5c4f67ee-2ef9-4348-8936-d82b11661389%7D/pull-requests/60          ver classe: //src/main/java/com/nexti/operationdesk/service/load/schedule/MapWorkplaceScheduleResponseService.java
+
+    private void processTheGrouping(List<WorkplaceScheduleDto> schedulesRepository) {
+        groupingWeekDayBySchedule = new EnumMap<>(Weekday.class);
+        schedulesRepository.forEach(this::processMapping);
+    }
+    private void processMapping(WorkplaceScheduleDto workplaceScheduleDto) {
+        var day = workplaceScheduleDto.weekday();
+        var hour = workplaceScheduleDto.hoursFormatted();
+        groupingWeekDayBySchedule
+                .merge(day, hour, (existing, newHour) -> existing + " - " + newHour);
+    }
+
 * Fazer collect
 ** exemplo 1
       final Set<Long> personIdsToSendTemplates = Stream.of(personLinkedToWorkplaceDevice, personReplacementLinkedToWorkplaceDevice, personIdsLinkedToPersonDevice)

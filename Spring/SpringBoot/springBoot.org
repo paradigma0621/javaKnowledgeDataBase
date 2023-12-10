@@ -11,3 +11,5 @@ Por outro lado, a anotação @RestController é uma extensão da anotação @Con
 Os controladores marcados com @RestController são usados para construir APIs RESTful. Eles retornam diretamente dados formatados (JSON, XML, etc.) para o cliente, em vez de visualizações HTML. O Spring Boot cuida da serialização dos objetos de retorno para o formato adequado (por exemplo, JSON) automaticamente.
 
 Em resumo, a diferença entre @RestController e @Controller é que o @RestController combina a funcionalidade do @Controller e do @ResponseBody, sendo usado para construir APIs RESTful e retornar diretamente dados formatados, enquanto o @Controller é usado para retornar visualizações HTML.
+* se for o caso: tirar extenção de: public class GlobalExceptionHandler extends ResponseEntityExceptionHandler  -  se for para não usar as mensagens de erro padrão
+perguntar pro Jean se vamos passar só os erros BussinessExceptions à semelhança do core? (ou todas, .... tirar a extenção da classe GlobalExceptionHandler para pegar as classes que quebram para tratar todas dentro do GlobalExceptionHandler)

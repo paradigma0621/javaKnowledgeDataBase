@@ -1,0 +1,40 @@
+* Websocket para campo de autocompletamento usado para pesquisar
+** Edilson 
+Temos que implementar uma tela de filtro, onde alguns campos de pesquisa podem ser preenchidos antes de serem inseridos no filtro, exemplo: colaborador, cidade, centro de custo, segue tela abaixo:
+
+Minha sugestão é utilizar websocket para realizar a pesquisa nesses campos, segue abaixo tela do protótipo de front onde o mesmo usa o servidor websocket implementado na nova mesa de operação, 
+
+
+trazendo as cidades, de forma bastante rápida.
+
+Dúvidas:
+1 - Se o é realmente é vantajoso utilizarmos websocket para esse caso?
+2 - Como podemos fazer para o websocket funcionar nos outros ambiente de: QA, Dev e PROD?Fiz deploy da minha branch no ambiente de QA porem  não funciona, da erro 401.
+3 - Com quem posso conversar da Nexti para ter algumas dicas de uso do websocket? 
+** Tales
+Bons pontos
+Realmente teria de fazer um teste para ver a vantagem.
+Sobre o ponto 1: Independente da maneira de conexão, isto continua sendo requisições no serviço para fazer o auto-complete. Não sei se um websocket vai trazer um grande ganho para isto, mas vale o teste
+Como isto vai bater lá na base de dados, o problema de performance pode acabar sendo ruim se isto tiver um uso intenso, independente de ser websocket ou não.
+O ideal para este tipo de consultas é tirarmos isto da base relacional e colocar em uma base específica para pesquisas (elasticsearch por exemplo), mas isto gera um grande custo adicional.
+2 - Possivelmente o teu problema de 401 é o token de autenticação
+3 - Acho que o Caio ou o Jean já trabalharam um pouco com isto.
+Websocket pode trazer alguns problemas de infraestrutura se não for bem tratado o tempo de recycle dele (pois websockets também podem perder conexão). Como é uma conexão dedicada com o serviço, pode dar alguns problemas, mas isto tem de ser avaliado e testado tb
+
+Um ponto que não sei se ainda é assim: quando eu trabalhei com websocket, os navegadores limitavam a 1 conexão por site. Não sei como está istso hoje. Isto pode ser importante pelo próximo motivo.
+IMHO, websockets para campos de pesquisa podem ser uma metralhadora para matar uma formiga. A meu ver isto faz mais sentido em pontos onde eu tenho atualização dinâmica a partir de eventos que acontecem na plataforma.
+Vejo isto com bons olhos nas conversas do Direct, na atualização de postos pela mesa, nos contadores de notificações, etc. Onde uma ação que foi realizada lá no backend influencia no frontend e, para termos algo mais "realtime", o backend poderia enviar estes dados na conexão de resposta. Óbvio que isto envolve mais coisas (como SRE e sistemas de eventos), mas é onde eu vejo mais sentido aplicarmos
+** Anderson
+Minha dúvida é se é vantajoso usar. Tendo em vista que sim, por parte de comunicação pode ser bidirecional com um tempo de resposta do socket mais rápido do que o HTTP, mas tem que analisar se a grande causa é de fato o protocolo. Porque não adianta mudar para usar websocket se ainda está tendo lentidão no banco, por exemplo ou no serviço, etc. Ai o websocket não resolveria o problema.
+Eu particularmente não vejo com bons olhos, pelo que entendi a ideia seria colocar o ws para diminuir o tempo de resposta. Mas se pegarmos um cenário ideal com WS e sem WS, esse ganho é significativo? Pois no cenário onde tem outros agentes no meio, como banco ficando lento, vai continuar tendo lentidão.
+Que é basicamente o que o Tales também pontuou acima.
+Talvez para esse caso (não estou dizendo nem que sim nem que não), mas talvez, não seja a melhor resolução.
+** Caio
+Não terá vantagem ao meu ver:
+Vai bater no back-end igual e gerar o mesmo consumo de recurso durante a pesquisa onde é mais caro: banco de dados
+Tu vai enfrentar problemas que não precisaria para esse tipo de problema: E se a conexão socket quebrar? E se o servidor não conseguir devolver o pacote? Aí tu vai implementar um ACK e depois trabalhar em cima dos eventos do socket para ir adaptando
+A conexão socket vai pendurar no servidor enquanto estiver com o site aberto e isso pode ser ruim pois ela não será muito usada e você pode até matar a conexão e ir criando conforme a necessidade mas vai gerar overhead pois para a conexão socket você precisa antes de tudo (internamente) fazer uma chamada HTTP e depois fazer o Switch Protocol para Websocket se autorizado pelo servidor e então fazer a troca de mensagens... Tu vai acabar tentando simular um protocolo sem estado e cair exatamente na solução do HTTP
+Quanto a como retornar status de erros, pode ser retornado no corpo mesmo, o Websocket troca qualquer coisa então tu pode criar um campo chamado status e ir checar se houve um erro ou não, vai acabar caindo na solução do HTTP aqui também.
+É vantajoso somente em momentos em que é mais benéfico o servidor ENTREGAR os dados que o cliente buscar, exemplo:
+Mensagens, eu poderia fazer um pool a cada 1s mas é mais vantajoso e economico dizer simplesmente para o servidor me avisar se algo tiver. Contadores, a primieira conexão poderia pegar o valor total daquele momento e depois ir incrementando conforme novos itens forem processados (isso precisaria organizar bem os eventos no backend)...
+O mais mais vejo em otimização para autocomplete, além do front-end tu utilizar o debounce para não ficar metralhando o backend com cada letra digitada, é algo como elastic search, nunca mexi mas salvo engano vi muitos exemplos justamente para casos em que deveria haver pesquisas com resposta mais rápida tipo como ocorre na pesquisa do Google que, ainda assim, usa simplesmente o HTTP normal para o autocomplete. 
