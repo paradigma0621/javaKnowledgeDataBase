@@ -1,0 +1,3 @@
+Relação bidirecional de Um para Um:
+nesse código ocorre que a Classe Carro tem um Motor, onde dentro da Classe Motor, esse Motor tem a Classe Carro no qual ele está contido. Ocorre uma relação bidirecional - o que não é muito comum em orientação à objetos, mas é importante saber que é possível.
+

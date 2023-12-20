@@ -1,0 +1,204 @@
+* modificadores de acesso
+dentro de 03.jpg: quando não especificamos que tipo (public, protected, private) de atributo/método ele é entendido pelo java como sendo do tipo package (default). Obs: no arquivo: "Modificadores_de_Acesso.jpg" dessa pasta, uma variável do tipo package é o "int j".
+
+Dentro de um livro tem um texto que diz sobre esses tipos de dados sem especificadores:
+	Java also has a "default" access, which comes into play if you don’t use one of the aforementioned specifiers. This is usually called package access because classes can access the members of other classes in the same package (library component), but outside of the package those same members appear to be private.
+
+* composição x herança
+O que deve-se priorizar num código: composição ou herança?
+R: Composição - ela é mais flexível que a herança.
+
+Diferença na escolha de uso das duas: (a regra não é fechada, mas pode servir de parâmetro)
+1) Composição: "...tem um(a)..."
+	- carro tem um motor
+	- carro tem portas
+	- casa tem uma cozinha
+
+2) Herança: "...é um(a)..."
+	- civic é um carro
+	- gato é um mamífero
+	- maçã é uma fruta
+* herança
+Em Java uma classe só pode herdar de UMA outra classe 
+(herança simples).
+
+Em C++ pode acontecer o caso de herança múltipla: uma classe herda de várias outras.
+------------------
+Vamos supor que uma classe herda de várias outras:
+Classe A
+   |
+   v
+Classe B herda da Classe A
+   |
+   v
+Classe C herda da Classe B
+   |
+   v
+Classe D herda da Classe C
+   |
+   v
+Classe E herda da Classe D
+
+é importante aprender o seguinte conceito: tomemos por exemplo a Classe D: quem/quais é/são as super-classe(s) da Classe D? R: APENAS a classe C. Esse é o conceito de Classe-Pai, ou Super-Classe.
+	Há mais um conceito: tomemos novamente a Classe D, que vimos que tem por Super-Classe a Classe C... para a classe D damos o nome de Sub-Classe (da Classe C). 
+
+CONFIRMAR ESSA INFORMAÇÃO: Uma vez que se instância uma classe específica, não apenas essa classe é instânciada, mas todos os construtor de toda a hierárquia são chamados, seja de forma implícita ou de forma explícita.
+
+** Construtores
+Por padrão toda classe em um construtor padrão: 
+	NomeDaClasse() { ... }
+Por padrão toda sub-classe chama o construtor padrão da classe-pai padrão: NomeDaClassePai() {...} *a partir do construtor padrão dessa sub-classe* (= chamar super() dentro do método construtor da sub-classe).
+
+Dentro da última citada classe-pai, se ela for uma sub-classe de uma outra classe-pai, ela chama o construtor padrão dessa última (da classe-pai), que se for sub-classe de uma classe-pai, ela chama o construtor padrão dessa última, que se for..... assim até chegar na última classe-pai. (DÚVIDA: Apenas se essas classes citadas apresentarem explícitamento "super()" em seus construtores?)
+
+	Se *o construtor padrão da classe-pai* não estiver definido, é preciso definí-lo explícitamente e chamar o super passando os parâmetros corretos.
+	
+** Nomes
+Podemos definir objetos utilizando o nome das super-classes. Exemplo: classe-pai = carro... classes filhas: FiatUno, Porche, etc.
+Podemos criar objetos específicos como:
+	FiatUno carro1 = new FiatUno();
+	//ou, o que teria *o mesmo resultado*:
+	Carro carro1 = new FiatUno();
+//Obs: tirei esse texto do "desafio1" dessa pasta, que foi resolvido pela Udemy.
+//Quando eu digo que teria o mesmo resultado quero dizer que mesmo instanciando carro1 como "Carro", ele vai chamar os métodos sobrescrito dentro da classe FiatUno quando acharmos esses métodos (e não chamará os método da super-classe, como talvez poderia pensar por começarmos definindo a instância com "Carro carro1 ...")).
+
+//Obs: AP: na aula de Listas havia uma definição de uma ArrayList começando com List:
+	List<Usuario> lista = new ArrayList<>();
+//(A classe ArrayList é uma implementação da interface List). Daí surge uma dúvida pessoal: o que foi ensinado sobre como definir uma instância começando pelo nome da classe-pai ("Carro"), e depois colocando o nome da sub-classe que herda ("FiatUno()") = Carro carro1 = new FiatUno();
+acontece o mesmo para quando uma classe é implementada da interface da outra, como em:
+	List<Usuario> lista = new ArrayList<>();
+por exemplo? ou seja: a variável lista vai ter todos os atributos e métodos de ArrayList apesar de se ter usado a classe List para instância-la??
+
+** Polimorfismo
+*** Estático
+		Definir o mesmo método de formas diferentes (ou mais parâmetros, ou tipos diferentes, ou ordem diferentes). Múltiplas formas de escrever o mesmo método. Polimorfismo estático = sobrecarga.
+*** Dinâmico
+		-É preciso ter herança para haver polimorfismo dinâmico. A partir de tipos mais genéricos é possível receber tipos mais específicos. Exemplo: superclasse Carro das subclasses Civic e Ferrari. Então eu crio:
+		Civic c = new Civic(); //uma forma de definir um carro
+
+		Carro c = new Civic(); //a partir de herança eu consegui fazer esse tipo de atribuição
+		c = new Ferrari(); //a partir de herança eu consegui fazer esse tipo de atribuição.
+				// ou seja: a variável c pode assumir múltiplas formas: Civic ou Ferrari, ou se tiver-
+				//mos outros carros, ela também poderá assumir suas formas
+
+		//outro exemplo:
+		void estacionar(Civic c) {...} //O método é específico para o Civic
+		
+		void estacionar(Carro c) {...} //O método pode receber múltiplas formas de carro: Civic, Ferrari, ...
+						//e esse é um exemplo de polimorfismo
+		
+* modificador de acesso (mais coisas)
+** O modificador *da classe* também pode ser alterado
+
+public class Carro {
+	(...)	
+}	
+
+----------------
+
+//ou como tipo package:
+class Carro {
+	(...)	
+}	
+
+----------------
+Porém não podemos mudar o modificador de acesso da classe nem para private, nem para protected.
+//Não é possível:
+private class Carro {
+	(...)	
+}	
+
+//Também não é possível:
+protected class Carro {
+	(...)	
+}	
+
+** modificadores de acesso dos construtuores das classes
+É possível também mudar o modificador de acesso dos construtores das classes para tipo public, e tipo package, tipo protected (para quando não quero que a pessoa intâncie um objeto diretamente, mas apenas que esse construtor seja visível por herança (quando houver herança ele vai conseguir chamar o super) )  (não sei se é possível mudá-los para tipo private).
+
+** Quando for sobrescrever um método (@Override), nunca poderá diminuir o nível de visibilidade
+Ou se mantêm a mesma visibilidade, ou a aumenta.
+
+* interface
+Por padrão, todo modificador dentro de interface é public, mesmo que eu não coloque a palavra "public".
+Todos os métodos dentro de uma interface são públicos e abstratos (e esses modificadores estão implícitos).
+Método abstract é um método que não tem corpo, ou seja, que não tem as chaves: { ... }. 
+De modo que:
+	public interface Esportivo {
+		void ligarTurbo();
+		void desligarTurbo();
+	}
+//equivale ao que está apresentado abaixo (*OU SEJA: A VISIBILIDADE NÃO É DEFAULT (PACOTE)*):
+
+	public interface Esportivo {
+		public abstract void ligarTurbo();
+		public abstract void desligarTurbo();
+	}
+//---------------Ainda do que disse na seção acima, segue algo que a completa abaixo:
+//Porém quando dizemos em uma interface que:
+	public interface Esportivo {
+		void ligarTurbo();
+		void desligarTurbo();
+	}
+///E como foi visto, sabemos que nisso está implícito que pode-se entender que é o mesmo que dizer que são "public abstract". É possível contrariar isso e dizer que o método é do tipo "padrão" - para isso bastaria implementá-lo como abaixo no mesmo arquivo:
+	public interface Esportivo {
+		void ligarTurbo();
+		void desligarTurbo();
+	
+		default int velocidadeDoAr() {	//implemento o método da interface, desencarregando de ter que 
+						//fazer isso depois.
+			return 1;
+		}
+	}
+
+* Abstração:
+	- Simplificação. A capacidade de simplificar e pegar aquilo que interessa do mundo real. 
+	- Nem tudo o que está no mundo real eu tenho no software e nem tudo o que eu tenho no software eu tenho no mundo real.
+
+- Em um extremo temos as classes concretas, onde todos os métodos estão implementados, ou seja: eles tem que estar 100% definidos..
+- Em outro extremo temos as interfaces, onde nenhum método está implementado (porém podemos implementar nas interfaces métodos default e static).
+- Um "meio-termo" são as classes abstratas, que pode ter entre nenhum método implementado, alguns métodos implementados, ou todos métodos implementados.
+
+Só é possível ter método abstrato em classe abstrata.
+
+Classes abstratas não podem ser instânciadas. Ou seja: uma vez que eu faça:
+public abstract class Pessoa {...}
+//eu não posso fazer:
+Pessoa p1 = new Pessoa();
+De modo que se por exemplo no "desafio1_resolvido_pela_Udemy" quiséssemos que não fosse possível fazer: 
+Carro car1 = new Carro(); 
+Bastaria definir a classe Carro como sendo abstrata - com isso só seria possível definir carros Civic ou Ferrari, e não seria possível instanciar um carro "car1" genérico da super-classe "Carro".
+
+Pra que então criar uma classe abstrata?
+R: Para quando tivermos herança.
+
+Quando definimos métodos abstratos, em alguma hora temos que implementar os métodos, seja nas classes-filhas, classes-netas, classes-bisnetas,.... alguma hora tem que implementar todos os métodos. Porém uma vez implementado um método abstrato, todos as sub-classes ficam desencarregadas de ter a obrigatoriedade de implementar esse método - elas vão ter a opção de também implementar, mas não a obrigação de implementar. É o que acontece com a classe "Cachorro" dentro da pasta "exercicio_abstrato":
+//----------Arquivo Cachorro.java
+	@Override
+	public String mover() {
+		return "Usando as patas";
+	}
+//que está sobrescrevendo a implementação de mover() definida dentro do arquivo Mamifero.java:
+//----------Arquivo Mamifero.java
+	@Override
+	public String mover() {
+		return "Saindo do lugar";
+	}
+//Quando executamos o arquivo TesteAbstrato.java ele instância um mamífero cachorro que se move executando o método de
+//Cachorro.java, e não o de Mamifero.java
+//** PORÉM, se definíssemos em Mamifero.java o método mover como:
+
+//----------Arquivo Mamifero.java
+	@Override
+	public final String mover() {
+		return "Saindo do lugar";
+	}
+
+//** ESSE "final" proibiria de redefinirmos mover() em qualquer subclasse (em Cachorro.java nesse caso). 
+//Nesse caso, a implementação de mover() ficaria sendo apenas a de Mamifero.java, e seria a usada por todas as suas
+//sub-classes.
+
+* Livros: 
+	- Formas padrões de projetos:
+	- Arquitetura: "A linguagem dos padrões" -  Christofer Alessander
+	-"A gang dos 4": "Gang of four" (procuarar por "GOF Patterns") (alguns ajudam a substituir herança por composição) (famoso: decorater: ajuda a subtituir composição por herança (CONFIRMAR INFORMAÇÃO).

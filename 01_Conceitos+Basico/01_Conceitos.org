@@ -1,5 +1,232 @@
 ver também: https://docs.oracle.com/javase/tutorial/information/glossary.html
 * conceitos
+** Membros da Classe
+Atributos (dados) e comportamentos (métodos) de uma classe são chamados de Membros da classe.
+** Atributos de uma classe 
+-----------
+Mesmo que um atributo de uma classe seja definido no final da classe, todos os métodos da classe vão enxergar esse atributo. 
+*** Exemplo
+
+ public class Data {
+	int dia;
+	int mes;
+	int ano;
+
+	Data()( {
+		dia = 1;
+		mes = 1;
+		ano = 1970;
+	}
+
+	Data(int dia, int mes, int ano) {
+		this.dia = dia;
+		this.mes = mes;
+		this.ano = ano;
+	}
+
+	String obterDataFormatada() {
+		return String.format(formato, dia, mes, ano); //O método enxerga a String formato definida no fim da classe
+	}
+
+	String formato = "%d/%d/%d";
+}
+-------------------
+** Instância
+Objeto é sinônimo de instância - posso dizer:
+"Eu criei 10 objetos" ou "Eu instânciei 10 objetos".
+** Assinatura do Método
+int somaValores(int v1, int v2)
+Ao que damos o nome de "Identidade do Método" (ou "Assinatura do Método") é a parte:
+ somaValores(int v1, int v2)
+Não podemos ter 2 métodos com a mesma identidade (mesmo que retornem tipos de dados diferentes).
+
+** Argumentos/declaração de um método
+Em geral, um método recebe *argumentos* cujos valores lhe são passados pelo objeto que o chamou, efetua um conjunto de operações e retorna algum resultado. A *declaração* do método especifica o nome do método, o tipo de retorno, o nome e o tipo de cada argumento. Os argumentos são variáveis locais do método em questão. O valor de retorno é devolvido utilizando-se a palavra chave return.
+
+Métodos em Java são análogos a funções e
+procedimentos em outras linguagens como VB
+e Pascal.
+	
+** Parâmetro x Argumento
+*Parâmetro* é a variável que irá receber um valor em uma função (ou método) enquanto que um *argumento* é o valor (que pode originar de uma variável ou expressão) que você passa para a função (ou método).
+
+Você não passa parâmetros, *você passa argumentos*. Você *recebe argumentos também*, *mas recebe em parâmetros*. Você parametriza sua função com informações que virão posteriormente. Você argumenta com o que deseja executar uma função devidamente parametrizada.
+
+*** exemplo
+void Func1(int i, bool flag = true) { //declarou dois parâmetros
+    // execução
+}
+
+void Func2(params int[] lista) { //declarou um parâmetro
+    //execução
+}
+
+void Func3(bool x, bool y) {
+    int z = 0;
+    Func1(1); //chamou com 1 argumento
+    Func1(z, x && y); //chamou com dois argumentos vindos de variável e expressão respectivamente
+    Func2(1, 2, 3); //chamou com 3 argumentos
+    Func1(flag : false, i : 2); //argumentos nomeados
+}
+** Atribuições: por valor x por referência
+*** Atribuição por Valor (quando se trabalha com tipos primitivos):
+
+int a = 2;	//a=2
+int b = a;	//b=2
+
+a++;	//a=3;
+b--;	//b=1 
+
+*** Atribuição por referência (quando se trabalha com objetos):
+Data d1 = new Data();
+Data d2 = d1; //d2 aponta para o mesmo endereço de memória que d1 - o que eu fizer a partir de uma variável, a outra também vai enxergar
+
+d2 = new Data(); //d2 vai ganhar um novo endereço de memória e valores de suas variáveis próprios
+
+d1 = d2; //d1 passa a apontar para o endereço de d2, a partir daí o que se mexe com d2 muda d1 e o que mexe com d1 muda d2. 
+
+Data d3 = new Data(); //d3 começa com um novo endereço de memória e valores de suas variáveis próprios
+O mesmo acontece quando passamos o d3 por referência para um método:
+metodoQueRecebeData(d3);
+
+void metodoQueRecebeData(Data d){
+	//o que for mudado aqui muda aqui muda o d3 ali em cima onde foi chamado o método. O mesmo não acontece com a passagem de tipos primitivos, pois destes últimos é feita uma cópia na sua passagem.
+	d.dia = 2;
+	d.mes = 3;
+	d.ano = 2020;
+}
+** Atributos
+*** Variáveis locais
+Muitas vezes, variáveis auxiliares são declaradas dentro de um determinado método, ou até dentro de um bloco menor. Tais variáveis são chamadas *locais*. Elas existem somente durante a execução daquele método ou bloco. A parte de código que "enxerga" uma determinada variável é chamada o *escopo* da variável. Assim, o escopo de uma variável global é a classe inteira, e o escopo de uma variável local é o método, ou um bloco contido dentro do método, ao qual ela pertence. 
+    
+    
+• Um método pode ter variáveis locais, que são variáveis declaradas ‘dentro’ do método.
+• Variáveis locais podem ser utilizadas apenas dentro do método onde foram declaradas.
+• Os parâmetros do método também são locais a ele.
+Exemplo:
+static float media(float[] v){
+	float s = 0;
+	for(int i = 0; i < v.length; i++) s += v[i];
+	return s/v.length;
+}
+
+• Neste exemplo
+– v , s e i são variáveis locais ao método media.
+– v é parâmetro do método, que é usado como uma variável local.
+
+*** Variável de instância
+Uma variável de instância é uma variável cujo valor é específico ao objeto e não à classe. Uma variável de instância em geral possui uma valor diferente em cada objeto membro da classe.
+Uma variável é considerada como de instância por "default". 
+
+*** Variável de classe
+Uma variável de classe é uma variável cujo valor é comum a todos os objetos membros da classe. Mudar o valor de uma variável de classe em um objeto membro automaticamente muda o valor para todos os objetos membros.
+Para declarar uma variável de classe, acrescenta-se a palavra-chave *static*. 
+
+*** Variáveis globais
+    Consideremos variáveis declaradas fora de qualquer método (usualmente no cabeçalho da classe). Elas são acessíveis por qualquer método da classe. Tais variáveis são chamadas globais. 
+
+Embora não pareça uma boa ideia, é possível dar a uma variável local um nome que já foi atribuído a uma variável global. Neste caso, a variável local "encobre" a variável global, mas o acesso à variável global é possível usando a palavra-chave this (que fornece uma referência ao próprio objeto) e o operador ponto.
+
+*** Variáveis constantes
+    Esta expressão um tanto paradoxal refere-se a variáveis cujo valor não pode mudar durante a execução do programa. Tais variáveis são caracterizadas pela palavra-chave final, e por convenção recebem usualmente nomes escritos inteiramente em maiúsculas.
+    Por exemplo, na classe Math do pacote lang, encontramos
+       public static final double PI;
+
+    que contem o valor da famosa constante matemática. 
+----------------------------------------------
+**** Variáveis constantes
+
+    Esta expressão um tanto paradoxal refere-se a variáveis cujo valor não pode mudar durante a execução do programa. Tais variáveis são caracterizadas pela palavra-chave final, e por convenção recebem usualmente nomes escritos inteiramente em maiúsculas.
+    Por exemplo, na classe Math do pacote lang, encontramos
+       public static final double PI;
+
+    que contem o valor da famosa constante matemática. 
+-------------------------------------------------
+
+class Matematica {
+	static double Pi=3.14;
+}
+System.out.println(Matematica.Pi); //Foi possível acessar o valor de Pi sem precisar criar um objeto do tipo Matematica. Isso porque a variável é static. O mesmo vale para métodos static, pois a variável/método é da classe, e não da instância.
+
+Suponhamos que criamos a classe Matematica acima, depois queremos alterar o valor de "Pi" - isso pode ser feito utilizando uma das instâncias da classe Matematica, ou através da classe mesmo:
+Ex:
+
+Matematica m1 = new Matematica();
+m1.Pi = 3.141;
+
+OU:
+
+Matematica.Pi = 3.1415;
+
+--------------------------------------------------------------------------------------------------------- 
+Aida sobre o Pi, caso quiséssemos defini-lo como uma constante, usaríamos:
+final static double Pi = 3.1415;
+ou
+static final double Pi = 3.1415;
+
+
+
+---------------------------------------------------------------------------------------------------------
+Mesmo que um atributo de uma classe seja definido no final da classe, todos os métodos da classe vão enxergar esse atributo. Ex:
+-------------------------------------
+ public class Data {
+	int dia;
+	int mes;
+	int ano;
+
+	Data()( {
+		dia = 1;
+		mes = 1;
+		ano = 1970;
+	}
+
+	Data(int dia, int mes, int ano) {
+		this.dia = dia;
+		this.mes = mes;
+		this.ano = ano;
+	}
+
+	String obterDataFormatada() {
+		return String.format(formato, dia, mes, ano); //O método enxerga a String formato definida no fim da classe
+	}
+
+	String formato = "%d/%d/%d";
+}
+-----------------------------------------------
+
+*** Nomeação
+Nomes de variáveis devem começar com uma letra, um caráter de sublinhado _ ou um cifrão $. Não podem começar por um número.
+
+** Restrições de acesso
+    Algumas palavras-chaves são diponíveis para ampliar ou restringir o acesso a um método. Estas palavras-chaves são acrescentadas à declaração do método.
+*** public
+    Um método que pode ser acessado por qualquer outra classe é dito público, e é declarado usando-se a palavra-chave public.
+*** private
+    Um método que pode ser acessado somente por métodos da própria classe é dito privado, e é declarado usando-se a palavra-chave private.
+*** protected
+    Um método que, além de poder ser acessado por todas as classes do mesmo pacote, também pode ser acessado pelas subclasses da classe na qual ele é declarado, é dito protegido e é declarado usando-se a palavra-chave protected.
+
+*** package
+    Um método para o qual não foi especificada nenhuma destas palavras-chaves é dito amigável e pode ser chamado por todas as classes que pertencem ao mesmo pacote. 
+
+*** VER SE ESSE CARA ACRESCENTA ALGO DO QUE FOI DITO ACIMA... SE NÃO: APAGAR ESSE TÓPICO
+**** Restrições de acesso
+
+    Algumas palavras-chaves são diponíveis para ampliar ou restringir o acesso a um método. Estas palavras-chaves são acrescentadas à declaração do método.
+
+    Um método que pode ser acessado por qualquer outra classe é dito público, e é declarado usando-se a palavra-chave public.
+
+    Um método que pode ser acessado somente por métodos da própria classe é dito privado, e é declarado usando-se a palavra-chave private.
+
+    Um método que, além de poder ser acessado por todas as classes do mesmo pacote, também pode ser acessado pelas subclasses da classe na qual ele é declarado, é dito protegido e é declarado usando-se a palavra-chave protected.
+
+    Um método para o qual não foi especificada nenhuma destas palavras-chaves é dito amigável e pode ser chamado por todas as classes que pertencem ao mesmo pacote. 
+
+
+
+
+Se você cria um construtor de uma classe como sendo private ninguém consegue fazer instâncias dessa classe. O que seria útil de fazer com ela é usar seus métodos static's.
+
 ** Method x Function
 *** Question
 Can someone provide a simple explanation of methods vs. functions in OOP context?
@@ -237,8 +464,94 @@ Campo - Uma parte do objeto que guarda estado dele. Essencialmente é uma variá
 Class XUZ {
   private List<String> comments; // Dev - Esse campo é usado em algum lugar?
 }
+** Objetos
+    Um objeto é uma instância de uma classe, ou seja uma realização concreta e particular da mesma. Um objeto precisa ser criado. Para que seja possível acessar as variáveis e os métodos de um objeto, é preciso atribuir uma referência ao objeto. O tipo de uma referência, ou seja a classe à qual pertence o objeto ao qual ela vai referir-se, precisa ser declarado.
+
+Declaração: a seguinte instrução declara que a variável nomeDoObjeto refere-se a um objeto instância da classe NomeDaClasse:
+  NomeDaClasse nomeDoObjeto;
+
+Criação: a seguinte instrução cria (em memória) um novo objeto instância da classe NomeDaClasse, que será referenciado pela variável nomeDoObjeto previamente declarada:
+  nomeDoObjeto = new NomeDaClasse();
+
+As duas instruções acima podem ser combinadas numa só:
+  NomeDaClasse nomeDoObjeto = new NomeDaClasse();  
+** Objeto x Object
+(fonte: StackOverflow)
+Tipo primitivo é um objeto?
+Cada dado individualizado é um objeto, não importa características específicas, alguns se conformam com Object. Object e objeto são coisas distintas, em níveis diferentes, definem características diferentes, apenas possuem o mesmo nome.
+-----------------------------------------------
+** Tipo primitivo
+boolean var1 = false; //var1 = tipo primitivo
+Boolean var2;   ///var2 = objeto
+
+
+Integer, Boolean, Double,...  = Wrappers
+int, double,... = tipos primitivos
+
 ** Arquivo Dto (Data Transfer Object)
 DTO stands for Data Transfer Object, which is a design pattern. It is one of the EPA patterns which we call when we need to use such objects that encapsulate and aggregate data for transfer. A DTO is similar to a data structure, but like a data structure, it doesn't contain any business logic.
+	
+** Paradigmas de programação
+Paradigma de programação é filosofia máxima de como vamos pensar para construir seu software:
+	- Paradigma de Orientação à objetos
+	- Paradigma Funcional
+	- Paradigma Procedural
+
+Padrão de projeto (eles complementam os paradigmas):
+	-exemplo: Observer
+
+** Varargs
+//Varargs:
+
+public void comer(Comida... comidas) { //pode-se passar quantos parâmetros quiser
+//"comidas" vem como array de "Comida"
+	for (Comida c: comidas) {
+		this.peso += c.getPeso();
+	}
+}
+** JRE, JDK
+Quando alguém quer executar códigos em "Byte Code" (arquivo gerado da compilação: "file.class"), deve instalar em sua máquina o JRE (Java Runtime Enviroment). Obs: dentro do JRE tem a máquina virtual, e a máquina virtual é a base da JRE.
+
+Quando alguém quer uma plataforma para desenvolver em Java, deve instalar o JDK (Java Development Kit).
+
+** pacote
+	br.com.cod3r.cm.modelo // onde "cm" = projeto de campo minado, e "modelo" é o nome de um pacote desse projeto
+* Básico
+** Valores iniciais de variáveis
+Variáveis que são inicializadas com valor padrão (zero para variáveis numéricas, false para o boolean) só valem para variáveis de classe ou variáveis de instância. Para variáveis locais obrigatoriamente devemos especificar algum valor.
+
+Quando nós estamos trabalhando com variáveis, as variáveis são:
+	- instânciadas com valor padrão quando pertencem à instância, 
+		ou são:
+	- de classe (nesse último caso temos por exemplo: "static int x;" onde x por padrão começa com valor zero). Já as variáveis locais precisam necessáriamente serem inicializadas de forma explícita.
+
+
+valores padrões quando se declara uma variável:
+byte, short, int, long -> 0
+float, double -> 0.0
+boolean -> false
+char -> '\u0000'
+
+obs: variáveis locais não adquirem valor padrão, apenas as declaradas fora dos métodos (como por exemplo dentro das classes (e fora dos métodos dessa classe)).
+
+obs: objetos de forma geral, quando instanciados, tem valor null. Neles se incluem as variáveis do tipo String... apontam para nenhum local de memória.
+
+-------------------------------
+
+Obs: variáveis final (constantes), quando são de classes, devem receber seu valor na definição do atributo dentro da classe, ou no mais tardar dentro do construtor da classe.
+Ou seja:
+
+public class Data {
+	final int x; //ou recebe o valor já aqui, ou dentro do construtor
+
+	Data() {
+		x=100; //pode receber o valor aqui
+	}
+}
+
+Outra coisa é que as constantes não são iniciadas com valor padrão, é preciso definir o valor de forma explícita.
+
+
 * Java 8 - curso da Oracle
 https://docs.oracle.com/javase/tutorial/index.html
 *** https://docs.oracle.com/javase/tutorial/java/nutsandbolts/variables.html
@@ -318,3 +631,7 @@ A variável `preco` não é uma variável de instância, pois é estática. Vari
 
 As variáveis `pessoa`, `outraPessoa`, `z` e `k` dentro do método `outroMetodo` são variáveis locais ao método. Elas não são variáveis de instância, pois existem apenas durante a execução do método e não estão no escopo da classe. Cada vez que o método é chamado, essas variáveis são criadas e depois descartadas ao final da execução do método. Mesmo que cada instância possa chamar o método e ter sua "própria" versão das variáveis enquanto o método está sendo executado, isso não as torna variáveis de instância. Variáveis de instância estão no escopo da classe e têm uma duração de vida que é a mesma da instância da classe à qual pertencem.
 #+END_SRC
+* Dúvidas
+** variável x campo
+2.1) os nomes "campo" e "variável" são sinônimos no java?
+2.2) atributos final são variáveis (pergunto pelo fato de seu valor "não variar")? tipos primitivos são variáveis?

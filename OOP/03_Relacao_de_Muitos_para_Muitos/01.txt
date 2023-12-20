@@ -1,0 +1,10 @@
+Exemplos de relações de muitos pra muitos (mistas):
+	- Tios e sobrinhos
+	- contas de usuários e perfis de usuários
+	- Alunos e disciplinas
+
+----------------------
+	É interessante criar relações de uma classe com outra porque é possível ler informações vinculadas/correlacionadas entre elas. Ou seja: como uma classe tem referência para outra classe podemos criar uma série de métodos que vai poder criar uma série de métodos que vai ajudar interagir uma classe com a outra. ex: nesse código dessa pasta, nós lemos todos os alunos do curso1 em que o aluno1 está matriculado, dentre outras coisas que é possível fazer.
+	Está aí a importância de relacionar uma classe com a outra; seja relacionamento 1 pra 1, 1 pra N (=1 pra muitos), N pra N.
+		
+

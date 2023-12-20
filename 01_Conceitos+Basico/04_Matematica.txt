@@ -1,0 +1,12 @@
+	Em linguagens de programação, quando trabalhamos com operações matemáticas pode ocorrer que para ganho em eficiência de tempo, quando for precessada alguma conta se perda na precisão do resultado. Exemplo:
+	média=(1.6+1.8)/2
+	de um resultado do tipo: média=1.700000000000002 
+	por exemplo.
+	Isso não é exclusivo de java, acontece com as outras linguagens também.
+	Caso se queira por exemplo desenvolver um software para um banco, por exemplo, como proceder para ter precisão perfeita??
+	R: Usa-se o tipo de variável BigDecimal:
+		BigDecimal var1;
+	ele está incluido no pacote: import java.math.BigDecimal;
+	Ela tem precisão matemática, porém é mais lenta de ser processada.
+	Isso eu aprendi na aula: 31. Conversão String -> Número
+

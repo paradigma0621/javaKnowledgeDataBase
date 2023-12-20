@@ -1,0 +1,12 @@
+Inicialmente as linguagens de programação eram não estruturadas (usavam o GOTO - elas saltavam de um bloco de código para outro através do GOTO).
+
+Depois surgiu o paradigma PROCEDURAL, onde foi criado o recurso de função ou procedimento, que executaria um conjunto de passos.
+
+Temos também o paradigma FUNCIONAL que se dá bem como processamento de múltiplos cores (processadores de vários cores).
+
+Temos também o paradigma de ORIENTAÇÃO A OBJETOS.
+-----------------------------
+
+	A diferença do paradigma procedural em relação ao de orientação a objetos é que no procedural o ator principal é a função, enquanto que na orientação a objetos o ator principal é o objeto.
+
+	Java já nasceu orienteada a objetos, enquanto que PHP e Javascript nasceram procedurais, apesar de depois ter-se tornado possível orientá-las a objetos. A maioria das linguagens é multiparadigma.

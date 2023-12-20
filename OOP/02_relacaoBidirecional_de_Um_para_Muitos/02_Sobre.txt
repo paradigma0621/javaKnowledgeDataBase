@@ -1,0 +1,3 @@
+Relação bidirecional de Um para Muitos (=Um para N):
+nesse código ocorre que a Classe Compra tem muitos itens, onde dentro da Classe Item, cada Item tem referência à Classe Compra no qual ele está contido. Ocorre uma relação bidirecional - o que não é muito comum em orientação à objetos, mas é importante saber que é possível.
+

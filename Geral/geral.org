@@ -92,3 +92,13 @@ Obs: os modos abaixo não esgotam as possibilidades de formas de escrita de arqu
 		} 
 		catch (IOException e) {
 		}
+* Programação funcional
+** Interface funcional
+Consumer<String> print = System.out::print; //"Consumer" = Interface funcional
+** BiFunction
+BiFunction<Double, Double, String> resultado = (n1, n2) -> { 
+	double notaFinal = (n1 + n2) / 2;
+	return notaFinal >= 7 ? "Aprovado" : "Reprovado";
+};
+* Exceções
+É válido dentro de um projeto, um jogo como o campo minado, por exemplo, usar exceções (aquelas dos erros mesmos) para trabalhar com métodos do jogo (exemplo: o jogador escolheu no campo minado um quadrado que é bomba), etc...

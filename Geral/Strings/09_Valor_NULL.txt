@@ -1,0 +1,14 @@
+Fazer:
+String s1 = "";
+System.out.println(s1.concat("!!!"));
+//Aqui s1 tem endereço de memória que aponta para uma string que foi criada - por isso pode fazer concat (funcionalidades e métodos associados à string)
+
+é diferente de fazer:
+
+String s2;
+System.out.println(s2.concat("???"));
+//Nessa última dá erro de compilação. A variável s2 não foi inicializada. 
+
+String s3=null; //agora sim eu tenho uma variável inicializada
+System.out.println(s3.concat("???"));
+//Nessa última dá erro de execução (NullPointerException). O erro se dá pois s3 está nulo, não aponta para objeto real na memória - com isso não podemos acessar nenhum atributo nem método do objeto.

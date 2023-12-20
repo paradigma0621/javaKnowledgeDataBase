@@ -1,0 +1,56 @@
+* OOP
+** Métodos static
+não posso usar ".this" num método static, porque um método static existe associado à classe, e o this se refere à uma instância.
+
+** Interface
+Iterator<String> iterator = aprovados.iterator(); //aqui o "Iterator" é a interface
+
+** Método construtor (Construtor não tem retorno)
+A característica que vai distinguir um método do construtor é a ausência de retorno. Ex:
+class Produto {
+	void Produto() { //isso não é o construtor, pois tem o tipo de retorno (void)
+	}
+}
+
+Pois o java já sabe que o retorno de um construtor é uma instância do tipo Produto.
+
+** Variáveis "final"
+Obs: variáveis *final* (constantes), quando são de classes, devem receber seu valor na definição do atributo dentro da classe, ou no mais tardar dentro do construtor da classe.
+Ou seja:
+
+public class Data {
+	final int x; //ou recebe o valor já aqui, ou dentro do construtor
+
+	Data() {
+		x=100; //pode receber o valor aqui
+	}
+}
+
+Outra coisa é que as constantes não são iniciadas com valor padrão, é preciso definir o valor de forma explícita.
+-------------------
+O quer dizer uma lista com  especificador "final" (constante) apresentado como:
+	final List<Curso> cursos = new ArrayList<>();
+R: Quer dizer que eu não posso mudar o endereço de memória dessa lista. Eu posso adicionar e remover elementos, limpar a lista, mas eu não posso fazer por exemplo:
+	this.cursos = new ArrayList<Curso>();
+
+
+** funcionalidades
+*** Construtor private
+
+Se você cria um construtor de uma classe como sendo private ninguém consegue fazer instâncias dessa classe. O que seria útil de fazer com ela é usar seus métodos static's.
+
+** Explicação que em Java tudo é objeto
+(fonte: https://pt.stackoverflow.com/questions/274391/diferen%C3%A7a-entre-tipo-primitivo-e-objeto-em-java
+)
+Há uma ideia errada que só existem objetos em programação orientada a objeto. Se isso fosse verdade, como chamaria o que não é um objeto?
+
+Quando fala em primitivo está usando um adjetivo, então sozinho ele não faz sentido. Portanto quando usa esse termo está referindo-se ao que, como sendo primitivo? É um objeto primitivo! Poderíamos chamar de objeto rudimentar em oposição ao objeto complexo, embora algumas linguagens usem o termo primitivo para objetos que também são complexos em algum nível.
+
+Em C# "tudo" é objeto no sentido de OOP, ou seja, "tudo" deriva de Object, não existe a ideia de tipos primitivos. E o Java agora começou abandonar essa ideia também (ainda existirão os tipos primitivos, mas, aparentemente, eles serão só uma especialização dos tipos por valor que também derivarão de Object). Quero ver como chamarão esses novos tipos que não se encaixam na definição de primitivo e nem na de objeto que inicialmente a linguagem definiu, é o que dá definir errado no começo.
+
+Talvez tipos primitivos seriam aqueles que não derivam de Object. Uma ideia errada para uma linguagem que se diz totalmente OO. Pelo menos Java dá essa ideia. Para uma explicação mais geral: O que é considerado primitivo em uma linguagem de programação?.
+
+Então vamos diferenciar o que é derivado de Object e o que é um objeto de forma geral.
+
+Em Java, apenas classes podiam derivar de Object, mas isso muda em alguma versão (prometerem para ser na 10, mas agora nem na 19 tem promessa mais, mas um dia vai sair). De qualquer forma todos os dados são objetos, alguns tem taxinomia que indica o nome Object em sua hierarquia, outros não possuem isso.
+

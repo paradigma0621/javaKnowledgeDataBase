@@ -1,0 +1,10 @@
+O que é herança?
+O que é polimorfismo?
+
+O que é encapsulamento?
+R: É uma forma de evitar a exposição desnecessária das variáveis de uma classe.
+
+O que é classe abstrata?
+
+O que é uma interface?
+

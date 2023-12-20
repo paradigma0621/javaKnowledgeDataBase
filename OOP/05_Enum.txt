@@ -1,0 +1,43 @@
+Enum:
+-----
+
+Nós as usamos quando temos uma quantidade determinada/definida de possibilidades.
+
+Pode-se criar métodos e atributos dentro de uma enumeração.
+
+Um enum também define um tipo, como acontece em classe - de um modo como é exemplificado abaixo 
+--------------Aqui é o arquivo Direcao.java---------------------------
+public enum Direcao {
+	NORTE, LESTE, SUL, OESTE;
+}
+
+--------------Aqui é o arquivo que contém o main----------------------
+jogador.andar(Direcao.NORTE);
+//que é melhor do que se nós usassemos o argumento passando uma string: jogador.andar("norte");
+// e também melhor do que se nós passássemos um valor padronizado: jogador.andar(1); //padronizando que 1 = norte
+
+-------------Aqui é o arquivo que contém o método de andar------------
+boolean andar(Direcao direcao) {  ///AQUI É MOSTRADO QUE ENUM DEFINE UM TIPO
+	if (direcao == Direcao.NORTE) { 
+	y++;
+	}
+//----------------
+	//Ou sendo mais geral, podemos escrever os incrementos como abaixo:
+	
+	public boolean andar(Direcao direcao) {
+		switch(direcao) {
+		case NORTE:
+			y--;
+			break;
+		case LESTE:
+			x++;
+			break;
+		case SUL:
+			y++;
+		case OESTE:
+			x--;
+			break;
+		}
+		
+		return true;
+	}

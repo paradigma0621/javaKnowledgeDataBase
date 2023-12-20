@@ -1,0 +1,8 @@
+Dentro de um método static eu só consigo acessar outro método static, (AP/Pro?:) e não um método pertencente à instância.
+
+
+--------------
+quando eu faço:
+Date data1 = new Date();
+Data dataREf = data1;
+ao mudar o horário de dataREf muda também o horário de data1?

@@ -1,2 +1,28 @@
 pegar conteudo daqui:
 https://www.digitalocean.com/community/tutorials/java-string
+
+
+
+* Strings
+** Múltiplas criações
+Cada subconcatenação de strings gera uma string no Pool de Strings. Ex:
+"a" + "b" + "c"
+gera no Pool de Strings:
+"a", "b", "c", "ab", "abc"
+
+ou seja: quando for fazer várias concatenações (em laços "for", por exemplo) considerar usar stringbuilder.
+
+** equalsIgnoreCase
+String valor = "abc";
+while(!"sair".equalsIgnoreCase(valor)) { ... }
+* Dúvidas
+** Criação de String
+Na aula 477 o Leoardo falou que não se faz a atribuição do valor da String dentro da chamada new - por exemplo:
+String nome = new String("João"); //assim não se faz
+
+--
+Qual o melhor modo então? Assim: (??)
+String nome = new String();
+nome="Pedro";
+(??)
+

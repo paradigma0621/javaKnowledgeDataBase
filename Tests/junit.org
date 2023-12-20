@@ -73,3 +73,6 @@ esses 2 modos funcionam:
 	
 		assertThat(workplaceIds, containsInAnyOrder(workplace1Id, workplace2Id, workplace3Id));
 		assertEquals(workplaceIds.size(), workplaceDtoList.size());	
+* JUnit
+Para dentro de um teste unitário consiguir acessar métodos/objetos de dentro de um pacote específico da pasta main, precisamos setar o pacote do teste como o mesmo pacote raiz do main.
+
