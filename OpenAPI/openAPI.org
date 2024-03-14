@@ -369,3 +369,21 @@ Outra coisa: sobre os operationId (das documentações), ele sugeriu que usásse
 
 ou como qualquer outro padrão, contanto que mantenhamos o padrão.
 
+* disponibizar a opção de ter um campo que é passado via RequestParam pelo java (="query" do OpenAPI), deixando uma lista de opções para ser escolhido um campo
+get:
+  tags:
+    - Person
+  summary: Retorna detalhes do colaborador
+  operationId: findPersonCardBy
+  parameters:
+    - name: personCondition
+      description: Nome da condição do colaborador      
+      in: query
+      required: false
+      type: string
+      schema:
+        enum:
+          - EFFECTIVE
+          - ABSENTEE
+          - SUBSTITUTE
+          - REPLACING_WORKPLACE

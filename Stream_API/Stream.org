@@ -260,3 +260,10 @@ achei interessante pois tem o "return productOption" dentro do map
                 .collect(Collectors.toList());
 * Somar em um Long todos os campos de uma lista
 Long soma = combinedResult.stream().mapToLong(VacancyDto::getCountVacancies).sum();
+* Exemplo de stream sobre String
+
+    private String numero;
+
+        if (numero.chars().filter(c-> !Character.isDigit(c)).count() > 0){
+            throw new IllegalArgumentException("O número do bolão deve ser composto somente por números");
+        }

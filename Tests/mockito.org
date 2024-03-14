@@ -1,0 +1,395 @@
+* doAnswer
+** Caso onde retorna lista de Longs
+class BusinessUnitWorkplaceRepositoryImplTest extends TestUnitHelper {
+    @Mock
+    private NamedParameterJdbcTemplate namedParameter;
+    @InjectMocks
+    private BusinessUnitWorkplaceRepositoryImpl repository;
+
+    @Test
+    void deveRetornarOptionalDeWorkplaceIds() {
+        //Given
+        var queryParameterDto = returnQueryParameterDto();
+        var workplaceId = faker.number().randomNumber();
+
+        var expected = List.of(workplaceId);
+        doAnswer(new Answer<List<Long>>() {
+            @Override
+            public List<Long> answer(InvocationOnMock invocation) throws Throwable {
+                var result = mock(ResultSet.class);
+                when(result.getLong(ID)).thenReturn(workplaceId);
+                RowMapper<Long> rowMapper = invocation.getArgument(2);
+                return List.of(rowMapper.mapRow(result, 0));
+            }
+        }).when(namedParameter)
+                .query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+        // When
+        var actual = repository.findBusinessUnitWorkplaceIds(queryParameterDto);
+        // Then
+        assertThat(actual.get()).containsExactlyElementsOf(expected);
+        verify(namedParameter, times(1))
+                .query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+    }
+
+    private QueryParameterDto returnQueryParameterDto() {
+        return new QueryParameterDto("", new MapSqlParameterSource());
+    }
+** Caso onde retorna só um Dto (não collection)
+//A diferença em relação à quando retorna Collection está no ResultSetExtractor.class (nesse caso abaixo também no when(result.next()).thenReturn(true);, pois na classe de repository tinha a verificação:
+//return namedParameterJdbcTemplate.query(queryParameterDto.sql(), queryParameterDto.parameter(), result -> {
+//            if (result.next()) {
+
+class ScheduleRepositoryImplTest extends TestUnitHelper {
+    @Mock
+    private NamedParameterJdbcTemplate namedParameter;
+    @InjectMocks
+    private ScheduleRepositoryImpl repository;
+
+    @Test
+    void deveRetornarOptionalDeScheduleDto() {
+        var queryParameterDto = returnQueryParameterDto();
+        var rotationCode = faker.number().randomNumber();
+        var scheduleName = faker.lorem().word();
+        var scheduleNameExpected = scheduleName + "/" + rotationCode;
+        var rotationBaseDate = LocalDate.now();
+        var expected = new ScheduleDto(scheduleNameExpected, rotationCode, rotationBaseDate);
+
+        doAnswer(invocation -> {
+            var result = mock(ResultSet.class);
+            when(result.next()).thenReturn(true);
+            when(result.getLong(ROTATION_CODE)).thenReturn(rotationCode);
+            when(result.getString(SCHEDULE_NAME)).thenReturn(scheduleName);
+            when(result.getDate(ROTATION_BASE_DATE)).thenReturn(Date.valueOf(rotationBaseDate));
+            ResultSetExtractor<ScheduleDto> rse = invocation.getArgument(2);
+            return rse.extractData(result);
+        }).when(namedParameter)
+                .query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+
+        var actual = repository.getScheduleRepositoryDto(queryParameterDto);
+
+        assertThat(actual.get()).isEqualTo(expected);
+        verify(namedParameter, times(1))
+                .query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+    }
+
+    private QueryParameterDto returnQueryParameterDto() {
+        return new QueryParameterDto("", new MapSqlParameterSource());
+    }
+}
+
+** Caso onde retorna uma Collection só que de não Wrapper, mas sim de um objeto processado
+*** repository
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    public Optional<List<TemplateTypeEnum>> getPersonTemplates(QueryParameterDto queryParameterDto) {
+        return Optional.of(
+                namedParameterJdbcTemplate.query(queryParameterDto.sql(), queryParameterDto.parameter(), (result, rowNum) ->
+                        TemplateTypeEnum.getById(result.getLong(TEMPLATE_TYPE_ID))
+                )
+        );
+    }
+*** test
+    @Test
+    void deveRetornarOptionalDeTemplateDtos() {
+        //Given
+        var queryParameterDto = returnQueryParameterDto();
+
+        var expected = List.of(TemplateTypeEnum.FINGERPRINT);
+
+        doAnswer(new Answer<List<TemplateTypeEnum>>() {
+            @Override
+            public List<TemplateTypeEnum> answer(InvocationOnMock invocation) throws Throwable {
+                var result = mock(ResultSet.class);
+                when(result.getLong(TEMPLATE_TYPE_ID)).thenReturn(TemplateTypeEnum.FINGERPRINT.getId());
+                RowMapper<TemplateTypeEnum> rowMapper = invocation.getArgument(2);
+                return List.of(rowMapper.mapRow(result, 0));
+            }
+        }).when(namedParameter)
+                .query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+
+        // When
+        var actual = repository.getPersonTemplates(queryParameterDto);
+
+        // Then
+        assertThat(actual.get()).containsExactlyElementsOf(expected);
+        verify(namedParameter, times(1))
+                .query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+    }
+
+** Caso onde retorna um String, usando @Override public Optional<String> answer(InvocationOnMock invocation) throws Throwable {
+*** repository
+public class ShiftRepositoryImpl implements ShiftRepository {
+
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    public Optional<String> getShiftName(QueryParameterDto queryParameterDto) {
+        return namedParameterJdbcTemplate.query(queryParameterDto.sql(), queryParameterDto.parameter(), result -> {
+            if (result.next())
+                return Optional.of(result.getString(SHIFT_NAME));
+
+            return Optional.empty();
+        });
+    }
+}
+
+*** test
+class ShiftRepositoryImplTest extends TestUnitHelper {
+    @Mock
+    private NamedParameterJdbcTemplate namedParameter;
+    @InjectMocks
+    private ShiftRepositoryImpl repository;
+
+    @Test
+    void deveRetornarOptionalDeNomesDeHorarios() {
+        //Given
+        var queryParameterDto = returnQueryParameterDto();
+        var shiftName = faker.lorem().characters();
+
+        var expected = shiftName;
+
+        doAnswer(new Answer<Optional<String>>() {
+            @Override
+            public Optional<String> answer(InvocationOnMock invocation) throws Throwable {
+                var result = mock(ResultSet.class);
+                when(result.getString(SHIFT_NAME)).thenReturn(shiftName);
+                when(result.next()).thenReturn(true);
+                ResultSetExtractor<Optional<String>> rse = invocation.getArgument(2);
+                return rse.extractData(result);
+            }
+        }).when(namedParameter)
+                .query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+        // When
+        var actual = repository.getShiftName(queryParameterDto);
+        // Then
+        assertThat(actual.get()).isEqualTo(expected);
+        verify(namedParameter, times(1))
+                .query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+    }
+
+    private QueryParameterDto returnQueryParameterDto() {
+        return new QueryParameterDto("", new MapSqlParameterSource());
+    }
+
+}
+
+** Caso onde retorna List<Dto> - mquando a query termina em: queryParameterDto.parameter(), (result, rowNum) -> modo 1
+*** repository
+    @Override
+    public Optional<List<PersonLoadDto>> findReplacements(QueryParameterDto queryParameterDto) {
+        return Optional.of(
+                namedParameterJdbcTemplate.query(queryParameterDto.sql(), queryParameterDto.parameter(), (result, rowNum) ->
+                        new PersonLoadDto(
+                                result.getLong(ID),
+                                result.getString(NAME),
+                                PersonConditionEnum.valueOf(result.getString(PERSON_CONDITION)),
+                                result.getLong(REPLACEMENT_ID),
+                                result.getString(ENROLMENT))
+                ));
+    } 
+*** test
+    @Test
+    void deveRetornarOptionalDePersonLoadDtoAoBuscarCoberturas() {
+        //Given
+        var queryParameterDto = returnQueryParameterDto();
+        var personId = faker.number().randomNumber();
+        var personName = faker.name().fullName();
+        var personCondition = PersonConditionEnum.REPLACING_WORKPLACE;
+        var replacementId = faker.number().randomNumber();
+        var enrolment = faker.lorem().word();
+
+        var expected = new PersonLoadDto(
+                personId,
+                personName,
+                personCondition,
+                replacementId,
+                enrolment
+        );
+
+        doAnswer(new Answer<List<PersonLoadDto>>() {
+            @Override
+            public List<PersonLoadDto> answer(InvocationOnMock invocation) throws Throwable {
+                var result = mock(ResultSet.class);
+                when(result.getLong(ID)).thenReturn(personId);
+                when(result.getString(NAME)).thenReturn(personName);
+                when(result.getLong(REPLACEMENT_ID)).thenReturn(replacementId);
+                when(result.getString(PERSON_CONDITION)).thenReturn(personCondition.name());
+                when(result.getString(ENROLMENT)).thenReturn(enrolment);
+                RowMapper<PersonLoadDto> rowMapper = invocation.getArgument(2);
+                return List.of(rowMapper.mapRow(result, 1));
+            }
+        }).when(namedParameter).query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+
+        // When
+        var actual = repository.findReplacements(queryParameterDto);
+
+        // Then
+        assertThat(actual.get().get(0)).isEqualTo(expected);
+        verify(namedParameter, times(1))
+                .query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+    }
+
+** Caso onde retorna List<Dto> - mquando a query termina em: queryParameterDto.parameter(), (result, rowNum) -> modo 2
+*** repository
+
+    @Override
+    public Optional<List<PersonLoadDto>> findReplacements(QueryParameterDto queryParameterDto) {
+        return Optional.of(
+                namedParameterJdbcTemplate.query(queryParameterDto.sql(), queryParameterDto.parameter(), (result, rowNum) ->
+                        new PersonLoadDto(
+                                result.getLong(ID),
+                                result.getString(NAME),
+                                PersonConditionEnum.valueOf(result.getString(PERSON_CONDITION)),
+                                result.getLong(REPLACEMENT_ID),
+                                result.getString(ENROLMENT))
+                ));
+    } 
+*** test
+@Test
+    public void testFindReplacements() throws SQLException {
+        ResultSet result = mock(ResultSet.class);
+        when(result.getLong(ID)).thenReturn(1L);
+        when(result.getString(NAME)).thenReturn("Test Name");
+        when(result.getString(PERSON_CONDITION)).thenReturn(PersonConditionEnum.REPLACING_WORKPLACE.name());
+        when(result.getLong(REPLACEMENT_ID)).thenReturn(2L);
+        when(result.getString(ENROLMENT)).thenReturn("Test Enrolment");
+
+        var queryParameterDto = returnQueryParameterDto();
+
+        when(namedParameter.query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class)))
+                .thenAnswer(invocation -> {
+                    RowMapper<PersonLoadDto> rowMapper = invocation.getArgument(2);
+                    return Arrays.asList(rowMapper.mapRow(result, 1));
+                });
+
+        Optional<List<PersonLoadDto>> replacements = repository.findReplacements(queryParameterDto);
+
+        assertTrue(replacements.isPresent());
+        assertEquals(1, replacements.get().size());
+        assertEquals("Test Name", replacements.get().get(0).getName());
+    }
+
+        private QueryParameterDto returnQueryParameterDto() {
+        return new QueryParameterDto("", new MapSqlParameterSource());
+    }
+** Caso de queryForObject
+*** repository
+    @Override
+    public Optional<Long> findTotalReplacementWorkplace(QueryParameterDto queryParameteDto) {
+        return Optional.ofNullable(
+                namedParameterJdbcTemplate
+                        .queryForObject(queryParameteDto.sql(), queryParameteDto.parameter(), Long.class));
+    }
+*** test
+    @Test
+    public void deveRetornarNumeroTotalDeCoberturasDePostoNoPosto() {
+        QueryParameterDto queryParameterDto = returnQueryParameterDto();
+        var expected = 10L;
+
+        when(namedParameter.queryForObject(queryParameterDto.sql(), queryParameterDto.parameter(), Long.class))
+                .thenReturn(expected);
+
+        Optional<Long> actual = repository.findTotalReplacementWorkplace(queryParameterDto);
+
+        assertThat(actual).isPresent();
+        assertThat(actual.get()).isEqualTo(expected);
+    }
+** Caso de queryForObject - caso 2
+*** repository (com chamada de private countElements())
+  	@Override
+	public Page<ReplacementReasonDto> findByActives(Pageable pageable) {
+		Long customerId = SecurityUtil.getCustomerOrThrowException().getId();
+		MapSqlParameterSource namedParameters = new MapSqlParameterSource().addValue("customerId", customerId);
+
+		List<ReplacementReasonDto> replacementReasonDtos = findReplacementReasonDtos(pageable, namedParameters);
+		Long totalElements = countElements(namedParameters);
+
+		return new PageImpl<>(new ArrayList<>(replacementReasonDtos), pageable, totalElements);
+	}
+*** test
+
+        Long expectedNumberElements = 1L;
+
+        when(namedParameter.queryForObject(anyString(), any(MapSqlParameterSource.class), eq(Long.class)))  // O detalhe está no eq(Long.class)
+                .thenReturn(expectedNumberElements);
+
+* qual a diferença em relação a não passar o eq, mas apenas: verify(redisTemplate, never()).opsForValue(key)?
+Na maioria dos casos, especialmente quando lidando com um único argumento, não há diferença prática entre eq(key) e key. Ambos vão verificar se o método foi chamado com um argumento que é igual ao objeto key. A diferença se torna mais significativa quando você está lidando com múltiplos argumentos ou quando você quer usar matchers especiais para realizar verificações mais complexas ou menos estritas.
+
+Se você estiver usando argument matchers como eq, é importante lembrar que você deve usar matchers para todos os argumentos da chamada de método que você está verificando ou simulando. Misturar argumentos diretos e matchers sem seguir essa regra pode levar a um comportamento inesperado ou erros em seus testes.
+
+** posso fazer: verify(redisTemplate, never()).opsForValue(eq(key), any()) ?
+
+Não, você não pode misturar argumentos diretos e matchers do Mockito na mesma chamada de método de verificação. Todos os argumentos devem ser fornecidos por matchers se pelo menos um deles for um matcher. Isso significa que, uma vez que você usa eq(key) ou qualquer outro matcher para um argumento, você deve usar matchers para todos os outros argumentos daquela chamada de método.
+
+** Para corrigir isso, você deve usar matchers para todos os argumentos. Por exemplo:
+	verify(redisTemplate, never()).opsForValue(eq(key), any(SecondArgumentType.class));
+
+
+* caso interessante onde é chamado o setCampo, setando um mock
+** Classe de teste
+public class ApplicationContextProviderTest  extends TestUnitHelper {
+    @InjectMocks
+    ApplicationContextProvider service;
+
+    @Test
+    public void test_returns_application_context_object() {
+        ApplicationContext context = mock(ApplicationContext.class);
+        service.setApplicationContext(context);
+
+        ApplicationContext result = service.getApplicationContext();
+
+        assertNotNull(result);
+        assertEquals(context, result);
+    }
+** ApplicationContextProvider.java (classe a ser testada)
+@Component
+public class ApplicationContextProvider implements ApplicationContextAware {
+
+    private ApplicationContext context;
+
+    public ApplicationContext getApplicationContext() {
+        return context;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext ac) throws BeansException {
+        context = ac;
+    }
+* caso interessante onde é atribuido um valor para ser retornado quando é acessado um método de um campo de valor null
+    @Mock
+    Authentication authentication;
+    @Mock
+    SecurityContextHolder securityContextHolder;
+    @InjectMocks
+    TokenUtil service;
+
+    @Test
+    public void test_returns_empty_string_when_authentication_context_has_empty_principal() {
+        //Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn("");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+* pode até ser que uma classe mockada acessada faça um método static - não está de tudo perdido para determinar o retorno desse método
+exemplo: na classe abaixo o método SecurityContextHolder.getContext() é static
+dá de atribuir tanto quando SecurityContextHolder está mockado, como quando não está:
+    @Test
+    public void test_returns_empty_string_when_authentication_context_has_empty_principal() {
+        Authentication authentication = mock(Authentication.class);  //*********** Aqui está o ponto importante.... daria pra usar @Mock tb
+        SecurityContextHolder.getContext().setAuthentication(authentication); //********* Aqui está o ponto importante: setar um obj mockado
+        when(authentication.getPrincipal()).thenReturn("");
+        TokenUtil tokenUtil = new TokenUtil();
+        String token = tokenUtil.getToken();
+        assertEquals("", token);
+    }
+
+Sendo que na classe testada está:
+    public String getToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (String) authentication.getPrincipal();
+    }
+
+
+* verificar 
+** AP: ao que tudo indica o que faz todas as chamadas de métodos externos à outras  classes que não a em teste retornarem null: não é o @Mock dessas outras classes, mas o @InjectMocks
+** quando dizemos que um método é static: o que especificamente não conseguimos fazer com ele? Nada? No caso do SecurityContextHolder.getContext() citado num exemplo acima foi possível quando ele estava mockado

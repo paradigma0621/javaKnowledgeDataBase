@@ -78,3 +78,28 @@ Set<String> allDevicesNotRepeated = 	 Optional.ofNullable(getAllDevicesVinculate
             Optional<ReplacementDto> replacementDto = personReplacements.stream().filter(r -> r.getAbsenteeId().equals(personId)).findFirst();
             responsePersonIds.add(replacementDto.map(ReplacementDto::getPersonId).orElse(personId));
         }
+* exemplos
+** interessante 1
+Código interessante de uso de Optional
+
+	private final double valor;
+
+    public double calcula(Aposta aposta, Resultado resultado){
+        int acertos = aposta.calculaAcertos(resultado);
+        Optional<TipoPremio> tipoPremio = TipoPremio.of(acertos);
+        return tipoPremio.isPresent()? tipoPremio.get().calculaValor(valor): 0.0;
+    }
+    
+
+	public enum TipoPremio {
+		SENA(6, 100.0, 62.0),
+		QUINA(5, 20.0, 19.0),
+		QUADRA(4, 5.0, 19.0);
+
+		private final int acertos;
+		private final double percentual; // regra inventada para o exercício
+		private final double rateio; // regra da Mega Sena real
+
+		public double calculaValor(double premioTotal){
+		return premioTotal * (percentual / 100);
+	... }

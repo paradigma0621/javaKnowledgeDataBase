@@ -1,6 +1,116 @@
 * Chamar um método de uma classe mockada como se ela não estivesse mockada
 when(myClass.method()).thenCallRealMethod();
- 
+* Exemplo de testes de Enums 
+** Classe main
+
+public class ClockingTypeConstants {
+
+    public static final Long REGISTERED = 1L;
+    public static final Long NOT_REGISTERED = 2L;
+    public static final Long ADJUSTED = 3L;
+    public static final Long CANCELED = 4L;
+    public static final Long DEVICE_NOT_AUTHORIZED = 5L;
+    public static final Long INVALID_TIME = 6L;
+    public static final Long DUPLICATE = 7L;
+    public static final Long PRE_SIGNED = 8L;
+    public static final Long VIRTUAL = 9L;
+    public static final Long CHECKPOINT = 10L;
+
+    private ClockingTypeConstants(){}
+}
+** classe de testes
+package com.nexti.operationdesk.util;
+
+import helper.TestUnitHelper;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class ClockingTypeConstantsTest extends TestUnitHelper {
+
+    @Test
+    void deveRetornarTipoDeClockingRegistered() {
+        assertEquals(1L, ClockingTypeConstants.REGISTERED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingNotRegistered() {
+        assertEquals(2L, ClockingTypeConstants.NOT_REGISTERED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingAdjusted() {
+        assertEquals(3L, ClockingTypeConstants.ADJUSTED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingCanceled() {
+        assertEquals(4L, ClockingTypeConstants.CANCELED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingDeviceNotAuthorized() {
+        assertEquals(5L, ClockingTypeConstants.DEVICE_NOT_AUTHORIZED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingInvalidTime() {
+        assertEquals(6L, ClockingTypeConstants.INVALID_TIME);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingDuplicate() {
+        assertEquals(7L, ClockingTypeConstants.DUPLICATE);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingPreSigned() {
+        assertEquals(8L, ClockingTypeConstants.PRE_SIGNED);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingVirtual() {
+        assertEquals(9L, ClockingTypeConstants.VIRTUAL);
+    }
+
+    @Test
+    void deveRetornarTipoDeClockingCheckpoint() {
+        assertEquals(10L, ClockingTypeConstants.CHECKPOINT);
+    }
+
+}
+
+** Métodos que capturam lançamentos de exceções
+*** classe main
+
+    public void set(String key, Object jsonParseableObject, long ttlInSeconds) {
+        if (StringUtils.isBlank(key) || jsonParseableObject == null) {
+            LOGGER.error("Invalid object");
+            return;
+        }
+        try {
+            String jsonString = objectMapper.writeValueAsString(jsonParseableObject);
+            redisTemplate.opsForValue().set(key, jsonString, ttlInSeconds, TimeUnit.SECONDS);
+            LOGGER.info("Cached Key: {} Value: {}", key, jsonString);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(e.getMessage());
+        } catch (RedisConnectionFailureException e){
+            LOGGER.error("Redis Connection Error. ", e);
+        }
+    }
+*** teste
+    @Test
+    void deveLancarExcecaoNoMetodoSetAoFalharAoConverterObjetoParaString() throws JsonProcessingException {
+        var key = "testKey";
+        var jsonParseableObject =  "[{\"type\":\"CLIENTTYPE\",\"id\":2},{\"type\":\"SERVICETYPE\",\"id\":34}]";;
+        var ttlInSeconds = 60;
+        when(objectMapper.writeValueAsString(anyString())).thenThrow(new JsonProcessingException("JSON_PROCESSING_FAILED") {});
+
+        assertThatThrownBy(() -> service.set(key, jsonParseableObject, ttlInSeconds))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("JSON_PROCESSING_FAILED");
+        verify(redisTemplate, never()).opsForValue();
+    }
+
 * Verifique se a operação assíncrona foi concluída com sucesso (sem exceções)
   assertTrue(reponseCompletableFuture.isDone());
   assertFalse(reponseCompletableFuture.isCompletedExceptionally());
@@ -76,3 +186,57 @@ esses 2 modos funcionam:
 * JUnit
 Para dentro de um teste unitário consiguir acessar métodos/objetos de dentro de um pacote específico da pasta main, precisamos setar o pacote do teste como o mesmo pacote raiz do main.
 
+* Casos a serem considerar de testar
+- Casos extremos
+- Casos mínimos
+- Casos padrões
+
+- Casos de sucesso
+- Casos de falha
+* faker
+     import com.github.javafaker.Faker;
+     static Faker faker = new Faker();
+     var filterTypeUserEnum = faker.options().option(FilterTypeUserEnum.class); // escolhe aleatoriamente um dos elementos de uma classe Enum
+* @ParameterizedTest
+class ClockingTypeEnumTest extends TestUnitHelper {
+    @ParameterizedTest
+    @MethodSource("validDataProvider")
+    void deveRetornarOTipoDeClockingPeloClockingId(Long clockingTypeId, ClockingTypeEnum expected) {
+        // When
+        var actual = ClockingTypeEnum.getClokingType(clockingTypeId);
+        // Then
+        assertThat(actual).isEqualTo(expected);
+    }
+    @ParameterizedTest
+    @MethodSource("inValidDataProvider")
+    void deveRetornar_OTipoDeClockingPeloClockingId(Long clockingTypeId, ClockingTypeEnum expected) {
+        // When
+        var actual = assertThrows(NotFoundException.class,
+                () -> ClockingTypeEnum.getClokingType(clockingTypeId));
+
+        // Then
+        assertThat(actual).isInstanceOf(NotFoundException.class);
+        assertThat(actual.getMessage()).isEqualTo("CLOCKING_TYPE_ID");
+    }
+
+    }
+    private static Stream<Arguments> inValidDataProvider() {
+        return Stream.of(
+                Arguments.arguments(10L, REGISTERED),
+                Arguments.arguments(20L, NOT_REGISTERED),
+                Arguments.arguments(30L, ADJUSTED),
+                Arguments.arguments(50L, DEVICE_NOT_AUTHORIZED),
+                Arguments.arguments(0L, INVALID_TIME),
+                Arguments.arguments(null, PRE_SIGNED)
+        );
+    }
+    private static Stream<Arguments> validDataProvider() {
+        return Stream.of(
+                Arguments.arguments(1L, REGISTERED),
+                Arguments.arguments(2L, NOT_REGISTERED),
+                Arguments.arguments(3L, ADJUSTED),
+                Arguments.arguments(5L, DEVICE_NOT_AUTHORIZED),
+                Arguments.arguments(6L, INVALID_TIME),
+                Arguments.arguments(8L, PRE_SIGNED)
+        );
+    }

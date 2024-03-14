@@ -551,7 +551,12 @@ public class Data {
 
 Outra coisa é que as constantes não são iniciadas com valor padrão, é preciso definir o valor de forma explícita.
 
+** qual o nome do recurso de validade lógica de:  String quemGanhou = (scorePlayerA > scorePlayerB) ? "Jogador A" : "Jogador B";
 
+O recurso que você descreveu no código Java é conhecido como operador ternário. O operador ternário é uma forma curta de expressar uma instrução condicional (if-else) em uma única linha.
+
+A estrutura do operador ternário é a seguinte:
+	condição ? expressão1 : expressão2;
 * Java 8 - curso da Oracle
 https://docs.oracle.com/javase/tutorial/index.html
 *** https://docs.oracle.com/javase/tutorial/java/nutsandbolts/variables.html
