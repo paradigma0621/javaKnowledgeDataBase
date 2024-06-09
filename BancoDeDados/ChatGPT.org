@@ -1,0 +1,127 @@
+* qual a diferença entre jdbcTemplate e namedParameter no java?
+#+BEGIN_SRC markdown 
+`JdbcTemplate` e `NamedParameterJdbcTemplate` são ambos componentes do Spring Framework que facilitam o trabalho com banco de dados JDBC. Embora compartilhem algumas funcionalidades, há diferenças importantes entre eles, especialmente na forma como lidam com parâmetros em consultas SQL.
+
+### JdbcTemplate
+
+`JdbcTemplate` é uma classe central no Spring JDBC que simplifica o uso do JDBC. Ele fornece métodos para executar consultas, atualizações e chamadas a procedimentos armazenados de forma simples e direta. No entanto, `JdbcTemplate` usa placeholders (`?`) para parâmetros nas consultas SQL, o que pode ser menos intuitivo ao lidar com consultas complexas ou com muitos parâmetros.
+
+**Exemplo de uso do `JdbcTemplate`:**
+
+```java
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+public class UserDao {
+    private JdbcTemplate jdbcTemplate;
+
+    public UserDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public List<User> getAllUsers() {
+        String sql = "SELECT id, name, email FROM users";
+        return jdbcTemplate.query(sql, new UserRowMapper());
+    }
+
+    public void updateUserEmail(int userId, String email) {
+        String sql = "UPDATE users SET email = ? WHERE id = ?";
+        jdbcTemplate.update(sql, email, userId);
+    }
+
+    private static class UserRowMapper implements RowMapper<User> {
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setEmail(rs.getString("email"));
+            return user;
+        }
+    }
+}
+```
+
+### NamedParameterJdbcTemplate
+
+`NamedParameterJdbcTemplate` é uma variação de `JdbcTemplate` que permite usar nomes em vez de placeholders (`?`) para parâmetros em consultas SQL. Isso torna as consultas mais legíveis e menos propensas a erros, especialmente em consultas complexas com muitos parâmetros.
+
+**Exemplo de uso do `NamedParameterJdbcTemplate`:**
+
+```java
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.RowMapper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+public class UserDao {
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    public UserDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    public List<User> getAllUsers() {
+        String sql = "SELECT id, name, email FROM users";
+        return namedParameterJdbcTemplate.query(sql, new UserRowMapper());
+    }
+
+    public void updateUserEmail(int userId, String email) {
+        String sql = "UPDATE users SET email = :email WHERE id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        params.addValue("id", userId);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    private static class UserRowMapper implements RowMapper<User> {
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setEmail(rs.getString("email"));
+            return user;
+        }
+    }
+}
+```
+
+### Diferenças Principais
+
+1. **Uso de Parâmetros:**
+   - **JdbcTemplate:** Usa placeholders (`?`) para parâmetros. A ordem dos parâmetros é importante.
+   - **NamedParameterJdbcTemplate:** Usa nomes para parâmetros (`:paramName`). A ordem dos parâmetros não importa, o que torna as consultas mais legíveis e menos propensas a erros.
+
+2. **Legibilidade:**
+   - **JdbcTemplate:** Pode ser menos legível, especialmente em consultas complexas com muitos parâmetros.
+   - **NamedParameterJdbcTemplate:** Melhora a legibilidade das consultas SQL ao permitir o uso de nomes de parâmetros.
+
+3. **Complexidade da Consulta:**
+   - **JdbcTemplate:** Menos adequado para consultas complexas com muitos parâmetros.
+   - **NamedParameterJdbcTemplate:** Melhor para consultas complexas, pois os nomes dos parâmetros ajudam a identificar facilmente cada valor.
+
+### Quando Usar Qual
+
+- **JdbcTemplate:** Adequado para consultas simples e rápidas onde o número de parâmetros é pequeno e a legibilidade não é um problema.
+- **NamedParameterJdbcTemplate:** Ideal para consultas complexas, especialmente aquelas com muitos parâmetros, onde a legibilidade e a manutenção são importantes.
+
+### Conclusão
+
+A escolha entre `JdbcTemplate` e `NamedParameterJdbcTemplate` depende das necessidades específicas do seu projeto. Se você valoriza a legibilidade e tem consultas SQL complexas, `NamedParameterJdbcTemplate` é geralmente a melhor escolha. Para consultas mais simples, `JdbcTemplate` pode ser suficiente e mais direto de usar.
+#+END_SRC
+* a
+#+BEGIN_SRC markdown 
+#+END_SRC
+
+* b
+#+BEGIN_SRC markdown 
+#+END_SRC
+* c
+#+BEGIN_SRC markdown 
+#+END_SRC

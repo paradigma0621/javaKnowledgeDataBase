@@ -1,0 +1,22 @@
+* apontamento da correção do SonarLint: Remove this field injection and use constructor injection instead.?
+** Ocorre quando temos um autowired declarado na classe. Por exemplo:
+@Service
+public class PersonService {
+
+    @Autowired
+    private PersonRepository personRepository;
+    @Autowired
+    private QueryParameterMountPersonService queryParameterMountPersonService;
+** correção
+@Service
+public class PersonService {
+
+    private final PersonRepository personRepository;
+    private final QueryParameterMountPersonService queryParameterMountPersonService;
+
+    PersonService(PersonRepository personRepository, QueryParameterMountPersonService queryParameterMountPersonService) {
+        this.personRepository = personRepository;
+        this.queryParameterMountPersonService = queryParameterMountPersonService;
+    }
+** nota interessante
+tendo apenas esse construtor citado no tópico "correção" acima, quando sobre o sistema, é executado o método construtor citado na inicialização, sendo passados como parâmetros para o mesmo campos "válidos" (são passados os campos corretos de personRepository e queryParameterMountPersonService no exemplo acima).
