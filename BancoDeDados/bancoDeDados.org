@@ -1,0 +1,471 @@
+* HAVING
+Nesse vídeo, conheceremos o HAVING, que é um filtro que se aplica ao resultado de um agregação. Ou seja, não o usamos no SELECT em si, mas sobre o resultado de um SELECT que é agrupado (AP: quando ele diz aqui que é "agrupado", quer dizer apenas quando usamos GROUP BY?? veja resposta no tópico ChatGPT).
+
+Agora que entendemos o conceito, vamos criar alguns exemplos na nossa base "sucos_vendas". Abriremos o MySQL Workbench, criaremos um novo script e começaremos com uma seleção da tabela de clientes, consultando a soma dos limites de crédito agrupados por estado:
+
+SELECT ESTADO, SUM(LIMITE_DE_CREDITO) as SOMA_LIMITE FROM tabela_de_clientes 
+GROUP BY ESTADO;
+
+O retorno mostrará que, no estado de São Paulo, temos o total de limite de crédito de R$810.000,00 e, no estado do Rio de Janeiro, R$995.000,00. Agora, se nosso objetivo for listar apenas os estados cuja soma do limite de crédito for maior que R$900.000,00, parece natural que usemos a cláusula WHERE:
+
+SELECT ESTADO, SUM(LIMITE_DE_CREDITO) as SOMA_LIMITE FROM tabela_de_clientes
+WHERE SOMA_LIMITE > 900000
+GROUP BY ESTADO;
+
+No entanto, ao tentar rodar essa consulta, obteremos um erro! O problema é que, quando o WHERE é aplicado, o agrupamento ainda não ocorreu. A solução será usar o HAVING, que virá depois do GROUP BY:
+
+SELECT ESTADO, SUM(LIMITE_DE_CREDITO) as SOMA_LIMITE FROM tabela_de_clientes
+GROUP BY ESTADO
+HAVING SUM(LIMITE_DE_CREDITO) > 900000;
+
+Ou seja, primeiro agrupamos e depois aplicamos a condição. Dessa vez, nossa consulta retornará com sucesso.
+
+---------------------------
+Outro exemplo:
+
+Quais foram os clientes que fizeram mais de 2000 compras em 2016?
+
+  SELECT CPF, COUNT(*) FROM notas_fiscais
+  WHERE YEAR(DATA_VENDA) = 2016
+  GROUP BY CPF
+  HAVING COUNT(*) > 2000
+
+* GROUP BY com CASE WHEN THEN
+No código abaixo foi inserido um CASE dentro do GROUP BY - a ideia é ter a média dos preços dos produtos que são classificados em "PRODUTO CARO", "PRODUTO EM CONTA" e "PRODUTO BARATO" dentro de também um CASE feito no SELECT.
+Ver exemplo de saída na imagem "./images/01_CASE_no_GROUP_BY.png".
+
+#+BEGIN_SRC sql
+SELECT EMBALAGEM,
+CASE 
+    WHEN PRECO_DE_LISTA >= 12 THEN 'PRODUTO CARO'
+    WHEN PRECO_DE_LISTA >= 7 AND PRECO_DE_LISTA < 12 THEN 'PRODUTO EM CONTA'
+    ELSE 'PRODUTO BARATO' 
+END AS STATUS_PRECO, AVG(PRECO_DE_LISTA) AS PRECO_MEDIO
+FROM tabela_de_produtos
+GROUP BY EMBALAGEM, 
+CASE 
+    WHEN PRECO_DE_LISTA >= 12 THEN 'PRODUTO CARO'
+    WHEN PRECO_DE_LISTA >= 7 AND PRECO_DE_LISTA < 12 THEN 'PRODUTO EM CONTA'
+    ELSE 'PRODUTO BARATO' 
+END
+#+END_SRC
+
+* GROUP BY aplicado critérios
+Os dados podem ser agrupados. Quando isso acontece, temos que aplicar um critério de agrupamento para os campos numéricos. Podemos usar SUM, AVG, MAX, MIN, e outros mais.
+ 
+AP: Ver pergunta no tópico do * ChatGPT: ** só tem sentido falarmos do MAX() se for com o uso do GROUP BY?
+* MySQL é Case sensitve?
+** Na verificação de igualdade no like de strings (NÃO É case sensitive)
+Não é case sensitive. Tanto 
+	select * from person where name = 'osWALdo'
+como
+	select * from person where name = 'Oswaldo'
+se houver um registro de name "Oswaldo": vai trazer nos 2 casos.
+
+Do mesmo modo usando like - também casos abaixo traz "Oswaldo":
+	select * from person where name like 'oSWalDo'
+** nos nomes dos campos (NÃO É case sensitive)
+select Name, REmoved from person
+funciona ok para trazer respectivamente: name, removed
+** nos nomes das tabelas (É case sensitive)
+select distinct name, removed from Person
+("P"erson) - dá erro, tem que buscar ("from person")
+
+~= Para memorizar: nomes de tabela no maiúsculo ocorre no JPA (para se referir à entidade)
+* DISTINCT
+SELECT DISTINCT name, removed FROM person
+só aplica distinct AO CONJUNTO (name, removed). Traz os mesmos "name" quando o removed é diferente entre eles (nas linhas de resultado). O mesmo se aplica a SELECT aplicado a mais de 2 campos: ele ve se existe pelo menos 1 diferença em pelo menos 1 campo para trazer o resultado.
+
+* LIMIT
+SELECT * FROM tabela_de_produtos LIMIT 0, 2;
+pega à partir do elemento 0 (= primeiro elemento do resultado) e traz 2 registros.
+~="No LIMIT até o zero conta".
+
+SELECT * FROM tabela_de_produtos LIMIT 999, 10;
+pega à partir do elemento 1000 (= primeiro elemento do resultado) e traz 10 registros.
+* ChatGPT
+** numa consulta de mysql, o uso do HAVING está necesssáriamente vinculado ao uso do GROUP BY?
+#+BEGIN_SRC markdown
+Sim, o uso do `HAVING` em uma consulta MySQL está necessariamente vinculado ao uso do `GROUP BY`. A cláusula `HAVING` é usada para filtrar registros após a aplicação da cláusula `GROUP BY`. Em outras palavras, `HAVING` é semelhante a `WHERE`, mas é aplicado aos resultados agrupados, enquanto `WHERE` é aplicado antes do agrupamento.
+
+Aqui está um exemplo para ilustrar o uso de `HAVING` com `GROUP BY`:
+
+```sql
+SELECT department, COUNT(*) as employee_count
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 5;
+```
+
+Neste exemplo:
+
+- `GROUP BY department` agrupa os resultados pelo campo `department`.
+- `HAVING COUNT(*) > 5` filtra os grupos para retornar apenas aqueles departamentos que têm mais de 5 empregados.
+
+### Diferenças entre `WHERE` e `HAVING`
+
+- **`WHERE`**: Filtra registros antes de qualquer agrupamento ou agregação. Não pode ser usado para filtrar resultados agregados.
+- **`HAVING`**: Filtra registros após o agrupamento e agregação. É utilizado para filtrar resultados agregados.
+
+### Exemplo Sem `HAVING`
+
+Se você não estiver usando `GROUP BY`, você não pode usar `HAVING`. Tentar usar `HAVING` sem `GROUP BY` resultará em um erro ou um comportamento não esperado. Por exemplo:
+
+```sql
+SELECT name, age
+FROM employees
+HAVING age > 30;
+```
+
+Este exemplo é inválido porque não há `GROUP BY` e `HAVING` está sendo usado como se fosse `WHERE`, o que não é permitido.
+
+### Exemplo Correto com `WHERE`
+
+Para filtrar registros antes do agrupamento, você deve usar `WHERE`:
+
+```sql
+SELECT name, age
+FROM employees
+WHERE age > 30;
+```
+
+Aqui, todos os empregados com mais de 30 anos são selecionados.
+
+Portanto, use `HAVING` somente em conjunto com `GROUP BY` quando precisar filtrar grupos agregados. Se não estiver usando agregação, utilize `WHERE` para aplicar filtros aos registros.
+#+END_SRC
+** quais métodos do mysql posso usar com GROUP BY?
+#+BEGIN_SRC markdown
+No MySQL, ao usar a cláusula `GROUP BY`, você pode combinar vários métodos e funções de agregação para calcular e manipular dados agrupados. Aqui estão alguns dos métodos e funções mais comuns que você pode usar com `GROUP BY`:
+
+### Funções de Agregação
+
+1. **`COUNT()`**: Conta o número de linhas em cada grupo.
+   ```sql
+   SELECT department, COUNT(*) as employee_count
+   FROM employees
+   GROUP BY department;
+   ```
+
+2. **`SUM()`**: Soma os valores de uma coluna em cada grupo.
+   ```sql
+   SELECT department, SUM(salary) as total_salary
+   FROM employees
+   GROUP BY department;
+   ```
+
+3. **`AVG()`**: Calcula a média dos valores de uma coluna em cada grupo.
+   ```sql
+   SELECT department, AVG(salary) as average_salary
+   FROM employees
+   GROUP BY department;
+   ```
+
+4. **`MAX()`**: Encontra o valor máximo de uma coluna em cada grupo.
+   ```sql
+   SELECT department, MAX(salary) as max_salary
+   FROM employees
+   GROUP BY department;
+   ```
+
+5. **`MIN()`**: Encontra o valor mínimo de uma coluna em cada grupo.
+   ```sql
+   SELECT department, MIN(salary) as min_salary
+   FROM employees
+   GROUP BY department;
+   ```
+
+6. **`GROUP_CONCAT()`**: Concatena valores de uma coluna em cada grupo.
+   ```sql
+   SELECT department, GROUP_CONCAT(name) as employee_names
+   FROM employees
+   GROUP BY department;
+   ```
+
+### Outros Métodos e Expressões
+
+1. **`CASE` Statements**: Para criar condições complexas dentro do `SELECT`.
+   ```sql
+   SELECT department,
+          SUM(CASE WHEN gender = 'M' THEN 1 ELSE 0 END) as male_count,
+          SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) as female_count
+   FROM employees
+   GROUP BY department;
+   ```
+
+2. **Alias**: Para renomear colunas agregadas.
+   ```sql
+   SELECT department, COUNT(*) as num_employees
+   FROM employees
+   GROUP BY department;
+   ```
+
+3. **`ORDER BY`**: Para ordenar os resultados após o agrupamento.
+   ```sql
+   SELECT department, COUNT(*) as employee_count
+   FROM employees
+   GROUP BY department
+   ORDER BY employee_count DESC;
+   ```
+
+4. **`HAVING`**: Para filtrar grupos após o agrupamento.
+   ```sql
+   SELECT department, COUNT(*) as employee_count
+   FROM employees
+   GROUP BY department
+   HAVING employee_count > 5;
+   ```
+
+### Exemplo Completo
+
+Aqui está um exemplo que combina várias funções de agregação com `GROUP BY`:
+
+```sql
+SELECT department,
+       COUNT(*) as employee_count,
+       AVG(salary) as average_salary,
+       SUM(salary) as total_salary,
+       MAX(salary) as max_salary,
+       MIN(salary) as min_salary,
+       GROUP_CONCAT(name) as employee_names
+FROM employees
+GROUP BY department
+HAVING employee_count > 5
+ORDER BY average_salary DESC;
+```
+
+Neste exemplo, você está obtendo a contagem de empregados, salário médio, salário total, salário máximo, salário mínimo e nomes concatenados dos empregados por departamento, filtrando para departamentos com mais de 5 empregados e ordenando pelo salário médio em ordem decrescente.
+
+Esses são alguns dos métodos e funções que você pode usar com `GROUP BY` no MySQL para criar consultas agregadas poderosas e informativas.
+#+END_SRC
+** só tem sentido falarmos do MAX() se for com o uso do GROUP BY?
+#+BEGIN_SRC markdown
+A função `MAX()` em MySQL tem utilidade tanto com quanto sem o uso de `GROUP BY`. A diferença reside no contexto em que ela é usada:
+
+### Uso do `MAX()` sem `GROUP BY`
+
+Quando `MAX()` é usado sem `GROUP BY`, ele calcula o valor máximo de uma coluna em toda a tabela ou no conjunto de resultados filtrados pela cláusula `WHERE`. Isso é útil quando você precisa encontrar o valor máximo global de uma coluna específica.
+
+**Exemplo 1: Encontrar o salário máximo em toda a tabela de empregados:**
+
+```sql
+SELECT MAX(salary) as max_salary
+FROM employees;
+```
+
+**Exemplo 2: Encontrar o salário máximo entre os empregados de um determinado departamento:**
+
+```sql
+SELECT MAX(salary) as max_salary
+FROM employees
+WHERE department = 'Engineering';
+```
+
+### Uso do `MAX()` com `GROUP BY`
+
+Quando `MAX()` é usado com `GROUP BY`, ele calcula o valor máximo de uma coluna para cada grupo de linhas definidos pela cláusula `GROUP BY`. Isso é útil quando você precisa encontrar o valor máximo dentro de cada grupo.
+
+**Exemplo 3: Encontrar o salário máximo em cada departamento:**
+
+```sql
+SELECT department, MAX(salary) as max_salary
+FROM employees
+GROUP BY department;
+```
+
+### Comparação de Uso
+
+- **Sem `GROUP BY`**:
+  - `MAX()` retorna um único valor que é o máximo de toda a tabela ou do conjunto de resultados filtrados.
+  - Útil para encontrar o valor máximo geral ou dentro de um subconjunto específico.
+
+- **Com `GROUP BY`**:
+  - `MAX()` retorna o valor máximo para cada grupo definido pelo `GROUP BY`.
+  - Útil para encontrar o valor máximo dentro de cada grupo de linhas.
+
+### Exemplos Adicionais
+
+**Exemplo 4: Salário máximo por cargo em cada departamento:**
+
+```sql
+SELECT department, job_title, MAX(salary) as max_salary
+FROM employees
+GROUP BY department, job_title;
+```
+
+**Exemplo 5: Data mais recente de contratação por localização:**
+
+```sql
+SELECT location, MAX(hire_date) as most_recent_hire
+FROM employees
+GROUP BY location;
+```
+
+### Conclusão
+
+O `MAX()` tem utilidade tanto em consultas globais quanto em consultas agrupadas. Seu uso sem `GROUP BY` ajuda a encontrar o valor máximo geral, enquanto seu uso com `GROUP BY` ajuda a encontrar valores máximos dentro de grupos específicos. Ambos os usos são válidos e têm aplicações práticas dependendo da necessidade da consulta.
+#+END_SRC
+** porque esse erro do mysql ao pesquisar SELECT * FROM person GROUP BY name
+Erro SQL [1055] [42000]: Expression #1 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'mysqlDatabase.person.id' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by
+
+Esse erro ocorre porque a configuração SQL `ONLY_FULL_GROUP_BY` está habilitada no MySQL. Isso significa que, ao usar a cláusula `GROUP BY`, todas as colunas selecionadas devem ser incluídas na cláusula `GROUP BY` ou devem ser usadas em uma função de agregação.
+
+Para resolver esse problema, você tem algumas opções:
+
+1. **Adicionar todas as colunas na cláusula `GROUP BY`**:
+   ```sql
+   SELECT person.id, person.name
+   FROM person
+   GROUP BY person.id, person.name;
+   ```
+
+2. **Usar funções de agregação para colunas que não estão no `GROUP BY`**:
+   ```sql
+   SELECT person.id, MAX(person.name)
+   FROM person
+   GROUP BY person.id;
+   ```
+
+3. **Desativar o modo `ONLY_FULL_GROUP_BY` no MySQL** (não recomendado para produção):
+   ```sql
+   SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+   ```
+
+4. **Modificar a consulta para garantir que todas as colunas não agrupadas estejam agregadas ou incluídas no `GROUP BY`**:
+   ```sql
+   SELECT person.id, person.name
+   FROM person
+   GROUP BY person.id, person.name;
+   ```
+
+Essas são as maneiras comuns de lidar com esse erro. A escolha da solução depende do contexto específico do seu banco de dados e do que você está tentando alcançar com a consulta.
+** qual a função do GROUP BY?
+#+BEGIN_SRC markdown
+A função do `GROUP BY` em SQL é agrupar linhas que têm valores iguais em colunas especificadas. Em conjunto com funções de agregação (como `COUNT`, `SUM`, `AVG`, `MAX`, `MIN`), ele permite realizar operações em cada grupo de dados, em vez de em todas as linhas de uma tabela.
+
+### Sintaxe
+```sql
+SELECT coluna1, função_agregada(coluna2)
+FROM tabela
+GROUP BY coluna1;
+```
+
+### Exemplo
+Considere uma tabela `vendas` com as colunas `produto`, `vendedor` e `quantidade`. Se você quiser saber a quantidade total vendida por cada vendedor, você poderia usar o `GROUP BY` assim:
+
+```sql
+SELECT vendedor, SUM(quantidade) AS total_vendido
+FROM vendas
+GROUP BY vendedor;
+```
+
+Isso retornaria algo como:
+
+| vendedor | total_vendido |
+|----------|----------------|
+| João     | 150            |
+| Maria    | 200            |
+| Pedro    | 100            |
+
+### Detalhes Importantes
+
+1. **Todas as colunas na cláusula SELECT que não são usadas em funções de agregação devem estar na cláusula GROUP BY**.
+2. **GROUP BY pode ser usado com várias colunas**: você pode agrupar por mais de uma coluna para criar grupos de dados mais específicos.
+3. **HAVING**: se você quiser filtrar grupos, use `HAVING` em vez de `WHERE`. `WHERE` filtra linhas antes da agregação, enquanto `HAVING` filtra grupos após a agregação.
+
+### Exemplo com HAVING
+```sql
+SELECT vendedor, SUM(quantidade) AS total_vendido
+FROM vendas
+GROUP BY vendedor
+HAVING SUM(quantidade) > 100;
+```
+
+Isso retornaria apenas os vendedores que venderam mais de 100 unidades.
+
+Esses são os conceitos básicos e algumas práticas comuns do uso do `GROUP BY` em SQL.
+#+END_SRC
+** sempre que busco mais de um campo no select, onde um é COUNT (ou: max, min, avg, sum), devo usar o group by?
+#+BEGIN_SRC markdown
+Sim, se você estiver usando `COUNT` (ou qualquer outra função de agregação) no `SELECT` e também incluindo outras colunas, você deve usar `GROUP BY` para especificar como os dados devem ser agrupados. Isso é necessário para que o SQL saiba como agrupar as linhas antes de aplicar a função de agregação.
+
+### Exemplo
+
+Considere a tabela `vendas` com as colunas `produto`, `vendedor` e `quantidade`. Se você quiser contar o número de vendas por vendedor, você precisa usar `GROUP BY`.
+
+#### Exemplo 1: Contar vendas por vendedor
+```sql
+SELECT vendedor, COUNT(*) AS total_vendas
+FROM vendas
+GROUP BY vendedor;
+```
+
+Neste exemplo, a contagem de vendas (`COUNT(*)`) é feita para cada vendedor.
+
+### Exemplo 2: Erro ao não usar `GROUP BY`
+
+Se você tentar executar a seguinte consulta sem `GROUP BY`, você obterá um erro:
+
+```sql
+SELECT vendedor, COUNT(*) AS total_vendas
+FROM vendas;
+```
+
+Isso gerará um erro do tipo:
+```
+Column 'vendedor' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.
+```
+
+### Resumo
+
+- **Com `GROUP BY`**: Use quando você tem uma função de agregação e deseja incluir outras colunas no `SELECT`. Isso agrupará as linhas com base nas colunas especificadas no `GROUP BY`.
+  
+  ```sql
+  SELECT coluna1, função_agregada(coluna2)
+  FROM tabela
+  GROUP BY coluna1;
+  ```
+
+- **Sem `GROUP BY`**: Use apenas quando você está contando todas as linhas da tabela ou as linhas que atendem a uma condição específica, sem precisar de outras colunas não agregadas.
+
+  ```sql
+  SELECT COUNT(*)
+  FROM tabela;
+  ```
+
+Sempre que incluir outras colunas além das funções de agregação no `SELECT`, você deve usar `GROUP BY` para evitar erros e obter resultados corretos.
+#+END_SRC
+** qual a diferença entre eu usar: SELECT COUNT(1), name GROUP BY name... ou SELECT COUNT(*), name GROUP BY name?
+#+BEGIN_SRC markdown
+A diferença entre `SELECT COUNT(1), name FROM person GROUP BY name` e `SELECT COUNT(*), name FROM person GROUP BY name` está na forma como o SQL Server interpreta a contagem, mas, na prática, ambas as consultas produzem o mesmo resultado e têm desempenho praticamente igual. Aqui estão os detalhes:
+
+### `COUNT(1)`
+```sql
+SELECT COUNT(1), name
+FROM person
+GROUP BY name;
+```
+- `COUNT(1)` conta o número de linhas em cada grupo, onde o valor `1` é um valor constante.
+- Cada linha do grupo será avaliada e contada, independentemente dos valores das colunas.
+
+### `COUNT(*)`
+```sql
+SELECT COUNT(*), name
+FROM person
+GROUP BY name;
+```
+- `COUNT(*)` também conta o número de linhas em cada grupo, mas faz isso contando todas as colunas (ou seja, cada linha).
+- Avalia todas as linhas, independentemente das colunas ou valores específicos.
+
+### Diferenças Práticas
+- **Semântica e Desempenho**: Em termos de desempenho e resultado, não há diferença significativa entre `COUNT(1)` e `COUNT(*)`. Ambos contam o número total de linhas em cada grupo.
+- **Interpretação**: Alguns preferem `COUNT(1)` por considerá-lo mais claro ou por preferência pessoal, mas isso é mais uma questão de estilo de codificação do que de funcionalidade ou desempenho.
+
+### Resumo
+Ambas as consultas são equivalentes em termos de resultado e eficiência. A escolha entre `COUNT(1)` e `COUNT(*)` geralmente se resume a uma preferência pessoal ou estilo de codificação, pois ambas executam a mesma operação de contagem de linhas em cada grupo.
+#+END_SRC
+
+
+
+
+
+

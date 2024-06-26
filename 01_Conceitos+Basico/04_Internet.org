@@ -80,6 +80,8 @@ exemplos:
 	google.com
 	localhost
 * HTTP em baixo nível
+Fonte de dados (curso da Alura): https://cursos.alura.com.br/course/http-entendendo-web-por-baixo-dos-panos
+
 Telnet é usado para cria conexão TCP com servidores
 usando Telnet podemos enviar para nosso servidor (por exemplo: "telnet localhost 8000", onde em localhost está rodando um servidor web)
 ** Exemplos de requisições
@@ -490,67 +492,73 @@ Caso queira aprender mais sobre isso pode ler o artigo "O que são cookies e com
 os cookies estão relacionados ao navegador, num primeiro momento, apesar de ser possível comunicá-los ao servidor através do cabeçalho da requisição HTTP (o que o navegador faz).
 O Bearer é um campo de autenticação que é trafegado tanto via browser, como pode ser via campo da requisição HTTP, como no postman, por exemplo. O browser o trafega por padrão a cada nova requisição, quando verifica no drive local que o mesmo ainda não expirou.
 Bearer e cookie são duas coisas distintas, bem como o tempo de validade dos mesmos - cada campo dentro do cookie (que pode conter várias variáveis) tem um prazo distinto de validade ("Expires - Max Age").
-* Redes
-** O que são redes
-Quando falamos em rede, pensamos logo em uma rede de futebol ou uma rede de pesca. A ideia de redes de computadores segue basicamente esse mesmo pensamento.
+** HTTP 1 x HTTP 2
+Aprendemos que tanto o HTTP/1.1 quanto o HTTP/2 trabalham em cima do TCP.
 
-Temos vários nós, que são os dispositivos. Isso inclui tanto os dispositivos computacionais, como celular, smart TV, computador, notebook e tantos outros, como também os dispositivos de rede.
+As maiores diferenças entre esses dois protocolos é que o primeiro deixa a desejar as requisições sequenciais, ou seja, cada vez que fazemos um REQUEST, temos que esperar terminar para começar o outro no contexto de uma conexão TCP, que é o canal por onde as mensagens passam.
 
-Dispositivos de rede são aqueles nós que funcionam basicamente para prover a conexão entre os dispositivos.
+Conseguiremos verificar que não acontecem ao mesmo tempo abrindo a interface do nosso debugger clicando com o botão direito sobre a página inicial do AluraBooks para selecionar "Inspect".
 
-Essa rede possui diferentes conexões com o mesmo nó para garantir que, mesmo que uma dessas conexões se rompa, seja possível manter a integridade e funcionamento da rede. O mesmo que acontece com uma rede de pesca.
+Clicando na aba "Network", atualizaremos a página para vermos as diversas requisições sendo feitas. clicando em "localhost" na lista lateral esquerda da aba, abriremos os detalhes e veremos mais diversas imagens em sequência.
 
-Mas, como esses nós, que são diferentes, conseguem se comunicar? Como conseguem enviar uma mensagem de um para o outro e assim chegar de um dispositivo de origem para um dispositivo de destino?
+Conforme avançamos pelos itens que tiveram requests, perceberemos alterações nos destaques da parte superior. Cada uma das linhas horizontais significa uma conexão TCP.
 
-Para isso é preciso que todos eles se comuniquem usando o mesmo padrão. Observaremos isso a partir de outro caso prático do nosso dia a dia.
+No HTTP/1.1, temos que esperar cada requisição ao terminar para fazermos outras, então o navegador cria várias conexões em paralelo para permitir que consigamos fazer requests simultâneas.
 
-Quando nos deparamos com um conhecido que não encontrávamos há um certo tempo, adotamos um padrão de fala. Começamos dizendo "olá" ou "oi", uma saudação.
+Mas pode funcionar melhor, então iremos inspecionar o HTTP/2 para entendermos a solução de multiplexação em que pega requisições que acontecem em paralelo e juntá-las em uma mesma conexão TCP, melhorando a performance da aplicação.
 
-Essa pessoa responderá com uma saudação e a pergunta "Como você está?", demonstrando interesse. Em resposta, diremos "Tudo tranquilo. E você?", também demonstrando interesse em saber como a pessoa está. Por fim, como resposta teremos algo como "Na correria do dia a dia, trabalho e faculdade".
 
-Observe que, mesmo em uma comunicação informal na rua, acabamos seguindo um protocolo, um padrão de comunicação. Fazemos uma saudação, seguido de uma pergunta para saber como a pessoa está, aguardamos uma resposta e depois respondemos se essa pessoa também pergunta sobre como estamos.
+Na página inicial do ALuraBooks, inspecionaremos o código na aba "Network" e veremos os títulos dos conteúdos que estão aparecendo em cada coluna.
 
-Similarmente, a comunicação entre dois dispositivos também segue alguns protocolos. Quando enviamos uma mensagem de um dispositivo para o outro, primeiro, precisamos iniciar a conexão.
+Clicando com o botão direito sobre "Status", selecionaremos "Protocol" para habilitarmos o tipo de protocolo usado. Ao recarregarmos a página, veremos que será preenchida por "h2".
 
-Depois, recebemos a mensagem de conexão iniciada e na sequência, podemos fazer o envio de uma mensagem. Por fim, recebemos a confirmação de que essa mensagem foi encaminhada ao outro dispositivo em que estávamos nos conectando.
+Observando a linha do tempo acima, veremos que está bem diferente da que era apresentada usando HTTP/1.1 originalmente. Ou seja, melhoramos a performance.
 
-É de forma semelhante que funcionam esses padrões, que esses diferentes nós que compõem a rede utilizam para se conectar e estabelecer uma interligação e o encaminhamento de mensagens entre dispositivos.
-** Camadas de rede
-Uma rede, além dos protocolos de comunicação, possui também algumas camadas.
+Portanto, usando HTTP/2, conseguiremos multiplexar e fazer várias requisições ao mesmo tempo dentro de uma ou pelo menos uma quantidade menor de conexões TCP, economizando recursos e deixando mais rápido.
 
-Vamos relembrar como esse processo acontece. Começamos enviando uma mensagem de um smartphone para o outro.
+Como vimos no formato das mensagens, o HTTP/1.1 utiliza cabeçalhos textuais como Accept-Ranges: bytes, enquanto o HTTP/2 tem o mesmo cabeçalho porém com as letras minúsculas apenas.
 
-Essa mensagem precisa ser encaminhada por meio de conexões físicas diversas, como pulsos luminosos, elétricos ou ondas eletromagnéticas.
+Isso acontece porque no HTTP/2 temos o mecanismo de compactação de cabeçalho, em que o que era legível em formato de texto passa por um algoritmo de compressão e se torna um cabeçalho binário que pode ser enviado pela rede e economizar recursos.
 
-Para que essa mensagem chegue de forma íntegra e privada no dispositivo final, precisamos seguir uma série de protocolos.
+Por fim, a última diferença entre os protocolos é que o HTTP/1.1 possui request obrigatório, então sempre que o cliente quer obter dados, precisará fazer uma requisição ao servidor, afinal é o que aprendemos sobre arquitetura do HTTP.
 
-Esses protocolos serão organizados em quatro camadas específicas. Vamos conhecer cada uma delas.
+Porém, observando nosso projeto novamente na tela de debug, há muitas informações retidas, então sempre que formos fazer um request pelo "localhost", com certeza precisaremos de todas as imagens que fazem parte do front-end.
 
-*** Camada de aplicação
-Tudo começa no smartphone. A mensagem é escrita em um aplicativo que está em contato direto com a primeira camada de rede chamada aplicação.
+Mas o servidor poderia já saber isso e ser mais "proativo" e mandar as informações ao cliente. É exatamente isso que o HTTP/2 faz através da feature chamada server push, que deixa o servidor mais "inteligente".
+	
+** HTTP 3
+Na camada de transporte, falaremos sobre a variação do UDP usada pelo HTTP/3, chamada de protocolo QUIC que garantirá que a mensagem chegará ao destino e que a Internet não seja "inundada" de dados, pois o TCP possui alguns mecanismos de controle de fluxo.
 
-Um exemplo de protocolo que atua em conjunto com um aplicativo como o Web Browser é o http.
+Ao mesmo tempo que protege, deixa as conexões mais lentas. Além disso, o TCP é um protocolo clássico assim como o UDP que já estão desenvolvidos há bastante tempo e são bem suportados por todos os navegadores, servidores e dispositivos.
 
-exemplo: A principal função da camada de aplicação é fornecer serviços de comunicação para os aplicativos executados nos dispositivos computacionais. Exemplos de protocolos que atuam nessa camada são HTTP (HyperText Transfer Protocol - amplamente utilizado por websites) e SMTP (Simple Mail Transfer Protocol - usado por serviços de email).
-*** Camada de transporte
-Na sequência, ao clicar no botão de envio da mensagem, ela será preparada para o transporte.
+Já o QUIC é uma evolução do UDP criado com o objetivo de aprimorá-lo, afinal é possível que uma mensagem não chegue. Às vezes não há problema, como no caso de ver um filme online e perder apenas um dos milhares de frames.
 
-A mensagem será empacotada de forma com que possa ser transportada por meio da rede.
+Porém, não funciona tão bem com o HTTP usando UDP diretamente, pois pode ser que o servidor não receba a resposta. Então as melhorias aplicadas ao QUIC resolvem esse problema também.
 
-exemplo: TCP é o principal protocolo da camada de transporte. A principal função da camada de transporte é justamente prover comunicação segura e eficiente entre processos de aplicação em dispositivos computacionais. No caso do website, estamos falando em comunicação entre os processos do navegador - executados em nosso computador - e processos do website - executados em um servidor.
-*** Camada de rede
-A camada seguinte é a de rede, que atua no roteador e é responsável por conectar dispositivos diferentes.
+Como é mais novo, já existia HTTPS que roda "em cima" do TLS, então já vem embutido e permite criar conexões mais seguras. Portanto, há diversas vantagens em utilizar o QUIC.
 
-O principal protocolo utilizado é o de endereçamento IP. A partir dele é apresentado um cabeçalho, identificando o endereço de origem e o destino.
+Em comparação com HTTP/1.1 e HTTP/2 em que é necessária uma conexão TCP, depois TLS que permite o HTTPS entre cliente e servidor para finalmente pegar dados seguros, o HTTP/3 substitui o TCP e já inclui o TLS, então faz tudo de uma só vez.
 
-Assim, é feito o cálculo da rota de tráfego, ou seja, os dispositivos pelos quais esse pacote de informação terá que passar até alcançar o smartphone que queremos enviar a mensagem.
+Como criptografa as mensagens mais rapidamente, consegue mandar mensagem HTTPS antes.
 
-exemplo: A camada de rede atua diretamente no encaminhamento de pacotes de dados entre dispositivos computacionais que podem estar em diferentes redes e posições ao redor do mundo. O principal protocolo da camada é o IP (Internet Protocol).
-*** Camada física
-A quarta camada é a física e consiste na transmissão dos bits dessa mensagem por meio de dispositivos de rede.
+Para vermos sites que o usam, acessaremos "google.com" no navegador e iremos inspecionar.
 
-Após trafegar pelos dispositivos da camada física e chegar ao roteador, que está em casa, a mensagem passará pelo processo reverso.
+Na aba "Network", recarregaremos a página e, com a coluna de protocolo já habilitada, veremos o conteúdo "h3". Portanto, o próprio Google já está usando.
 
-Isso significa que passará pelo desencapsulamento na camada de transporte até que fique disponível no aplicativo do celular da mãe.
+Infelizmente ainda não temos todas as bibliotecas disponíveis para HTTP/3 em todas as linguagens, afinal ainda está em estágio experimental.
 
-É assim que funciona o modelo de camadas de uma rede de computadores, mais precisamente a internet.
+Mas de qualquer maneira, é sempre importante nos familiarizarmos com as ferramentas do futuro para nos prepararmos para usar.
+
+O HTTP/3 melhora ainda mais o desempenho do HTTP e as suas principais mudanças não são na camada de aplicação (onde roda o HTTP), mas sim na camada de transporte.
+
+** HTTP 1, 2 e 3
+No Java, é possível utilizar o HTTP/2, por exemplo, habilitando um módulo no framework Spring Boot: https://docs.spring.io/spring-boot/docs/2.0.0.M6/reference/html/howto-embedded-web-servers.html#howto-configure-http2
+
+Por outro lado, não devemos esquecer que, por mais que se adicione otimizações e melhorias (do HTTP 1 para o 2 ou o 3), os princípios básicos continuam os mesmos:
+
+- O HTTP é um protocolo que segue o modelo request-response;
+- Ele funciona na camada de aplicação;
+- As mensagens são divididas em cabeçalho e corpo;
+- Temos métodos nas requisições, e status codes nas respostas.
+
+Portanto, lembre-se que todo o conhecimento que você adquiriu nesta aula, é um complemento, pois na prática você estará utilizando todas as características do HTTP que estudamos ao longo do curso.
