@@ -197,6 +197,48 @@ Para dentro de um teste unitário consiguir acessar métodos/objetos de dentro d
      import com.github.javafaker.Faker;
      static Faker faker = new Faker();
      var filterTypeUserEnum = faker.options().option(FilterTypeUserEnum.class); // escolhe aleatoriamente um dos elementos de uma classe Enum
+
+
+
+    @Test
+    void deveCriarShiftSimpleDtoValido() {
+        Long id = faker.number().randomNumber();
+        String shiftName = faker.lorem().sentence()
+                + String.format(" %02d:%02d - %02d:%02d", faker.random().nextInt(24), faker.random().nextInt(60),
+                                                          faker.random().nextInt(24), faker.random().nextInt(60));
+        String fullName = faker.name().fullName();
+        String streetAddress = faker.address().streetAddress();
+        String city = faker.address().city();
+        String randomNumber1 = faker.numerify("#");
+        String randomNumber2 = faker.numerify("##");
+        String randomNumber3 = faker.numerify("###");
+        String randomNumber4 = faker.numerify("####");
+
+        String url = faker.internet().url();
+        String img = faker.avatar().image();
+
+        String personEnrolment = faker.lorem().characters(10);
+        boolean boleano = faker.bool().bool();
+        Date data = faker.date().birthday();
+        String randomNumbersLetters = faker.bothify("numeros ## e letras ??");
+        ClockingTypeEnum clockingTypeEnum = faker.options().option(ClockingTypeEnum.class);
+
+        Integer i1 = faker.random().nextInt(16); // é utilizada para gerar um número inteiro aleatório entre 0 e 15
+        Integer i2 = faker.random().nextInt(10, 18); // gera um número aleatório entre 16 e 17
+        Double d1 = faker.random().nextDouble();
+        long l1 = faker.random().nextLong();
+
+        String randomLetters1 = faker.letterify("?");
+        String randomLetters2 = faker.letterify("??");
+        String randomLetters3 = faker.letterify("???");
+
+        String cep = faker.regexify("\\d{5}-\\d{3}"); // Gera um CEP no formato "XXXXX-XXX"
+        String RG = faker.regexify("\\d{2}\\.\\d{3}\\.\\d{3}-\\d"); // Gera um RG no formato "XX.XXX.XXX-X"
+        String CPF = faker.regexify("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"); // Gera um CPF no formato "XXX.XXX.XXX-XX"
+
+        String lorem = faker.lorem().sentence();
+        String justName = faker.name().name();
+	}
 * @ParameterizedTest
 class ClockingTypeEnumTest extends TestUnitHelper {
     @ParameterizedTest
@@ -239,4 +281,424 @@ class ClockingTypeEnumTest extends TestUnitHelper {
                 Arguments.arguments(6L, INVALID_TIME),
                 Arguments.arguments(8L, PRE_SIGNED)
         );
+    }
+* @ParameterizedTest 2
+
+    @ParameterizedTest
+    @MethodSource("invalidDataProvider")
+    void deveRetornarFalsoQuandoAlgumCampoForDiferente(PersonLoadDto other) {
+        // Given
+        var id = 1L;
+        var name = "name";
+        var personConditionEnum = PersonConditionEnum.ABSENTEE;
+        var replacementId = 1L;
+        var enrolment = "99";
+        var dto = new PersonLoadDto(id, name, personConditionEnum, replacementId, enrolment);
+        // When
+        boolean actual = dto.equals(other);
+        // Then
+        assertThat(actual).isFalse();
+    }
+    private static Stream<Arguments> invalidDataProvider() {
+        var id = 1L;
+        var name = "name";
+        var personConditionEnum = PersonConditionEnum.ABSENTEE;
+        var replacementId = 1L;
+        var enrolment = "99";
+        return Stream.of(
+                Arguments.arguments(new PersonLoadDto(10L, name, personConditionEnum, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(10L, "invalid", personConditionEnum, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(10L, name, PersonConditionEnum.EFFECTIVE, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(10L, name, personConditionEnum, 10L, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, "invalid", personConditionEnum, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, "invalid", PersonConditionEnum.EFFECTIVE, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, "invalid", personConditionEnum, 10L, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, name, PersonConditionEnum.EFFECTIVE, replacementId, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, name, PersonConditionEnum.EFFECTIVE, 10L, enrolment)),
+                Arguments.arguments(new PersonLoadDto(id, name, personConditionEnum, 10L, enrolment))
+        );
+    }
+* Exemplo de teste de dto
+
+    @Test
+    void deveCriarComentarioResponseQuePermiteSerExcluido() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileName = "googlelogo_color_272x92dp.png";
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto dto = new OPDWorkplaceCommentDto(commentId,
+                                                                description,
+                                                                userAccountAvatar,
+                                                                operationDeskAvatarUrl,
+                                                                userAccountName,
+                                                                registerDate,
+                                                                fileUrl,
+                                                                commentTypeEnum);
+        // When
+        OPDCommentResponseDto actual =
+                new OPDCommentResponseDto(dto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // Then
+        assertThat(actual.getCommentId()).isEqualTo(commentId);
+        assertThat(actual.getDescription()).hasToString(description);
+        assertThat(actual.getUserAccountAvatar()).hasToString(userAccountAvatar);
+        assertThat(actual.getUserAccountName()).hasToString(userAccountName);
+        assertThat(actual.getRegisterDate()).isEqualTo(registerDate);
+        assertThat(actual.getFileName()).hasToString(fileName);
+        assertThat(actual.getFileUrl()).hasToString(fileUrl);
+        assertThat(actual.getAllowDelete()).isTrue();
+    }
+    @Test
+    void deveCriarComentarioResponseQueNaoPermiteSerExcluidoPelaConfiguracaoDoCliente() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileName = "googlelogo_color_272x92dp.png";
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = false;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto dto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                userAccountName,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        // When
+        OPDCommentResponseDto actual =
+                new OPDCommentResponseDto(dto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // Then
+        assertThat(actual.getCommentId()).isEqualTo(commentId);
+        assertThat(actual.getDescription()).hasToString(description);
+        assertThat(actual.getUserAccountAvatar()).hasToString(userAccountAvatar);
+        assertThat(actual.getUserAccountName()).hasToString(userAccountName);
+        assertThat(actual.getRegisterDate()).isEqualTo(registerDate);
+        assertThat(actual.getFileName()).hasToString(fileName);
+        assertThat(actual.getFileUrl()).hasToString(fileUrl);
+        assertThat(actual.getAllowDelete()).isFalse();
+    }
+    @Test
+    void deveCriarComentarioResponseComOrigemDoCampoOperationDeskAvatarUrl() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileName = "googlelogo_color_272x92dp.png";
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = true;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto dto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        // When
+        OPDCommentResponseDto actual =
+                new OPDCommentResponseDto(dto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // Then
+        assertThat(actual.getCommentId()).isEqualTo(commentId);
+        assertThat(actual.getDescription()).hasToString(description);
+        assertThat(actual.getUserAccountAvatar()).hasToString(operationDeskAvatarUrl);
+        assertThat(actual.getUserAccountName()).hasToString(userAccountName);
+        assertThat(actual.getRegisterDate()).isEqualTo(registerDate);
+        assertThat(actual.getFileName()).hasToString(fileName);
+        assertThat(actual.getFileUrl()).hasToString(fileUrl);
+        assertThat(actual.getAllowDelete()).isTrue();
+    }
+    @Test
+    void deveCriarComentarioResponseComOrigemDoCampoAvatarUrl() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileName = "googlelogo_color_272x92dp.png";
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto dto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        // When
+        OPDCommentResponseDto actual =
+                new OPDCommentResponseDto(dto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // Then
+        assertThat(actual.getCommentId()).isEqualTo(commentId);
+        assertThat(actual.getDescription()).hasToString(description);
+        assertThat(actual.getUserAccountAvatar()).hasToString(userAccountAvatar);
+        assertThat(actual.getUserAccountName()).hasToString(userAccountName);
+        assertThat(actual.getRegisterDate()).isEqualTo(registerDate);
+        assertThat(actual.getFileName()).hasToString(fileName);
+        assertThat(actual.getFileUrl()).hasToString(fileUrl);
+        assertThat(actual.getAllowDelete()).isTrue();
+    }
+    @Test
+    void deveRetornarComentarioResponseIgualQuandoOutroObjetoForIgual() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // When
+        boolean actual = dto.equals(dto);
+        // Then
+        assertThat(actual).isTrue();
+    }
+    @Test
+    void deveRetornarFalsoQuandoOutroObjetoForNulo() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // When
+        boolean actual = dto.equals(null);
+        // Then
+        assertThat(actual).isFalse();
+    }
+    @Test
+    void deveRetornarFalsoQuandoOutroObjetoForDiferente() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        Integer other = new Integer("1");
+        // When
+        boolean actual = dto.equals(other);
+        // Then
+        assertThat(actual).isFalse();
+    }
+    @Test
+    void deveRetornarVerdadeiroQuandoIdComentarioERegistroDoComentarioForemIguais() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        OPDCommentResponseDto otherObject =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // When
+        boolean actual = dto.equals(otherObject);
+        // Then
+        assertThat(actual).isTrue();
+    }
+    @Test
+    void deveRetornarFalsoQuandoIdComentarioERegistroDoComentarioForemDiferente() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        OPDWorkplaceCommentDto other = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                new Date(2222L),
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto otherObject =
+                new OPDCommentResponseDto(other, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // When
+        boolean actual = dto.equals(otherObject);
+        // Then
+        assertThat(actual).isFalse();
+    }
+    @Test
+    void deveRetornarFalsoQuandoIdComentarioForIgualERegistroDoComentarioForemIguais() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        OPDWorkplaceCommentDto other = new OPDWorkplaceCommentDto(222L,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto otherObject =
+                new OPDCommentResponseDto(other, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        // When
+        boolean actual = dto.equals(otherObject);
+        // Then
+        assertThat(actual).isFalse();
+    }
+    @Test
+    void deveRetornarHashCodeValido() {
+        // Given
+        Long commentId =  12345L;
+        String description = "Comentário de teste";
+        String userAccountAvatar = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String operationDeskAvatarUrl = "https://s3.amazonaws.com/nexti-files/1/avatar/123/123.jpg";
+        String userAccountName = "Fulano de Tal";
+        Date registerDate = new Date(111111);
+        String fileUrl = "https://www.google.com.br/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png";
+        boolean isAllowDeletingCommentsFromWorkplace = true;
+        boolean isOperationDeskAvatar = false;
+        CommentTypeEnum commentTypeEnum = CommentTypeEnum.MANUAL;
+        OPDWorkplaceCommentDto workplaceCommentDto = new OPDWorkplaceCommentDto(commentId,
+                description,
+                userAccountAvatar,
+                operationDeskAvatarUrl,
+                userAccountName,
+                registerDate,
+                fileUrl,
+                commentTypeEnum);
+        OPDCommentResponseDto dto =
+                new OPDCommentResponseDto(workplaceCommentDto, isAllowDeletingCommentsFromWorkplace, isOperationDeskAvatar);
+        int expected = Objects.hash(commentId, registerDate);
+        // When
+        int actual = dto.hashCode();
+        // Then
+        assertThat(actual).isEqualTo(expected);
+    }
+* Exemplos de testes  a serem considerados 
+** de string de sql no core
+src/test/java/com/nexti/core/server/repository/comment/sql/OPDMountSQLFindWorkplaceCommentTest.java
+** de valores de parameters (src/test/java/com/nexti/core/server/service/comment/parameter/OPDMountQueryParameterWorkplaceCommentServiceTest.java)
+    @Test
+    void deveRetornarQueryParameterQueBuscaCommentariosDePostos() {
+        // Given
+        Long workplaceId = 1L;
+        Pageable pageable = new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "woc.register_date"));
+        String searchTerm = "busca";
+        OPDFindParamDto paramDto = new OPDFindParamDto(workplaceId, pageable, searchTerm);
+        Long customerId = 1L;
+        when(securityService.getLoggedCustomer()).thenReturn(new Customer(customerId));
+        String expected = returnSqlFindWorkplaceComment();
+        // When
+        OPDQueryParameterDto actual = service.findByWorkplaceIdAndTerm(paramDto);
+        // Then
+        assertThat(actual.getSql()).hasToString(expected);
+        assertThat(actual.getParameter().getValue("customer_id")).isEqualTo(customerId);
+        assertThat(actual.getParameter().getValue("workplace_id")).isEqualTo(workplaceId);
+        assertThat(actual.getParameter().getValue("observation")).isEqualTo("%"+searchTerm+"%");
+        verify(securityService, times(1)).getLoggedCustomer();
     }

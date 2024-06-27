@@ -294,8 +294,10 @@ class ShiftRepositoryImplTest extends TestUnitHelper {
 
         assertThat(actual).isPresent();
         assertThat(actual.get()).isEqualTo(expected);
+//obs: ver nesse documento o caso ** Caso de queryForObject - caso 3 (Core) - detalhe que nesse faço tb o teste do verify()
     }
-** Caso de queryForObject - caso 2
+
+** Caso de queryForObject - caso 2 
 *** repository (com chamada de private countElements())
   	@Override
 	public Page<ReplacementReasonDto> findByActives(Pageable pageable) {
@@ -313,7 +315,43 @@ class ShiftRepositoryImplTest extends TestUnitHelper {
 
         when(namedParameter.queryForObject(anyString(), any(MapSqlParameterSource.class), eq(Long.class)))  // O detalhe está no eq(Long.class)
                 .thenReturn(expectedNumberElements);
+//obs: ver nesse documento o caso ** Caso de queryForObject - caso 3 (Core) - detalhe que nesse faço tb o teste do verify()
+** Caso de queryForObject - caso 3 (Core) - detalhe que nesse faço tb o teste do verify()
+*** repository
+@Repository
+public class OPDFindObjectRepository {
 
+    @Autowired
+    protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    public String findStringResult(OPDQueryParameterDto queryParameterDto) {
+        try {
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(
+                    queryParameterDto.getSql(),
+                    queryParameterDto.getParameter(),
+                    String.class)).orElse("");
+        } catch (EmptyResultDataAccessException e) {
+            return "";
+        }
+    }
+
+*** test
+@Test
+    public void deveRetornarString() {
+        OPDQueryParameterDto queryParameterDto = returnQueryParameterDto();
+        String expected = "WORKPLACE_BOOK";
+
+        when(namedParameterJdbcTemplate.queryForObject(queryParameterDto.getSql(),
+                                                       queryParameterDto.getParameter(),
+                                                       String.class))
+                .thenReturn(expected);
+
+        String actual = repository.findStringResult(queryParameterDto);
+
+        assertEquals(expected, actual);
+        verify(namedParameterJdbcTemplate, times(1)).queryForObject(queryParameterDto.getSql(),
+                                                        queryParameterDto.getParameter(), String.class);
+    }
 * qual a diferença em relação a não passar o eq, mas apenas: verify(redisTemplate, never()).opsForValue(key)?
 Na maioria dos casos, especialmente quando lidando com um único argumento, não há diferença prática entre eq(key) e key. Ambos vão verificar se o método foi chamado com um argumento que é igual ao objeto key. A diferença se torna mais significativa quando você está lidando com múltiplos argumentos ou quando você quer usar matchers especiais para realizar verificações mais complexas ou menos estritas.
 

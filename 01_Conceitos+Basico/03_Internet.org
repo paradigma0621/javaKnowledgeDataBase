@@ -39,3 +39,47 @@ Em pouco tempo, o SOAP tornou-se um padrão de mercado e era utilizado majoritar
 **** REST (Representational State Transfer)
 Mas, precisávamos de uma solução melhor e mais simples. Foi aí que entraram as Web Application Programming Interfaces (APIs) e o Representational State Transfer (REST).
 
+** HTTP
+https://cursos.alura.com.br/course/http-entendendo-web-por-baixo-dos-panos
+
+HTTP é um protocolo da camada de apliação
+*** Protocolo
+É uma conversa.
+O cliente pede e o servidor responde
+*** Modelo de camadas da internet
+É uma representação dos diferentes níveis de abstração usados para entender e organizar as operações da rede. Esse modelo é baseado no Modelo OSI (Open Systems Interconnection), que define uma arquitetura em camadas para a comunicação de dados. Vamos detalhar cada camada apresentada na imagem:
+
+**** Camada Física (FÍSICA):
+
+Função: Responsável pela transmissão física dos dados através dos meios de comunicação, como cabos, fibra óptica, ou ondas de rádio.
+Componentes: Inclui componentes físicos como cabos, switches, roteadores, e padrões de comunicação como Ethernet e Wi-Fi.
+**** Camada de Enlace (ENLACE):
+Função: Fornece a ligação de dados direta entre dois dispositivos na mesma rede física. Gerencia a detecção e correção de erros.
+Componentes: Protocolos como Ethernet, MAC (Controle de Acesso ao Meio), e PPP (Protocolo Ponto-a-Ponto).
+**** Camada de Rede (REDE):
+Função: Responsável pelo endereçamento e encaminhamento dos pacotes de dados entre diferentes redes. Determina o melhor caminho para os dados chegarem ao destino.
+Componentes: Protocolos como IP (Protocolo de Internet), ICMP (Protocolo de Mensagens de Controle da Internet), e ARP (Protocolo de Resolução de Endereços).
+**** Camada de Transporte (TRANSPORTE):
+Função: Garante a transferência de dados de ponta a ponta de forma confiável e ordenada entre dois dispositivos em redes diferentes.
+Componentes: Protocolos como TCP (Protocolo de Controle de Transmissão), que é confiável, e UDP (Protocolo de Datagrama de Usuário), que é não confiável mas mais rápido.
+**** Camada de Aplicação (APLICAÇÃO):
+Função: Fornece serviços de rede diretamente às aplicações dos usuários. É o nível onde os usuários interagem com a rede.
+Componentes: Protocolos e serviços como HTTP (para navegação web), FTP (para transferência de arquivos), SMTP (para envio de e-mails), e DNS (para resolução de nomes de domínio).
+*** HTTP
+O protocolo HTTP segue o modelo Client-Server, ou seja, a comunicação acontece sempre entre duas entidades com papéis bem definidos: uma é o cliente, e a outra é o servidor. O cliente sempre realiza as requisições, e o servidor envia as respostas.
+
+O HTTP foi criado para estabelecer regras de comunicação entre o modelo Cliente-Servidor que funciona na Web.
+
+Para ilustrar: se você compreende este texto, é porque sabe português! Para que alguém consiga se comunicar com você, essa pessoa deverá usar o português também (supondo que você desconheça outro idioma). Isso significa que sua regra (protocolo) de comunicação com o mundo é a língua portuguesa, que define a forma com que as informações devem chegar até você (através do vocabulário, da gramática etc.). Uma outra pessoa que conheça português vai usar o mesmo formato, já que vocês têm um idioma em comum.
+
+Na internet, como já vimos, o "idioma" mais comum é o HTTP. Ele é responsável por definir a forma de como os dados são trafegados na rede através de várias regras. Portanto, todo mundo que conhece o idioma HTTP poderá receber, enviar dados e participar dessa conversa!
+*** Exemplo de outro protocolo que não HTTP
+Você já usou torrent para baixar algum arquivo na internet? Caso sim, aproveitou um outro modelo de comunicação, o P2P ou Peer-To-Peer!
+
+O modelo Cliente-Servidor não é o único modelo de comunicação na rede, nem sempre o mais adequado. Por exemplo, imagine que precisemos contar as letras de 20 palavras. No caso do modelo Cliente-Servidor, quem fará esse trabalho é o servidor, certo? E se precisar contar as letras de 1 milhão de palavras? Muito trabalhoso para o servidor, não?
+
+O modelo Cliente-Servidor tenta centralizar o trabalho no servidor, mas isso também pode gerar gargalos. Se cada Cliente pudesse ajudar no trabalho, ou seja, assumir um pouco da responsabilidade do servidor, seria muito mais rápido. Essa é a ideia do P2P! Não há mais uma clara divisão entre Cliente-Servidor, cada cliente também é servidor e vice-versa!
+
+Isto é útil quando você precisa distribuir um trabalho ou necessita baixar algo de vários lugares diferentes. Faz sentido?
+
+Usando algum aplicativo de Torrent, o protocolo utilizado não é o HTTP, e sim o protocolo P2P, como BitTorrent ou Gnutella.

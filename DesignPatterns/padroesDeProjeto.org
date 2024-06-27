@@ -1,0 +1,2 @@
+Strategy e Chain of Responsability
+Um macete é que usamos em é quando o que seriam vários if's, e em outros quando tivéssemos vários "CASE:" (confirmar qual é qual)

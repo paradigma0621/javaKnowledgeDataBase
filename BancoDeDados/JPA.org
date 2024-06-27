@@ -1,0 +1,28 @@
+* ChatGPT
+** o que faz: @JoinColumn() do JPA?
+#+BEGIN_SRC markdown
+A annotation `@JoinColumn` em Java Persistence API (JPA) é usada para especificar uma coluna que será utilizada para realizar o join (junção) entre duas tabelas em um banco de dados relacional. Ela é fundamental para definir a coluna que servirá como chave estrangeira em uma associação entre entidades.
+
+Aqui estão os principais usos e funções da `@JoinColumn`:
+
+1. **Definir a Coluna de Chave Estrangeira**: `@JoinColumn` é comumente usada para especificar a coluna de chave estrangeira em um relacionamento entre entidades. Por exemplo, em um relacionamento `@ManyToOne`, onde muitas instâncias de uma entidade estão associadas a uma única instância de outra entidade, `@JoinColumn` indica a coluna que liga estas entidades.
+
+   ```java
+   @ManyToOne
+   @JoinColumn(name = "person_id")
+   private Person person;
+   ```
+
+   No exemplo acima, `person_id` seria a coluna na tabela da entidade atual que contém o ID referente à entidade `Person`.
+
+2. **Customização da Coluna**: Além de simplesmente especificar qual coluna usar como chave estrangeira, `@JoinColumn` permite a customização adicional dessa coluna. Você pode definir várias propriedades, como:
+   - `name`: Nome da coluna de chave estrangeira na tabela.
+   - `referencedColumnName`: Nome da coluna na tabela referenciada que a coluna de chave estrangeira deve referenciar (geralmente o ID na tabela referenciada).
+   - `nullable`: Indica se a coluna de chave estrangeira pode ser nula.
+   - `insertable` e `updatable`: Indicam se a coluna pode ser incluída em operações de inserção ou atualização realizadas pela JPA.
+   - `unique`: Especifica se a coluna deve ser única, o que é útil para garantir a integridade dos dados.
+
+3. **Usos em Chave Primária Composta**: `@JoinColumn` também é usada em cenários de chave primária composta, onde múltiplas colunas são usadas para definir a chave primária de uma entidade. Isso geralmente ocorre em conjunto com `@JoinColumns`, que permite especificar múltiplas `@JoinColumn` para detalhar o mapeamento complexo.
+
+Em resumo, `@JoinColumn` é uma ferramenta poderosa para mapear as relações entre tabelas em um banco de dados, definindo e customizando colunas de chave estrangeira usadas para unir entidades em JPA.
+#+END_SRC
