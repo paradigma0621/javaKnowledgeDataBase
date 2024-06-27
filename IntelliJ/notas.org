@@ -1,0 +1,2 @@
+* Para carregar um projeto novo para um workspace já existente, e para carregar vários projetos nesse workspace (gradle ou maven)
+File->New->Module From Existing Source

@@ -1,0 +1,182 @@
+* Redes
+** O que são redes
+Quando falamos em rede, pensamos logo em uma rede de futebol ou uma rede de pesca. A ideia de redes de computadores segue basicamente esse mesmo pensamento.
+
+Temos vários nós, que são os dispositivos. Isso inclui tanto os dispositivos computacionais, como celular, smart TV, computador, notebook e tantos outros, como também os dispositivos de rede.
+
+Dispositivos de rede são aqueles nós que funcionam basicamente para prover a conexão entre os dispositivos.
+
+Essa rede possui diferentes conexões com o mesmo nó para garantir que, mesmo que uma dessas conexões se rompa, seja possível manter a integridade e funcionamento da rede. O mesmo que acontece com uma rede de pesca.
+
+Mas, como esses nós, que são diferentes, conseguem se comunicar? Como conseguem enviar uma mensagem de um para o outro e assim chegar de um dispositivo de origem para um dispositivo de destino?
+
+Para isso é preciso que todos eles se comuniquem usando o mesmo padrão. Observaremos isso a partir de outro caso prático do nosso dia a dia.
+
+Quando nos deparamos com um conhecido que não encontrávamos há um certo tempo, adotamos um padrão de fala. Começamos dizendo "olá" ou "oi", uma saudação.
+
+Essa pessoa responderá com uma saudação e a pergunta "Como você está?", demonstrando interesse. Em resposta, diremos "Tudo tranquilo. E você?", também demonstrando interesse em saber como a pessoa está. Por fim, como resposta teremos algo como "Na correria do dia a dia, trabalho e faculdade".
+
+Observe que, mesmo em uma comunicação informal na rua, acabamos seguindo um protocolo, um padrão de comunicação. Fazemos uma saudação, seguido de uma pergunta para saber como a pessoa está, aguardamos uma resposta e depois respondemos se essa pessoa também pergunta sobre como estamos.
+
+Similarmente, a comunicação entre dois dispositivos também segue alguns protocolos. Quando enviamos uma mensagem de um dispositivo para o outro, primeiro, precisamos iniciar a conexão.
+
+Depois, recebemos a mensagem de conexão iniciada e na sequência, podemos fazer o envio de uma mensagem. Por fim, recebemos a confirmação de que essa mensagem foi encaminhada ao outro dispositivo em que estávamos nos conectando.
+
+É de forma semelhante que funcionam esses padrões, que esses diferentes nós que compõem a rede utilizam para se conectar e estabelecer uma interligação e o encaminhamento de mensagens entre dispositivos.
+** Camadas de rede
+Uma rede, além dos protocolos de comunicação, possui também algumas camadas.
+
+Vamos relembrar como esse processo acontece. Começamos enviando uma mensagem de um smartphone para o outro.
+
+Essa mensagem precisa ser encaminhada por meio de conexões físicas diversas, como pulsos luminosos, elétricos ou ondas eletromagnéticas.
+
+Para que essa mensagem chegue de forma íntegra e privada no dispositivo final, precisamos seguir uma série de protocolos.
+
+Esses protocolos serão organizados em quatro camadas específicas. Vamos conhecer cada uma delas.
+
+*** Camada de aplicação
+Tudo começa no smartphone. A mensagem é escrita em um aplicativo que está em contato direto com a primeira camada de rede chamada aplicação.
+
+Um exemplo de protocolo que atua em conjunto com um aplicativo como o Web Browser é o http.
+
+exemplo: A principal função da camada de aplicação é fornecer serviços de comunicação para os aplicativos executados nos dispositivos computacionais. Exemplos de protocolos que atuam nessa camada são HTTP (HyperText Transfer Protocol - amplamente utilizado por websites) e SMTP (Simple Mail Transfer Protocol - usado por serviços de email).
+*** Camada de transporte
+Na sequência, ao clicar no botão de envio da mensagem, ela será preparada para o transporte.
+
+A mensagem será empacotada de forma com que possa ser transportada por meio da rede.
+
+exemplo: TCP é o principal protocolo da camada de transporte. A principal função da camada de transporte é justamente prover comunicação segura e eficiente entre processos de aplicação em dispositivos computacionais. No caso do website, estamos falando em comunicação entre os processos do navegador - executados em nosso computador - e processos do website - executados em um servidor.
+*** Camada de rede
+A camada seguinte é a de rede, que atua no roteador e é responsável por conectar dispositivos diferentes.
+
+O principal protocolo utilizado é o de endereçamento IP. A partir dele é apresentado um cabeçalho, identificando o endereço de origem e o destino.
+
+Assim, é feito o cálculo da rota de tráfego, ou seja, os dispositivos pelos quais esse pacote de informação terá que passar até alcançar o smartphone que queremos enviar a mensagem.
+
+exemplo: A camada de rede atua diretamente no encaminhamento de pacotes de dados entre dispositivos computacionais que podem estar em diferentes redes e posições ao redor do mundo. O principal protocolo da camada é o IP (Internet Protocol).
+*** Camada física
+A quarta camada é a física e consiste na transmissão dos bits dessa mensagem por meio de dispositivos de rede.
+
+Após trafegar pelos dispositivos da camada física e chegar ao roteador, que está em casa, a mensagem passará pelo processo reverso.
+
+Isso significa que passará pelo desencapsulamento na camada de transporte até que fique disponível no aplicativo do celular da mãe.
+
+É assim que funciona o modelo de camadas de uma rede de computadores, mais precisamente a internet.
+* AP/Pro: Uma rede é como uma malha de rede de pescar (várias conexões entrando/saindo de um único nó)
+O caminho de um sinal para acessar um IP externo pode ser que dependendo de como está o congestionamento da rede faça uma rota de tráfego diferente à cada nova requisição.
+
+O comando traceroute exibe a rota de tráfego de um pacote de dados entre um computador de origem e um computador de destino. Cada um dos pontos/nós na requisição de traceroute www.google.com.br abaixo represnta um roteador no meio do caminho até o destino final do sinal (google).
+
+** traceroute www.google.com.br
+traceroute to www.google.com.br (142.251.129.227), 30 hops max, 60 byte packets
+ 1  _gateway (192.168.0.1)  4.626 ms  4.614 ms  4.609 ms
+ 2  10.14.0.1 (10.14.0.1)  13.951 ms  20.739 ms  23.028 ms
+ 3  bd071e6d.virtua.com.br (189.7.30.109)  21.209 ms  22.413 ms  22.409 ms
+ 4  embratel-T0-4-0-1-4003-uacc02.ctamr.embratel.net.br (201.64.24.21)  26.341 ms embratel-H0-1-0-1-agg01.lda.embratel.net.br (200.209.166.193)  22.993 ms  25.139 ms
+ 5  200.230.141.51 (200.230.141.51)  63.209 ms ligacaao-H0-14-0-0-tcore01.ctamr.embratel.net.br (200.244.211.119)  61.044 ms 200.230.141.187 (200.230.141.187)  63.212 ms
+ 6  ebt-B1421-core01.spo.embratel.net.br (200.230.231.62)  62.133 ms ebt-B10-tcore01.ctamr.embratel.net.br (200.230.231.74)  59.262 ms ebt-B1421-core01.spo.embratel.net.br (200.230.231.62)  55.184 ms
+ 7  * * *
+ 8  ebt-B211-agg03.rjo.embratel.net.br (200.244.18.8)  56.658 ms  55.540 ms  52.765 ms
+ 9  ebt-B211-agg03.rjo.embratel.net.br (200.244.18.8)  55.495 ms  55.473 ms peer-B54-agg03.rjo.embratel.net.br (201.39.52.58)  47.634 ms
+10  * peer-B54-agg03.rjo.embratel.net.br (201.39.52.58)  47.638 ms  42.317 ms
+11  108.170.227.52 (108.170.227.52)  52.073 ms 142.251.48.150 (142.251.48.150)  41.171 ms 142.251.245.46 (142.251.245.46)  49.723 ms
+12  209.85.240.106 (209.85.240.106)  53.368 ms  58.807 ms 172.253.70.88 (172.253.70.88)  56.568 ms
+13  172.253.79.162 (172.253.79.162)  72.381 ms 172.253.79.164 (172.253.79.164)  61.969 ms 192.178.97.126 (192.178.97.126)  49.608 ms
+14  142.250.228.29 (142.250.228.29)  53.146 ms 142.250.228.15 (142.250.228.15)  53.155 ms *
+15  * * *
+16  * * *
+17  * * *
+18  * * *
+19  * * *
+* HUB
+O HUB funciona como um dispositivo que encaminha mensagens para todos os dispositivos conectados a ele, sem identificar o destinatário específico. É semelhante a um carteiro que distribui cartas para todas as casas em um determinado bairro, sem especificar o destinatário de cada carta.
+
+(ref: ver imagens "./imagens/01_redeCom3ComputadoresConectadosNumHub.png", "03_hub_envia_request_do_ping_para_todas_maquinas.gif")
+
+Portanto, ao enviar uma mensagem através de um Hub, essa mensagem será recebida por todos os dispositivos conectados a esse Hub, e não apenas pelo dispositivo pretendido.
+
+Em uma situação em que o computador da manufatura e o computador da embalagem enviam simultaneamente pacotes de informações para o computador do acabamento, ocorrerá um congestionamento no Hub. Como resultado, nenhuma das mensagens será encaminhada.
+
+O Hub funciona segundo o princípio de broadcast, ou seja, ele envia as mensagens para todos os dispositivos conectados a ele. No entanto, esse método pode gerar congestionamento na rede.
+
+O Hub desperdiça tempo de conexão ao enviar mensagens para dispositivos que não estão relacionados àquela mensagem específica. Além disso, existe o risco de mensagens confidenciais, destinadas a um endereço específico, serem acessadas por pessoas nos computadores conectados ao HUB.
+
+Essas situações podem ocorrer devido à natureza do funcionamento do HUB, que realiza o broadcast indiscriminadamente, sem distinguir os destinatários das mensagens ou garantir a privacidade dos dados transmitidos.
+
+Por ser um dispositivo simples e de baixo custo que pode ser utilizado em redes com requisitos mais básicos, onde a comunicação entre os computadores interligados não é tão frequente.
+
+Entretanto, para aplicações que demandam maior eficiência e requisitos mais avançados, é necessário utilizar dispositivos mais sofisticados. Esses dispositivos têm a capacidade de detectar o destino correto de cada mensagem e encaminhá-la apenas para o destinatário específico.
+* Switch
+(Obs: plural = "Switches")
+
+(ref: ver imagens: "./imagens/02_redeCom3ComputadoresConectadosNumSwitch.png" e "03_switch_envia_request_do_ping_para_apenas_a_maquina_correta.gif") - ao rodar um ping de qualquer uma dessas máquinas direcionado à outra máquina dessa rede: no primeiro momento, o switch recebeu o pacote de dados, encaminhou para o computador da manufatura e do acabamento. Mas nós sabemos que esse pacote não era destinado para o acabamento. Na sequência, o computador da manufatura respondeu, e o switch encaminhou apenas para o computador da embalagem. Quando o segundo pacote do ping foi enviado pelo computador da embalagem, o switch encaminhou apenas para o computador da manufatura. A partir de agora, ele só vai encaminhar o pacote para o computador da manufatura.
+
+Aqui nós já temos um primeiro dado do comportamento do switch: ele utiliza o protocolo ARP para entender quais dispositivos e quais endereços estão plugados em cada uma das suas portas. Nessa primeira experiência de conexão, ele verifica quem é quem na rede, por isso que ele encaminha a mensagem para os dois computadores que estão plugados nas suas portas (AP: aqui posso entender que houvessem mais computadores que não aquele que fez o ping: ele enviaria o sinal para TODOS, e não apenas para esses 2 citados). A partir desse primeiro contato, dessa primeira interação, ele armazena na memória interna para qual endereço MAC (que é o endereço físico da placa de rede de cada dispositivo) está associado o endereço de IP.
+
+Vimos como funciona o switch e o hub. *O switch possui uma memória interna para armazenar o mapeamento dos endereços MAC dos diferentes dispositivos que estão plugados nas portas e os seus respectivos endereços IP.*
+
+Já o hub não possui esse tipo de memória interna. Portanto, sempre que recebe um pacote de dados, encaminha para todos os dispositivos conectados em suas portas, de modo que esse pacote chegue ao dispositivo de destino.
+
+Outra informação a ser considerada é o congestionamento da rede quando usamos o hub. Porém, vamos analisar sob a ótica da segurança. Imagine que você está compartilhando dados sensíveis em uma rede e não quer que outras pessoas visualizem, por exemplo, quais sites está acessando ou que tipo de informação está transmitindo. *Se estiver usando um dispositivo de rede como o hub, algumas pessoas podem utilizar um software de monitoramento de tráfego na rede para identificar os pacotes que estão chegando na máquina delas, monitorando as informações que você está recebendo, os sites que está acessando e, se em alguns desses sites você inseriu alguma informação como senha não criptografada, isso também fica visível para outros usuários que estão na rede, já que o hub envia todos os pacotes para todas as máquinas.*
+
+No caso do switch, isso não ocorre porque ele identifica, utilizando o protocolo ARP, quais dispositivos estão conectados em suas portas e quais são os respectivos endereços. Então armazena isso na memória interna e, a partir daí, encaminha os pacotes de dados apenas para os dispositivos aos quais esses pacotes se destinam.
+
+Mas usar o switch não impede todos os riscos de ataques. É possível que algumas pessoas queiram atacar um switch de forma a lotar a memória de endereços MAC desse switch. Uma forma de evitar esse tipo de ataque é limitando dois ou três endereços MAC por cada porta, assim não lota a memória.
+
+Inclusive, após esgotar a memória interna do switch, ele passa a funcionar como hub. Isso significa que ele encaminha todos os pacotes que ele recebe para todos os dispositivos conectados nas portas, pois não é mais capaz de identificar quais dispositivos estão conectados. Então, para assegurar que o dispositivo recebeu o pacote destinado a ele, ele envia para todos os que estão conectados nas portas. Por isso, é importante limitar o número de endereços MAC que podem ser armazenados para cada uma das portas do switch.
+
+Conforme mencionado anteriormente, podemos utilizar o monitoramento de tráfego para analisar pacotes que estão trafegando na nossa rede, inclusive pacotes que não deveriam estar sendo destinados ao nosso computador, se estivermos plugados em um dispositivo de rede como um hub.
+
+No entanto, o monitoramento de tráfego é muito útil para que possamos analisar o que está acontecendo na nossa rede, e é o que veremos na sequência.
+
+Para fechar: Os hubs não conseguem aprender o endereço MAC dos equipamentos de uma rede, já os Switches possuem essa função.
+* gateway
+O default gateway é utilizado no encaminhamento de pacotes entre a rede local e redes externas, sendo o “portão de saída” de uma rede.
+* classes de redes
+** Classe A
+No IPv4, os endereços estão distribuídos em cinco classes diferentes. Vamos começar pela primeira: a classe A. Na classe A, temos endereços de IP que começam o primeiro octeto com sequências que vão de 1 a 126.
+
+Nessa classe, temos como máscara de rede padrão o formato 255.0.0.0. A máscara de rede nos permite identificar, a partir de um endereço de IP da classe, qual é o endereço da rede na qual o dispositivo se encontra.
+
+Vamos analisar um exemplo prático: temos o endereço de IP 123.145.3.3, que pertence à classe A, visto que o primeiro octeto é iniciado com a sequência 123. Qual seria o endereço de rede desse dispositivo?
+
+Basta observar na máscara de rede padrão quais octetos estão ocupados pela sequência de 255. Fazendo a subtração e preenchendo os demais octetos com zero, nós obtemos o endereço de rede na qual esse dispositivo está conectado, ou seja, 123.0.0.0.
+
+O endereço de rede acima não pode ser atribuído a nenhum dispositivo da nossa rede, logo, ele é dedicado à identificação dessa rede específica.
+
+Além do endereço de rede, dedicado à identificação da rede, temos outro endereço: o de broadcast, para o qual o dispositivo envia um pacote de mensagem que quer encaminhar para os demais da mesma rede em que ele está conectado. Inclusive, ao enviar para esse endereço, o próprio dispositivo recebe o pacote de mensagem enviado.
+
+Para obter o endereço de broadcast, basta pensarmos de forma oposta a como obtemos o endereço de rede. Ao invés de preencher os demais octetos com 0, vamos preencher com 255, ou seja, 123.255.255.255.
+
+Assim, conseguimos estabelecer um limite inferior e um limite superior da nossa rede, que são os endereços dedicados primeiro à rede e depois ao broadcast.
+
+** Classe B
+Temos também a classe B, onde temos os endereços IP que possuem como primeiro octeto uma sequência de 128 até 191. Já a máscara padrão dessa classe é 255.255.0.0. Essa máscara é importante para identificar o endereço da rede de um dispositivo conectado com o endereço IP da classe B e também o endereço de broadcast dessa rede.
+
+Agora, vamos usar como exemplo o seguinte endereço IP da classe B: 135.145.3.3. Qual seria o endereço da rede na qual o dispositivo está conectado?
+
+O exercício é o mesmo, mas agora os dois primeiros octetos são dedicados à identificação da rede e os demais são preenchidos com 0, obtendo 135.145.0.0.
+
+Para encontrar o endereço de broadcast, preenchemos os demais octetos com 255, então obtemos 135.145.255.255.
+
+Dessa forma, identificamos o endereço da rede e de broadcast de um endereço de IP na classe B.
+
+** Classe C
+Agora, vamos à classe C. Ela é formada por dispositivos que apresentam no seu primeiro octeto uma sequência de 192 até 223. Como máscara de rede padrão, ela possui uma sequência de 255 nos três primeiros octetos, sendo apenas o último octeto utilizado para identificar os dispositivos conectados na rede, então temos 255.255.255.0.
+
+A máscara de rede nos permite analisar quantos dispositivos nós podemos conectar nessa rede específica. No caso da classe C, podemos ter várias redes diferentes e poucos dispositivos conectados em cada uma delas.
+
+Observando a máscara de rede padrão da classe A, temos um único octeto para a identificação da rede, e os demais podem ser utilizados para identificar os dispositivos. Portanto, na classe A, podemos agregar o maior número possível de dispositivos em uma rede.
+
+Então, como descobrir o endereço de rede e o endereço broadcast de um dispositivo conectado com o endereço IP da classe C? Vamos usar o exemplo do endereço 193.168.3.3.
+
+Para encontrar o endereço dessa rede, basta modificar o último octeto para 0, obtendo 193.168.3.0. De modo similar, para encontrar o endereço broadcast da rede, substituímos o último octeto pela sequência 255, ou seja, 193.168.3.255.
+
+** Classes D e E
+Além das anteriores, temos duas outras classes que são especiais, as quais não utilizamos na identificação dos dispositivos computacionais no dia a dia. São a classes D e E.
+
+A classe D é formada por endereços de IP que apresentam o seu primeiro octeto no intervalo de 224 a 239. Ela é muito utilizada, por exemplo, para multicast, ou seja, para encaminhar mensagens a grupos de dispositivos específicos em uma rede.
+
+Já a classe E é formada por endereços que apresentam o seu primeiro octeto no intervalo de 240 até 255. Essa classe é utilizada para fins de pesquisa e desenvolvimento em redes.
+* cursos assistidos
+https://cursos.alura.com.br/course/redes-conceitos-iniciais-criacao-intranet	

@@ -1,0 +1,564 @@
+* Internet
+** WWW (ler o texto corrido, o final de um tópico desse grupo se liga com o *** do grupo seguinte)
+E disse Tim Bernes-Lee: “Que haja a World Wide Web“.
+
+Era 1989, embora a internet já existisse, seu potencial ainda não era aproveitado.
+
+*** URL (Uniform Resource Locators)
+Foi criada, então, a World Wide Web, um sistema de informação que, além de trazer a identificação única de recursos (Uniform Resource Locators – URL), possibilitou a ligação destes através de hipertextos.
+
+*** HTML (Hypertext Markup Language)
+Os recursos disponíveis na Web podem ser de qualquer tipo de mídia, porém, as chamadas web pages eram escritas em um formato específico: o Hypertext Markup Language (HTML), linguagem de marcação que possibilita a ligação entre diferentes páginas através dos hiperlinks, criando, então, a verdadeira teia de páginas na internet.
+
+*** HTTP (Hypertext Transfer Protocol)
+Mas, pra isso tudo funcionar, era necessário um protocolo de comunicação.
+
+Foi quando surgiu o Hypertext Transfer Protocol (HTTP), muito conhecido hoje em dia.
+
+O interessante é que, na época, ele só era usado para transportar HTML. Bem diferente de hoje em dia, não é mesmo?
+
+*** RPC (Remote Procedure Call)
+Até então, eram usados outros protocolos de comunicação para transportar diferentes tipos de dados através do Remote Procedure Call (RPC), onde eram requisitados serviços de outras máquinas a fim de conseguir algum recurso em uma rede sem saber, necessariamente, detalhes dessa rede.
+
+*** Webservices
+Foi em 1998 que Dave Winer resolveu juntar a Web com os Services existentes, criando os webservices. Sendo o primeiro deles, o XML-RPC.
+
+Um Web service é uma tecnologia que permite a comunicação independente entre aplicações, sem depender de linguagens ou sistemas operacionais.
+
+No geral, essa comunicação acontece através de arquivos em formato XML. Sendo assim, independente da linguagem, tudo é traduzido para XML. Entre eles, o *XML-RPC*, criado em cima do protocolo *HTTP*.
+
+**** SOAP (Simple Object Access Protocol)
+Depois de certo tempo, o XML-RPC foi batizado com outro nome: Simple Object Access Protocol (SOAP).
+
+*Sendo classificado, então, como um protocolo de comunicação que fazia uso, em seus protocolos de mais baixo nível, do HTTP.*
+
+Este protocolo era poderoso em termos de capacidade de exposição dos dados aos interessados. Mas, apesar do nome, não tem nada de simples.
+
+Em pouco tempo, o SOAP tornou-se um padrão de mercado e era utilizado majoritariamente entre as organizações.
+
+**** REST (Representational State Transfer)
+Mas, precisávamos de uma solução melhor e mais simples. Foi aí que entraram as Web Application Programming Interfaces (APIs) e o Representational State Transfer (REST).
+
+** Protocolo, recurso, URL e URI, domínio
+*** Protocolo
+a URL tem um formato padronizado, onde uma parte determina o protocolo, a outra o servidor, e assim por diante. Nesse contexto, analise a URL abaixo:
+
+smb://server/download/videos/http.mp4
+
+Como se chama o protocolo usado nesta URL?
+
+O protocolo especificado na URL se chama smb (aquilo que vem antes do ://)
+*** Recurso
+Continuando nosso aprofundamento sobre URLs, vamos relembrar: vimos que os caminhos de uma URL também podem ser chamados de "recursos". Com isso em mente, analise a URL a seguir:
+https://cursos.alura.com.br/course/introducao-html-css
+Qual é o nome do recurso usado nessa URL?
+R: /course/introducao-html-css
+
+O recurso é aquilo que vem depois do nome do servidor.
+
+Falando nisso, uma curiosidade: No início da web, os recursos, na grande maioria, eram arquivos com a extensão .html ou .htm. Até hoje existem vários recursos que são arquivos na web. 
+
+Obs: cursos.alura é apenas o subdomínio.
+*** Para saber mais: URI ou URL?
+Muitas vezes, desenvolvedores usam a sigla URI (Uniform Resource Identifier) quando falam de endereços na web. Alguns preferem URL (Uniform Resource Locator), e alguns misturam as duas siglas à vontade. Há uma certa confusão no mercado a respeito e mesmo desenvolvedores experientes não sabem explicar a diferença. Então, qual é a diferença?
+
+Resposta 1 (fácil): Uma URL é uma URI. No contexto do desenvolvimento web, ambas as siglas são válidas para falar de endereços na web. As siglas são praticamente sinônimos e são utilizadas dessa forma.
+
+Resposta 2 (mais elaborada): Uma URL é uma URI, mas nem todas as URI's são URL's! Existem URI's que identificam um recurso sem definir o endereço, nem o protocolo. Em outras palavras, uma URL representa uma identificação de um recurso (URI) através do endereço, mas nem todas as identificações são URL's.
+
+Humm ... ficou claro? Não? Vamos dar um exemplo! Existe um outro padrão que se chama URN (Uniform Resource Name). Agora adivinha, os URN's também são URI's! Um URN segue também uma sintaxe bem definida, algo assim urn:cursos:alura:course:introducao-html-css. Repare que criamos uma outra identificação do curso Introdução ao HTML e CSS da Alura, mas essa identificação não é um endereço.
+
+** Portas
+*** Portas padrões
+HTTP: 80
+HTTPS: 443
+de 1023 à 65535: livres para uso
+obs: portas de 0 à 1023 são reservadas para serviços padronizados
+** Domínio
+exemplos:
+	alura.com.br
+	google.com
+	localhost
+* HTTP em baixo nível
+Fonte de dados (curso da Alura): https://cursos.alura.com.br/course/http-entendendo-web-por-baixo-dos-panos
+
+Telnet é usado para cria conexão TCP com servidores
+usando Telnet podemos enviar para nosso servidor (por exemplo: "telnet localhost 8000", onde em localhost está rodando um servidor web)
+** Exemplos de requisições
+O objetivo deste tópico era aprender que as mensagens HTTP tem esse formato específico de cabeçalhos e corpo.
+*** exemplo de requisição GET
+**** corpo da requisição
+GET / HTTP/1.1
+**** explicação
+Pressionado "Enter" duas vezes, a resposta do servidor começa com HTTP/1.1 200 OK e uma série de configurações, que não precisamos nos atentar, por enquanto. Depois, temos todo o código HTML usado para renderizar a página inicial do AluraBooks.
+
+Ou seja, fizemos uma requisição HTTP manualmente, usando o telnet! 
+*** exemplo de envio de requisição POST
+**** corpo da requisição
+POST /public/login HTTP/1.1
+Host: localhost
+Content-Type: application/json
+Content-length: 45
+
+{"email": "geo@alura.com.br", "senha": "123"}
+**** explicação
+Obs1: o "Content-length: 45" indica que na linha de baixo ({"email": "g...) estamos envindo um corpo de 45 bytes.
+Obs2: o endereço: "/public/login" nessa requisição é para qual caminho do endpoint enviamos a requisição POST ("localhost:8000/public/login")
+
+A linha inicial contém as informações principais sobre a requisição. O "POST" indica que estamos enviando conteúdo. Nas três linhas seguintes, temos os cabeçalhos (headers) com metadados sobre a requisição. Na última linha, consta o corpo da requisição (body). No caso, mandamos um JSON.
+
+Com as anotações:
+- Linha inicial: `POST /public/login HTTP/1.1`
+- Cabeçalhos (headers):
+  - `Host: localhost`
+  - `Content-Type: application/json`
+  - `Content-length: 45`
+
+E o corpo da requisição:
+```
+{"email": "geo@alura.com.br", "senha": "123"}
+```
+**** resposta do servidor
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Vary: Origin, Accept-Encoding
+(...)
+Content-Type: application/json
+Content-Length: 364
+
+{
+    "access_token: "eyJhiJ...WCbZof2rf",
+    (...)
+}
+** perguntas pro ChatGPT
+*** existe conexão que não TCP para HTTP?
+HTTP (Hypertext Transfer Protocol) é um protocolo de aplicação utilizado para a transferência de dados na web. Tradicionalmente, HTTP é implementado sobre o protocolo TCP (Transmission Control Protocol) na camada de transporte. No entanto, existem algumas abordagens alternativas que permitem a comunicação HTTP sobre diferentes protocolos de transporte:
+
+### 1. **HTTP sobre UDP (HTTP/3)**
+HTTP/3 é a próxima versão do HTTP que usa o protocolo QUIC em vez de TCP. QUIC (Quick UDP Internet Connections) é um protocolo de transporte projetado pelo Google que utiliza UDP (User Datagram Protocol) como base. QUIC oferece várias melhorias em relação ao TCP, como conexões mais rápidas e melhores mecanismos de correção de erros.
+
+### 2. **HTTP sobre SCTP**
+SCTP (Stream Control Transmission Protocol) é um protocolo de transporte que oferece várias vantagens em comparação ao TCP, incluindo multistreaming (várias transmissões dentro de uma única conexão) e multihoming (capacidade de utilizar várias interfaces de rede em uma única conexão). Embora não seja amplamente utilizado para HTTP, existem estudos e implementações experimentais que exploram o uso de HTTP sobre SCTP.
+
+### 3. **HTTP over TLS**
+Embora TLS (Transport Layer Security) não seja um protocolo de transporte, ele é frequentemente usado em conjunto com TCP para fornecer uma camada de segurança adicional, resultando no protocolo HTTPS (HTTP Secure). TLS pode, em teoria, ser utilizado sobre outros protocolos de transporte além do TCP, como UDP, mas essa prática é rara.
+
+### 4. **HTTP over Multipath TCP (MPTCP)**
+Multipath TCP é uma extensão do TCP que permite o uso de múltiplos caminhos para uma única conexão TCP, aumentando a resiliência e a eficiência da conexão. MPTCP é compatível com HTTP e pode ser utilizado para melhorar o desempenho de transferências HTTP em ambientes com várias interfaces de rede.
+
+### Conclusão
+Embora HTTP seja tradicionalmente implementado sobre TCP, há alternativas e inovações que exploram outros protocolos de transporte, como QUIC (sobre UDP) e SCTP. A mais significativa dessas alternativas atualmente é HTTP/3, que usa QUIC para oferecer uma série de melhorias em desempenho e segurança.
+*** é usado o nome "protocolo" tanto para "TCP" como para "HTTP"?
+Sim, tanto "TCP" quanto "HTTP" são chamados de "protocolos", mas eles operam em camadas diferentes do modelo OSI (Open Systems Interconnection) e do modelo TCP/IP, o que pode causar alguma confusão. Aqui está uma explicação detalhada sobre como esses termos são usados:
+
+### Modelo OSI e Modelo TCP/IP
+
+O modelo OSI é uma arquitetura de sete camadas que padroniza as funções de uma rede de telecomunicações ou sistema de computação. O modelo TCP/IP é um modelo de quatro camadas mais simplificado que é usado na prática para a internet. Aqui está uma visão geral de onde TCP e HTTP se encaixam:
+
+1. **Modelo OSI**:
+   - **Camada de Aplicação (7)**: Onde o HTTP opera.
+   - **Camada de Transporte (4)**: Onde o TCP opera.
+
+2. **Modelo TCP/IP**:
+   - **Camada de Aplicação**: Onde o HTTP opera.
+   - **Camada de Transporte**: Onde o TCP opera.
+
+### O Que é um Protocolo?
+
+Um **protocolo** é um conjunto de regras que define como os dados são formatados e transmitidos entre dispositivos na rede. Aqui estão as definições e funções de TCP e HTTP:
+
+### TCP (Transmission Control Protocol)
+- **Camada**: Transporte
+- **Função**: Gerencia a transmissão de dados entre dois dispositivos na rede. Ele garante que os dados sejam entregues de forma confiável e na ordem correta, estabelecendo uma conexão e garantindo a entrega de pacotes.
+- **Características**:
+  - Confiável
+  - Orientado a conexão
+  - Controle de fluxo e controle de congestionamento
+
+### HTTP (Hypertext Transfer Protocol)
+- **Camada**: Aplicação
+- **Função**: Define como os dados são formatados e transmitidos na web. Ele é usado para a comunicação entre navegadores web (clientes) e servidores web.
+- **Características**:
+  - Sem estado (cada requisição é independente)
+  - Baseado em texto
+  - Utilizado para transferência de documentos hipertexto (como HTML)
+
+### Exemplo de Comunicação HTTP sobre TCP
+
+1. **Estabelecimento de Conexão**: O TCP estabelece uma conexão entre o cliente e o servidor (conhecido como handshake de três vias).
+2. **Envio de Dados**: O cliente envia uma requisição HTTP ao servidor usando a conexão TCP estabelecida.
+3. **Resposta do Servidor**: O servidor processa a requisição e envia uma resposta HTTP de volta ao cliente.
+4. **Encerramento de Conexão**: Após a transferência de dados, o TCP encerra a conexão.
+
+### Conclusão
+
+Ambos TCP e HTTP são protocolos, mas eles servem a propósitos diferentes em diferentes camadas do modelo de rede. TCP é um protocolo de transporte que fornece uma comunicação confiável entre dispositivos, enquanto HTTP é um protocolo de aplicação que define como os dados são formatados e trocados na web. Essa distinção é fundamental para entender como a comunicação na internet funciona.
+*** o telnet e o Postman fazem apenas requisições TCP?
+O Telnet e o Postman são ferramentas que podem ser usadas para testar e interagir com servidores de rede, mas eles têm diferenças significativas em como operam e nas suas funcionalidades. Vamos examinar cada um deles:
+
+### Telnet
+
+- **Função**: Telnet é um protocolo e também uma ferramenta de linha de comando usada para fazer conexões a servidores de rede. É utilizado principalmente para acessar remotamente servidores ou dispositivos de rede.
+- **Requisições TCP**: Telnet opera na camada de aplicação e utiliza o protocolo TCP para estabelecer uma conexão com o servidor. Ele permite ao usuário enviar comandos diretamente ao servidor e receber respostas.
+- **Uso Comum**: Verificar portas abertas, testar servidores de email (SMTP), acessar remotamente dispositivos de rede, entre outros.
+- **Exemplo de Uso**:
+  ```sh
+  telnet example.com 80
+  ```
+  Nesse exemplo, Telnet se conecta ao servidor `example.com` na porta 80 (HTTP).
+
+### Postman
+
+- **Função**: Postman é uma ferramenta gráfica usada para testar APIs. Ele permite aos desenvolvedores enviar requisições HTTP/HTTPS e visualizar as respostas.
+- **Requisições HTTP**: Postman permite a criação de requisições HTTP usando métodos como GET, POST, PUT, DELETE, etc. Embora essas requisições sejam transmitidas sobre TCP, Postman trabalha em um nível mais alto, na camada de aplicação, lidando com protocolos como HTTP/HTTPS.
+- **Uso Comum**: Testar APIs RESTful, automatizar testes de API, criar coleções de requisições, gerar documentação de API, entre outros.
+- **Exemplo de Uso**: Criar uma requisição POST para `https://api.example.com/login` com um corpo JSON.
+
+### Comparação
+
+- **Telnet**:
+  - Opera diretamente sobre TCP.
+  - Usado para conexões de rede genéricas.
+  - Ideal para testes simples e diagnósticos de rede.
+  - Baseado em texto e linha de comando.
+
+- **Postman**:
+  - Utiliza HTTP/HTTPS sobre TCP.
+  - Específico para testar APIs.
+  - Fornece uma interface gráfica rica.
+  - Suporta métodos de requisição HTTP e outras funcionalidades avançadas como autenticação, scripts pré e pós-requisição, e geração de relatórios.
+
+### Conclusão
+
+- **Telnet**: Faz requisições TCP diretas e é uma ferramenta genérica de linha de comando para acesso remoto e testes de portas.
+- **Postman**: Faz requisições HTTP/HTTPS (que usam TCP como transporte) e é uma ferramenta gráfica especializada para testar e desenvolver APIs.
+
+Ambas as ferramentas podem ser úteis dependendo do contexto e do tipo de teste que você precisa realizar.
+*** é possível fazer uma requisição udp no telnet?
+ChatGPT
+Não, o Telnet não suporta requisições UDP. Telnet é um protocolo de rede que utiliza o protocolo TCP (Transmission Control Protocol) para estabelecer uma conexão confiável e orientada à conexão entre o cliente e o servidor. Telnet é projetado para comunicação baseada em texto através de conexões TCP, o que significa que ele não pode ser usado para enviar pacotes UDP (User Datagram Protocol).
+*** o postman faz requsição websocket?
+AP: Ir em "New" no canto superior esquerdo do postman  e escolher Web Socket como tipo. Ele não abre opção para métodos (GET/POST/etc).	
+*** websocket é um protocolo http?
+WebSocket não é um protocolo HTTP, mas é um protocolo que utiliza HTTP para estabelecer a conexão inicial. Vamos detalhar como WebSocket funciona e como ele se relaciona com HTTP.
+
+### WebSocket e HTTP
+
+1. **Estabelecimento de Conexão**:
+    - **Handshake Inicial**: O protocolo WebSocket começa com uma solicitação de handshake HTTP. O cliente envia uma solicitação HTTP ao servidor, solicitando a atualização para o protocolo WebSocket.
+    - **Upgrade Header**: A solicitação de handshake HTTP inclui cabeçalhos especiais, como `Upgrade: websocket` e `Connection: Upgrade`, para indicar que o cliente deseja atualizar a conexão para WebSocket.
+
+    **Exemplo de Solicitação de Handshake WebSocket**:
+    ```http
+    GET /chat HTTP/1.1
+    Host: server.example.com
+    Upgrade: websocket
+    Connection: Upgrade
+    Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+    Sec-WebSocket-Version: 13
+    ```
+
+2. **Resposta do Servidor**:
+    - Se o servidor aceita a solicitação de upgrade, ele responde com um status `101 Switching Protocols` e os cabeçalhos correspondentes.
+
+    **Exemplo de Resposta de Handshake WebSocket**:
+    ```http
+    HTTP/1.1 101 Switching Protocols
+    Upgrade: websocket
+    Connection: Upgrade
+    Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+    ```
+
+3. **Conexão Estabelecida**:
+    - Após o handshake inicial, a conexão HTTP é atualizada para WebSocket, permitindo comunicação bidirecional em tempo real entre o cliente e o servidor. Nesse ponto, a comunicação não segue mais o formato de requisição-resposta do HTTP, mas sim um formato de mensagem contínua e full-duplex.
+
+### Comparação entre HTTP e WebSocket
+
+- **HTTP**:
+  - Protocolo de requisição-resposta.
+  - Stateless (cada requisição é independente).
+  - Utilizado principalmente para carregar páginas web e recursos estáticos.
+  - Opera sobre TCP.
+
+- **WebSocket**:
+  - Protocolo de comunicação bidirecional e full-duplex.
+  - Permite comunicação contínua e em tempo real.
+  - Utilizado para aplicações que exigem atualizações em tempo real, como chats, jogos online, e notificações.
+  - Opera sobre TCP, mas começa com um handshake HTTP.
+
+### Exemplos de Uso do WebSocket
+
+- **Chats em Tempo Real**: Aplicações de mensagens instantâneas que requerem troca contínua de mensagens entre usuários.
+- **Notificações Push**: Sistemas de notificação que precisam enviar informações em tempo real para os usuários.
+- **Jogos Online**: Jogos multiplayer que exigem comunicação em tempo real entre os jogadores.
+- **Colaboração em Tempo Real**: Ferramentas como editores de texto colaborativos que permitem a edição simultânea por vários usuários.
+
+### Conclusão
+
+WebSocket não é um protocolo HTTP, mas utiliza HTTP para estabelecer a conexão inicial. Após o handshake HTTP, a conexão é atualizada para WebSocket, permitindo comunicação bidirecional e contínua entre o cliente e o servidor. Isso torna o WebSocket ideal para aplicações que necessitam de comunicação em tempo real e baixa latência.
+*** o postman faz requisição udp?
+Não, o Postman não suporta requisições UDP. Postman é uma ferramenta de API projetada para testar e interagir com APIs que utilizam protocolos HTTP/HTTPS, e mais recentemente, ele adicionou suporte para WebSockets (AP: dentre outros tipos, como posso ver indo em "New" no canto superior esquerdo da tela). No entanto, ele não suporta UDP (User Datagram Protocol).
+
+Por Que Postman Não Suporta UDP?
+Orientação a API: Postman é especificamente orientado para trabalhar com APIs que utilizam HTTP/HTTPS. Essas APIs geralmente requerem comunicação confiável e orientada a conexão, que é provida pelo TCP.
+Natureza do UDP: UDP é um protocolo de transporte que não garante a entrega de pacotes, a ordem dos pacotes, ou a detecção de duplicações, o que o torna mais adequado para aplicações que podem tolerar a perda de pacotes, como streaming de vídeo, VoIP, e jogos online. Ferramentas de API como Postman não são projetadas para este tipo de comunicação.
+*** o telnet faz requisição udp?
+Não, o Telnet não suporta requisições UDP. Telnet é uma ferramenta e um protocolo projetado especificamente para comunicação TCP, que é orientada a conexão e confiável. Ele não pode ser usado para enviar ou receber pacotes UDP, que são baseados em um protocolo sem conexão e não confiável.
+*** quantos protocolos diferentes existem na camada de transporte?  (queria saber se só existia TCP e UDP)
+Na camada de transporte, existem vários protocolos diferentes, cada um com características e finalidades distintas. Aqui estão alguns dos principais protocolos de transporte:
+
+### Principais Protocolos de Transporte
+
+1. **TCP (Transmission Control Protocol)**
+   - **Descrição**: Protocolo de transporte orientado a conexão, que garante a entrega confiável dos pacotes na ordem correta.
+   - **Aplicações Comuns**: HTTP/HTTPS, FTP, SMTP, Telnet.
+
+2. **UDP (User Datagram Protocol)**
+   - **Descrição**: Protocolo de transporte sem conexão, que não garante a entrega dos pacotes nem a ordem dos pacotes. É mais rápido que o TCP, mas menos confiável.
+   - **Aplicações Comuns**: Streaming de vídeo, VoIP, DNS, jogos online.
+
+3. **SCTP (Stream Control Transmission Protocol)**
+   - **Descrição**: Protocolo de transporte que combina características do TCP e UDP, suportando múltiplos streams de dados em uma única conexão e oferecendo recursos de redundância e segurança.
+   - **Aplicações Comuns**: Sinalização de telefonia, transmissão de dados críticos em redes de telecomunicações.
+
+4. **DCCP (Datagram Congestion Control Protocol)**
+   - **Descrição**: Protocolo de transporte orientado a datagramas que oferece controle de congestionamento sem a necessidade de confiabilidade completa como o TCP.
+   - **Aplicações Comuns**: Transmissão de multimídia em tempo real.
+
+### Outros Protocolos Menos Comuns
+
+1. **RTP (Real-time Transport Protocol)**
+   - **Descrição**: Usado principalmente para entregar áudio e vídeo em tempo real sobre redes IP.
+   - **Aplicações Comuns**: Conferências de áudio e vídeo, streaming de mídia.
+
+2. **RSVP (Resource Reservation Protocol)**
+   - **Descrição**: Protocolo usado para reservar recursos na rede para garantir qualidade de serviço (QoS).
+   - **Aplicações Comuns**: Redes que exigem garantias de QoS.
+
+3. **QUIC (Quick UDP Internet Connections)**
+   - **Descrição**: Protocolo de transporte projetado pelo Google que funciona sobre UDP, oferecendo conexões rápidas e seguras com redução de latência.
+   - **Aplicações Comuns**: HTTP/3, serviços que requerem baixa latência.
+
+### Conclusão
+
+Embora existam vários protocolos na camada de transporte, os mais amplamente utilizados e conhecidos são TCP e UDP devido à sua onipresença e vasta gama de aplicações. Outros protocolos como SCTP, DCCP, e QUIC atendem a necessidades específicas e são usados em contextos onde suas características únicas são necessárias. Em resumo, a diversidade de protocolos de transporte permite que as redes de computadores ofereçam uma ampla variedade de serviços com diferentes requisitos de desempenho, confiabilidade e eficiência.
+*** o que é o handshake?
+O "handshake" (ou aperto de mão) é um processo de troca de sinais entre dois dispositivos de rede ou sistemas de comunicação para estabelecer uma conexão confiável e sincronizada. Esse processo é essencial para garantir que ambos os lados da comunicação estejam prontos para transmitir e receber dados de maneira adequada.
+
+### Tipos de Handshake
+
+1. **TCP Handshake (Three-Way Handshake)**
+
+   No contexto do protocolo TCP, o handshake é um processo de três etapas que estabelece uma conexão confiável entre o cliente e o servidor. As etapas são as seguintes:
+
+   - **SYN (Synchronize)**: O cliente envia um segmento SYN ao servidor para iniciar uma conexão.
+   - **SYN-ACK (Synchronize-Acknowledge)**: O servidor responde com um segmento SYN-ACK, confirmando a recepção do SYN e sincronizando a sequência de números.
+   - **ACK (Acknowledge)**: O cliente envia um segmento ACK ao servidor para confirmar a recepção do SYN-ACK, completando o processo de handshake.
+
+   **Exemplo de TCP Handshake**:
+   ```
+   Cliente                     Servidor
+   |--SYN-------------------->|
+   |<---------SYN-ACK---------|
+   |--------ACK-------------->|
+   ```
+
+2. **SSL/TLS Handshake**
+
+   No contexto da segurança de rede, SSL/TLS utiliza um handshake para estabelecer uma conexão segura entre o cliente e o servidor. Este processo envolve várias etapas para autenticação, troca de chaves e estabelecimento de uma conexão criptografada.
+
+   - **ClientHello**: O cliente envia uma mensagem ClientHello ao servidor, contendo informações sobre as capacidades de criptografia do cliente.
+   - **ServerHello**: O servidor responde com uma mensagem ServerHello, contendo suas próprias capacidades de criptografia.
+   - **Certificados e Chaves**: O servidor envia seu certificado digital e, opcionalmente, solicita o certificado do cliente.
+   - **Chave Secreta**: O cliente gera uma chave secreta, criptografa-a com a chave pública do servidor, e envia ao servidor.
+   - **Conexão Segura**: Ambos os lados usam a chave secreta para criptografar a comunicação subsequente.
+
+3. **WebSocket Handshake**
+
+   O protocolo WebSocket usa um handshake inicial baseado em HTTP para estabelecer uma conexão persistente e bidirecional entre o cliente e o servidor.
+
+   - **Solicitação de Upgrade**: O cliente envia uma solicitação HTTP com cabeçalhos específicos para solicitar a atualização para WebSocket.
+   - **Resposta de Upgrade**: O servidor responde com um status 101 Switching Protocols se aceitar a solicitação, completando o handshake.
+
+   **Exemplo de WebSocket Handshake**:
+   ```http
+   GET /chat HTTP/1.1
+   Host: server.example.com
+   Upgrade: websocket
+   Connection: Upgrade
+   Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+   Sec-WebSocket-Version: 13
+   ```
+
+   ```http
+   HTTP/1.1 101 Switching Protocols
+   Upgrade: websocket
+   Connection: Upgrade
+   Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+   ```
+
+### Importância do Handshake
+
+O handshake é crucial porque:
+
+- **Estabelece Sincronização**: Garante que ambas as partes da comunicação estejam prontas para enviar e receber dados.
+- **Negocia Parâmetros**: Permite a negociação de parâmetros como capacidades de criptografia, versões de protocolo, e opções de compressão.
+- **Autenticação e Segurança**: No contexto de SSL/TLS, autentica as partes envolvidas e estabelece uma conexão segura.
+- **Integridade da Conexão**: Ajuda a detectar e corrigir erros de comunicação antes do envio de dados reais.
+
+### Conclusão
+
+O handshake é um processo fundamental em várias formas de comunicação de rede, garantindo que as conexões sejam estabelecidas de maneira segura e confiável. Ele é um passo inicial vital para sincronizar, autenticar e negociar parâmetros entre dois sistemas de comunicação.
+*** qual o primeiro handshake executado numa comunicação de uma rede física?
+O primeiro "handshake" ou procedimento de estabelecimento de conexão em uma comunicação de rede física geralmente ocorre na camada de enlace de dados (camada 2 do modelo OSI) e envolve o processo de estabelecimento de uma conexão física e a troca inicial de informações para a comunicação de rede. Este processo pode variar dependendo da tecnologia de rede em uso (como Ethernet, Wi-Fi, etc.).
+
+### Exemplo: Ethernet (Rede com Fio)
+
+Para redes Ethernet, o "handshake" inicial pode ser entendido como o processo de autonegociação entre dispositivos de rede (como um computador e um switch ou roteador). Este processo inclui a troca de informações para concordar sobre as velocidades de transmissão, modos duplex (full duplex ou half duplex), e outros parâmetros. Aqui está uma visão geral desse processo:
+
+1. **Autonegociação**:
+   - Quando um dispositivo Ethernet é conectado a outro dispositivo (como um switch), ambos os dispositivos realizam autonegociação para determinar a melhor velocidade de transmissão e modo duplex suportados por ambos.
+   - Este processo envolve a troca de sinais entre os dispositivos para comunicar suas capacidades.
+   
+   **Passos da Autonegociação**:
+   - O dispositivo A envia uma mensagem para o dispositivo B indicando suas capacidades (por exemplo, 10/100/1000 Mbps, full duplex).
+   - O dispositivo B responde com uma mensagem indicando suas capacidades.
+   - Ambos os dispositivos concordam na melhor configuração compatível.
+
+### Exemplo: Wi-Fi (Rede Sem Fio)
+
+Para redes Wi-Fi, o processo inicial de "handshake" pode ser entendido como a associação e autenticação entre um dispositivo cliente (como um laptop ou smartphone) e um ponto de acesso (AP). Aqui está uma visão geral do processo:
+
+1. **Pesquisa e Seleção de Rede**:
+   - O dispositivo cliente escaneia o ambiente para encontrar redes Wi-Fi disponíveis.
+   - O cliente seleciona um ponto de acesso para conectar.
+
+2. **Autenticação**:
+   - O cliente envia um pedido de autenticação ao ponto de acesso.
+   - O ponto de acesso responde ao pedido, completando o processo de autenticação. Em redes protegidas por senha (WPA/WPA2), este passo pode envolver a troca de chaves de criptografia.
+
+3. **Associação**:
+   - O cliente envia um pedido de associação ao ponto de acesso.
+   - O ponto de acesso responde com uma confirmação de associação.
+   - Este processo estabelece a conexão lógica entre o cliente e o ponto de acesso.
+
+### Exemplo de Autenticação e Associação Wi-Fi:
+
+```plaintext
+Cliente                   Ponto de Acesso
+   |                             |
+   |--- Pedido de Autenticação -->|
+   |                             |
+   |<-- Resposta de Autenticação ---|
+   |                             |
+   |--- Pedido de Associação ---->|
+   |                             |
+   |<-- Resposta de Associação ----|
+```
+
+### Conclusão
+
+O primeiro "handshake" em uma comunicação de rede física pode variar dependendo da tecnologia de rede utilizada:
+
+- **Ethernet**: O processo de autonegociação é o primeiro passo, onde dispositivos conectados via cabo Ethernet trocam informações sobre suas capacidades.
+- **Wi-Fi**: O processo inicial envolve autenticação e associação, onde um dispositivo cliente se autentica e se associa a um ponto de acesso sem fio.
+
+Esses processos são fundamentais para estabelecer uma comunicação de rede física eficiente e confiável antes que qualquer dado de aplicação real seja transmitido.
+** requisições HTTP são stateless - como lembrar o servidor sobre quem somos?
+Formas de "lembrar" o servidor
+*** Sessão : tempo que o usuário passa logado
+É o tempo que o cliente utiliza um web app.
+
+Pro: Uma das formas é o uso da sessão, que foi a abordagem que empregamos. Por exemplo, gerar um token e mostrá-lo ao servidor continuamente para ele lembrar quem está o acessando. A sessão é o tempo que a pessoa usuária permanece logada no sistema.
+
+Uma sessão HTTP nada mais é que um tempo que o cliente permanece ativo no sistema! Isso é parecido com uma sessão no cinema. Uma sessão, nesse contexto, é o tempo que o cliente usa a sala no cinema para assistir a um filme. Quando você sai da sala, termina a sessão. Ou seja, quando você faz o logout, a Alura termina a sua sessão.
+
+(AP: exemplo: Bearer)
+*** Cookie : mecanismo para armazenar dados no cliente
+Outra forma é o uso de cookies. É comum a exibição de um pop-up na tela para a pessoa usuária aceitar ou rejeitar o uso de cookies em sites. Eles são um mecanismo utilizado nos cabeçalhos do HTTP para que o servidor peça para a pessoa cliente salvar algumas informações, que serão usadas posteriormente para lembrar o servidor.
+
+Vimos no vídeo o uso de um cookie para gravar um número, aquele Session ID. Mas o que é um cookie?
+
+Quando falamos de Cookies, na verdade queremos dizer Cookies HTTP ou Cookie web. Um cookie é um pequeno arquivo de texto, normalmente criado pela aplicação web, para guardar algumas informações sobre o usuário *no navegador*. Quais são essas informações depende um pouco da aplicação. Pode ser que fique gravado alguma preferência do usuário. Ou algumas informações sobre as compras na loja virtual ou, como vimos no vídeo, a identificação do usuário. Isso depende da utilidade para a aplicação web.
+
+Um cookie pode ser manipulado e até apagado pelo navegador e, quando for salvo no navegador, fica associado com um domínio. Ou seja, podemos ter um cookie para www.alura.com.br, e outro para www.caelum.com.br. Aliás, um site ou web app pode ter vários cookies! Podemos visualizar os cookies salvos utilizando o navegador. Como visualizar, depende um pouco do navegador em questão:
+
+No Chrome: Configurações -> Privacidade -> Configurações de conteúdo... -> Todos os cookies e dados de site... -> Pesquisar alura
+
+No Firefox: Preferências -> Privacidade -> remover cookies individualmente -> Pesquisar alura
+
+Caso queira aprender mais sobre isso pode ler o artigo "O que são cookies e como eles funcionam?". (https://www.alura.com.br/artigos/o-que-sao-cookies-como-funcionam?_gl=1*1tna8hp*_ga*MTU0Mjg2MDQ4LjE3MDg0NjU5Nzc.*_ga_1EPWSW3PCS*MTcxNzg4NjczOS40OC4xLjE3MTc4ODgxNDMuMC4wLjA)
+*** AP: Mais a respeito de cookies - agora AP
+os cookies estão relacionados ao navegador, num primeiro momento, apesar de ser possível comunicá-los ao servidor através do cabeçalho da requisição HTTP (o que o navegador faz).
+O Bearer é um campo de autenticação que é trafegado tanto via browser, como pode ser via campo da requisição HTTP, como no postman, por exemplo. O browser o trafega por padrão a cada nova requisição, quando verifica no drive local que o mesmo ainda não expirou.
+Bearer e cookie são duas coisas distintas, bem como o tempo de validade dos mesmos - cada campo dentro do cookie (que pode conter várias variáveis) tem um prazo distinto de validade ("Expires - Max Age").
+** HTTP 1 x HTTP 2
+Aprendemos que tanto o HTTP/1.1 quanto o HTTP/2 trabalham em cima do TCP.
+
+As maiores diferenças entre esses dois protocolos é que o primeiro deixa a desejar as requisições sequenciais, ou seja, cada vez que fazemos um REQUEST, temos que esperar terminar para começar o outro no contexto de uma conexão TCP, que é o canal por onde as mensagens passam.
+
+Conseguiremos verificar que não acontecem ao mesmo tempo abrindo a interface do nosso debugger clicando com o botão direito sobre a página inicial do AluraBooks para selecionar "Inspect".
+
+Clicando na aba "Network", atualizaremos a página para vermos as diversas requisições sendo feitas. clicando em "localhost" na lista lateral esquerda da aba, abriremos os detalhes e veremos mais diversas imagens em sequência.
+
+Conforme avançamos pelos itens que tiveram requests, perceberemos alterações nos destaques da parte superior. Cada uma das linhas horizontais significa uma conexão TCP.
+
+No HTTP/1.1, temos que esperar cada requisição ao terminar para fazermos outras, então o navegador cria várias conexões em paralelo para permitir que consigamos fazer requests simultâneas.
+
+Mas pode funcionar melhor, então iremos inspecionar o HTTP/2 para entendermos a solução de multiplexação em que pega requisições que acontecem em paralelo e juntá-las em uma mesma conexão TCP, melhorando a performance da aplicação.
+
+
+Na página inicial do ALuraBooks, inspecionaremos o código na aba "Network" e veremos os títulos dos conteúdos que estão aparecendo em cada coluna.
+
+Clicando com o botão direito sobre "Status", selecionaremos "Protocol" para habilitarmos o tipo de protocolo usado. Ao recarregarmos a página, veremos que será preenchida por "h2".
+
+Observando a linha do tempo acima, veremos que está bem diferente da que era apresentada usando HTTP/1.1 originalmente. Ou seja, melhoramos a performance.
+
+Portanto, usando HTTP/2, conseguiremos multiplexar e fazer várias requisições ao mesmo tempo dentro de uma ou pelo menos uma quantidade menor de conexões TCP, economizando recursos e deixando mais rápido.
+
+Como vimos no formato das mensagens, o HTTP/1.1 utiliza cabeçalhos textuais como Accept-Ranges: bytes, enquanto o HTTP/2 tem o mesmo cabeçalho porém com as letras minúsculas apenas.
+
+Isso acontece porque no HTTP/2 temos o mecanismo de compactação de cabeçalho, em que o que era legível em formato de texto passa por um algoritmo de compressão e se torna um cabeçalho binário que pode ser enviado pela rede e economizar recursos.
+
+Por fim, a última diferença entre os protocolos é que o HTTP/1.1 possui request obrigatório, então sempre que o cliente quer obter dados, precisará fazer uma requisição ao servidor, afinal é o que aprendemos sobre arquitetura do HTTP.
+
+Porém, observando nosso projeto novamente na tela de debug, há muitas informações retidas, então sempre que formos fazer um request pelo "localhost", com certeza precisaremos de todas as imagens que fazem parte do front-end.
+
+Mas o servidor poderia já saber isso e ser mais "proativo" e mandar as informações ao cliente. É exatamente isso que o HTTP/2 faz através da feature chamada server push, que deixa o servidor mais "inteligente".
+	
+** HTTP 3
+Na camada de transporte, falaremos sobre a variação do UDP usada pelo HTTP/3, chamada de protocolo QUIC que garantirá que a mensagem chegará ao destino e que a Internet não seja "inundada" de dados, pois o TCP possui alguns mecanismos de controle de fluxo.
+
+Ao mesmo tempo que protege, deixa as conexões mais lentas. Além disso, o TCP é um protocolo clássico assim como o UDP que já estão desenvolvidos há bastante tempo e são bem suportados por todos os navegadores, servidores e dispositivos.
+
+Já o QUIC é uma evolução do UDP criado com o objetivo de aprimorá-lo, afinal é possível que uma mensagem não chegue. Às vezes não há problema, como no caso de ver um filme online e perder apenas um dos milhares de frames.
+
+Porém, não funciona tão bem com o HTTP usando UDP diretamente, pois pode ser que o servidor não receba a resposta. Então as melhorias aplicadas ao QUIC resolvem esse problema também.
+
+Como é mais novo, já existia HTTPS que roda "em cima" do TLS, então já vem embutido e permite criar conexões mais seguras. Portanto, há diversas vantagens em utilizar o QUIC.
+
+Em comparação com HTTP/1.1 e HTTP/2 em que é necessária uma conexão TCP, depois TLS que permite o HTTPS entre cliente e servidor para finalmente pegar dados seguros, o HTTP/3 substitui o TCP e já inclui o TLS, então faz tudo de uma só vez.
+
+Como criptografa as mensagens mais rapidamente, consegue mandar mensagem HTTPS antes.
+
+Para vermos sites que o usam, acessaremos "google.com" no navegador e iremos inspecionar.
+
+Na aba "Network", recarregaremos a página e, com a coluna de protocolo já habilitada, veremos o conteúdo "h3". Portanto, o próprio Google já está usando.
+
+Infelizmente ainda não temos todas as bibliotecas disponíveis para HTTP/3 em todas as linguagens, afinal ainda está em estágio experimental.
+
+Mas de qualquer maneira, é sempre importante nos familiarizarmos com as ferramentas do futuro para nos prepararmos para usar.
+
+O HTTP/3 melhora ainda mais o desempenho do HTTP e as suas principais mudanças não são na camada de aplicação (onde roda o HTTP), mas sim na camada de transporte.
+
+** HTTP 1, 2 e 3
+No Java, é possível utilizar o HTTP/2, por exemplo, habilitando um módulo no framework Spring Boot: https://docs.spring.io/spring-boot/docs/2.0.0.M6/reference/html/howto-embedded-web-servers.html#howto-configure-http2
+
+Por outro lado, não devemos esquecer que, por mais que se adicione otimizações e melhorias (do HTTP 1 para o 2 ou o 3), os princípios básicos continuam os mesmos:
+
+- O HTTP é um protocolo que segue o modelo request-response;
+- Ele funciona na camada de aplicação;
+- As mensagens são divididas em cabeçalho e corpo;
+- Temos métodos nas requisições, e status codes nas respostas.
+
+Portanto, lembre-se que todo o conhecimento que você adquiriu nesta aula, é um complemento, pois na prática você estará utilizando todas as características do HTTP que estudamos ao longo do curso.
