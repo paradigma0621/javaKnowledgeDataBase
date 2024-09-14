@@ -1,0 +1,171 @@
+curl -X POST http://localhost:8082/shifts
+* qual desses 2 construtores é executado: o padrão, ou o que tem os mesmos campos que estão definidos no construtor específico? 
+Por padrão, o Jackson usará o construtor padrão (sem argumentos) e os setters para popular o objeto.
+* havendo a declaração do contrutor default na classe do Dto - ele executa o construtor default.
+Se for passado um objeto que tem os mesmos campos que um construtor não default (ver "* construtor default" abaixo), e se ele possuir o construtor padrão: executa o construtor padrão
+{
+  "active": true,
+  "externalId": "stringexternalId13",
+  "id": 0,
+  "name": "meuShiftTeste3",
+  "shiftTypeId": 1,
+}
+
+	
+* construtor default
+	public ShiftDto() {
+		super();
+	}
+
+esse super, por sua vez chama:
+public class Object {
+    public Object() {
+    }
+
+* construtor não-default do meu estudo.... não é executado mesmo que sejam passados apenas os campos que ele contêm (caso exista o construtor padrão)
+	public ShiftDto(Long id, String externalId, String name, Boolean active, Long shiftTypeId) {
+		super();
+		this.id = id;
+		this.externalId = externalId;
+		this.name = name;
+		this.active = active;
+		this.shiftTypeId = shiftTypeId;
+	}
+* openAPI - (caso não exista o construtor padrão) confirmei na prática passando um "personId" que não havia no Dto - ele executou a public ShiftDto(Long id, String externalId, String name, Boolean active, Long shiftTypeId) acima
+Se o payload JSON da requisição contiver campos que não pertencem ao DTO (Data Transfer Object) que você está usando no Spring Boot, o Jackson simplesmente ignorará esses campos extras durante o processo de desserialização. Eles não causarão erro, desde que o campo extra não seja obrigatório no DTO.
+
+Por padrão, o Jackson é configurado para ignorar propriedades desconhecidas. No entanto, se você quiser ter um controle mais rigoroso sobre como esses campos desconhecidos são tratados, você pode ajustar a configuração do Jackson. Aqui está um exemplo de como lidar com esses casos.
+
+### Exemplo de DTO
+
+Vamos supor que você tenha um DTO `UserDto`:
+
+```java
+public class UserDto {
+    private String name;
+    private int age;
+
+    // Construtor, getters e setters
+    public UserDto(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+```
+
+### Controller
+
+Aqui está o controlador que recebe o payload:
+
+```java
+@RestController
+public class UserController {
+
+    @PostMapping("/users")
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto user) {
+        // No ponto de execução deste método, o Jackson terá usado o construtor correspondente
+        return ResponseEntity.ok(user);
+    }
+}
+```
+
+### Payload JSON com Campo Extra
+
+Se você enviar um payload JSON que contém um campo extra `address` que não está presente no `UserDto`:
+
+```json
+{
+    "name": "John",
+    "age": 30,
+    "address": "123 Main St"
+}
+```
+
+### Comportamento Padrão do Jackson
+
+Por padrão, o Jackson ignorará o campo `address` e criará um objeto `UserDto` com apenas os campos `name` e `age` preenchidos. O campo `address` será ignorado sem causar erros.
+
+### Configuração para Lidar com Campos Desconhecidos
+
+Se você quiser garantir que o Jackson sempre ignore campos desconhecidos, você pode usar a anotação `@JsonIgnoreProperties` no seu DTO:
+
+```java
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class UserDto {
+    private String name;
+    private int age;
+
+    // Construtor, getters e setters
+    public UserDto(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+```
+
+### Configuração Global do Jackson
+
+Se você quiser definir essa configuração globalmente para todas as classes no seu projeto, você pode fazer isso na configuração do Spring Boot:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+
+@Configuration
+public class JacksonConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return objectMapper;
+    }
+}
+```
+
+Com essa configuração, o Jackson ignorará campos desconhecidos para todas as classes.
+
+### Conclusão
+
+Quando você passa um campo no JSON de requisição que não pertence ao DTO no Spring Boot com Jackson:
+- Por padrão, o campo desconhecido será ignorado.
+- Você pode usar `@JsonIgnoreProperties(ignoreUnknown = true)` no DTO para garantir que campos desconhecidos sejam sempre ignorados.
+- Você pode configurar o Jackson globalmente para ignorar campos desconhecidos usando `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false`.
+
+Dessa forma, você pode controlar como os campos desconhecidos são tratados durante a desserialização, garantindo que a sua aplicação lide com payloads JSON de maneira flexível e robusta.

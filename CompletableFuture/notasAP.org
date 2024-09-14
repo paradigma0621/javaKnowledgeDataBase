@@ -48,3 +48,38 @@ que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não f
             PowerMockito.when(CompletableFuture.allOf(any(),any())).thenReturn(ans);
 
         when(ans.join()).thenReturn(null);
+* Jeito confirmado de fazer processamento paralelo, que não com @Async
+			List<CompletableFuture<JasperPrint>> threads = new ArrayList<>();
+			for (int i = 0; i < NUMBER_THREADS; i++) {
+				final int index = i;
+				JasperReport jasperReport = compileReport(this.getClass().getResourceAsStream(reportFile.getLocation()));
+				//TODO Borsatto melhorar nome returnF1 abaixo
+				threads.add(CompletableFuture.supplyAsync(() -> returnF1(index, jasperReport, parameters.get(index), listCollectionBean, NUMBER_THREADS)));
+			}
+
+			CompletableFuture.allOf(threads.get(0), threads.get(1), threads.get(2), threads.get(3),
+									threads.get(4), threads.get(5), threads.get(6), threads.get(7)).join();
+
+
+	private JasperPrint returnF1(Integer indexThread, JasperReport reportJasper, Map<String, Object> parametros,
+								 List<NextiControlDto> listCollectionBean, int NUMBER_THREADS) {
+	...
+	}
+* código de colega a se avaliar
+		final CompletableFuture<Void> allOf = CompletableFuture.allOf(futureMapEffectiveDay, futureMapReplacement, clockingFuture);
+		allOf.thenRun(() -> listDto.forEach(wor -> wor.getHistoricDates().forEach(historicDates -> {
+            processEffectiveDay(filter, wor, historicDates, futureMapEffectiveDay.join());
+            processReplacement(wor, historicDates, futureMapReplacement.join());
+            processClockingHistoric(wor, historicDates, clockingFuture.join());
+        }))).join();
+
+	protected void processClockingHistoric(WorkplaceHistoricDto wor, HistoricDates historicDates, List<ClockingDto> clockingDtoList) {
+		if (!NextiUtil.safeNotEmpty(clockingDtoList)) return;
+		final List<ClockingDto> filteredAndSortedClocking = clockingDtoList.stream()
+                .filter(clockingDto -> historicDates.getReferenceDate().equals(dateFormat.format(clockingDto.getClockingDateTimestamp())) &&
+                        clockingDto.getWorkplaceId().equals(wor.getId()))
+				.sorted(Comparator.comparing(ClockingDto::getPersonName)
+                        .thenComparing(ClockingDto::getClockingDateTimestamp)
+                        .thenComparing(ClockingDto::getClockingTypeId)).collect(Collectors.toList());
+        historicDates.getClockings().addAll(filteredAndSortedClocking);
+	}

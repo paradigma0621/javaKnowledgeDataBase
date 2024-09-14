@@ -115,13 +115,3 @@ public class UserDao {
 
 A escolha entre `JdbcTemplate` e `NamedParameterJdbcTemplate` depende das necessidades específicas do seu projeto. Se você valoriza a legibilidade e tem consultas SQL complexas, `NamedParameterJdbcTemplate` é geralmente a melhor escolha. Para consultas mais simples, `JdbcTemplate` pode ser suficiente e mais direto de usar.
 #+END_SRC
-* a
-#+BEGIN_SRC markdown 
-#+END_SRC
-
-* b
-#+BEGIN_SRC markdown 
-#+END_SRC
-* c
-#+BEGIN_SRC markdown 
-#+END_SRC

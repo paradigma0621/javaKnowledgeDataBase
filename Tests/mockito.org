@@ -334,7 +334,7 @@ public class OPDFindObjectRepository {
             return "";
         }
     }
-
+	
 *** test
 @Test
     public void deveRetornarString() {
@@ -352,6 +352,70 @@ public class OPDFindObjectRepository {
         verify(namedParameterJdbcTemplate, times(1)).queryForObject(queryParameterDto.getSql(),
                                                         queryParameterDto.getParameter(), String.class);
     }
+** Caso de query aplicado no Report (com  nextiControlDtoMapper.mapRowToTasks...)
+*** code
+
+    @Override
+    public List<TaskStageDto> findTaskStageTypesAndDates(List<Long> tasksIds) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("tasks_ids", tasksIds, Types.INTEGER);
+
+        final String query = buildFindTasksStageDates();
+
+        return readReplicaNamedParameterJdbcTemplate.query(
+                query,
+                parameters,
+                (rs, rowNum) -> nextiControlDtoMapper.mapRowToTasksStageTypesAndDates(rs)
+        );
+    }
+
+    public TaskStageDto mapRowToTasksStageTypesAndDates(ResultSet rs) throws SQLException {
+        TaskStageDto dto = new TaskStageDto();
+        dto.setTaskId(rs.getLong("task_id"));
+        dto.setStageDate(rs.getTimestamp("stage_date"));
+        dto.setTaskStageTypeId(rs.getLong("task_stage_type_id"));
+        return dto;
+    }
+
+*** test
+    @Test
+    void deveRetornarListaComDtoDeMarcacoesDeTempoEStatusRelativaAoDesenrolarDaTask() throws SQLException {
+        List<Long> taskIds = Collections.singletonList(123L);
+        TaskStageDto expected = getTaskStagesDtoExample();
+
+        ResultSet resultSet = mock(ResultSet.class);
+        setWhensForTasksStagesResultSet(resultSet);
+
+        ArgumentCaptor<RowMapper> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
+
+        when(namedParameter.query(anyString(), any(MapSqlParameterSource.class), rowMapperCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    RowMapper<TaskStageDto> rowMapper = invocation.getArgumentAt(2, RowMapper.class);
+                    return Arrays.asList(rowMapper.mapRow(resultSet, 1));
+                });
+
+        List<TaskStageDto> actual = repository.findTaskStageTypesAndDates(taskIds);
+
+        assertThat(actual).containsExactly(expected);
+        verify(namedParameter, times(1)).query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+    }
+
+    private static TaskStageDto getTaskStagesDtoExample() {
+        TaskStageDto example = new TaskStageDto();
+        example.setTaskId(12L);
+        example.setStageDate(new Timestamp(12312312312L));
+        example.setTaskStageTypeId(Long.valueOf(TaskStageEnum.MOVABLE_FINISH.getId()));
+        return example;
+    }
+
+    private void setWhensForTasksStagesResultSet(ResultSet resultSet) throws SQLException {
+        when(resultSet.getLong("task_id")).thenReturn(12L);
+        when(resultSet.getTimestamp("stage_date")).thenReturn(new Timestamp(12312312312L));
+        when(resultSet.getLong("task_stage_type_id")).thenReturn(Long.valueOf(TaskStageEnum.MOVABLE_FINISH.getId()));
+    }
+** caso do report para o qual ainda não consegui fazer implementação desse tipo de teste
+src/main/java/com/nexti/report/dao/PersonDaoImpl.java
+método: findAllPersonsById
 * qual a diferença em relação a não passar o eq, mas apenas: verify(redisTemplate, never()).opsForValue(key)?
 Na maioria dos casos, especialmente quando lidando com um único argumento, não há diferença prática entre eq(key) e key. Ambos vão verificar se o método foi chamado com um argumento que é igual ao objeto key. A diferença se torna mais significativa quando você está lidando com múltiplos argumentos ou quando você quer usar matchers especiais para realizar verificações mais complexas ou menos estritas.
 

@@ -1,2 +1,6 @@
 Strategy e Chain of Responsability
-Um macete é que usamos em é quando o que seriam vários if's, e em outros quando tivéssemos vários "CASE:" (confirmar qual é qual)
+Um macete é que usamos:
+ - Chain of responsability  vários if's
+ - Strategy                 vários cases    
+ - Template method          aproveitamento de método/código (ex: repetir pageable - para métodos que sempre se repetem)
+

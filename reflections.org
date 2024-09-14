@@ -1,0 +1,12 @@
+setFieldValue(returnDto, i, NAME, Translate.use(column.getColumnName()));
+
+
+    private static void setFieldValue(ScheduleTransferFileModelDataDto dto, int columnIndex, String fieldType, Object value) {
+        try {
+            String setterName = "set" + "Column" + columnIndex + fieldType;
+            Method setter = dto.getClass().getMethod(setterName, value.getClass());
+            setter.invoke(dto, value);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
