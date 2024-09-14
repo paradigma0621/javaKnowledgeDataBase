@@ -413,9 +413,71 @@ public class OPDFindObjectRepository {
         when(resultSet.getTimestamp("stage_date")).thenReturn(new Timestamp(12312312312L));
         when(resultSet.getLong("task_stage_type_id")).thenReturn(Long.valueOf(TaskStageEnum.MOVABLE_FINISH.getId()));
     }
-** caso do report para o qual ainda não consegui fazer implementação desse tipo de teste
-src/main/java/com/nexti/report/dao/PersonDaoImpl.java
-método: findAllPersonsById
+** Outro caso do report para o qual consegui fazendo implementação usando RowCallbackHandler.class - ele fazia a montagem do retorno usando ", rs -> { ...(popula)... }
+*** classe repository dao/PersonDaoImpl.java - método: findAllPersonsById
+@Override
+	public List<PersonDto> findAllPersonsById(List<Long> personIds, Long customerId) {
+
+		if (Objects.isNull(personIds) || personIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		StringBuilder sql = new StringBuilder(" select ");
+		List<PersonDto> personDtoList = new ArrayList<>();
+		sql.append(" p.id as id, ")
+				.append("p.workplace_id as workplaceId")
+				.append(" from person p ")
+				.append(" where p.customer_id = ")
+				.append(customerId).append(" and p.id in (")
+				.append(convertArrayInStringForQueryIn(personIds))
+				.append((") and (p.removed is null or p.removed = 0)"));
+
+		readReplicaNamedParameterJdbcTemplate.query(sql.toString(), rs -> {
+			PersonDto personDto = new PersonDto();
+			personDto.setId(rs.getLong("id"));
+			personDto.setWorkplaceId(rs.getLong("workplaceId"));
+			personDtoList.add(personDto);
+		});
+
+		return personDtoList;
+	}
+*** class teste
+    @Test
+    void deveRetornarListaComDtoDeMarcacoesDeTempoEStatusRelativaAoDesenrolarDaTask() throws SQLException {
+        List<Long> personIds = Collections.singletonList(123L);
+        PersonDto expected = getPersonDaoExample();
+
+        doAnswer(invocation -> {
+            RowCallbackHandler handler = invocation.getArgumentAt(1, RowCallbackHandler.class);
+
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(resultSet.getLong("id")).thenReturn(expected.getId());
+            when(resultSet.getLong("workplaceId")).thenReturn(expected.getWorkplaceId());
+
+            handler.processRow(resultSet);
+
+            return null;
+        }).when(readReplicaNamedParameterJdbcTemplate).query(anyString(), any(RowCallbackHandler.class));
+
+
+        List<PersonDto> actual = personDao.findAllPersonsById(personIds, 1L);
+
+        assertThat(actual).containsExactly(expected);
+		verify(readReplicaNamedParameterJdbcTemplate, times(1)).query(anyString(), any(RowCallbackHandler.class));
+    }
+
+    private static PersonDto getPersonDaoExample() {
+        PersonDto example = new PersonDto();
+        example.setId(123L);
+        example.setWorkplaceId(456L);
+        return example;
+    }
+
+    private void setWhensForPersonResultSet(ResultSet resultSet) throws SQLException {
+        when(resultSet.getLong("id")).thenReturn(123L);
+        when(resultSet.getLong("workplaceId")).thenReturn(456L);
+    }
 * qual a diferença em relação a não passar o eq, mas apenas: verify(redisTemplate, never()).opsForValue(key)?
 Na maioria dos casos, especialmente quando lidando com um único argumento, não há diferença prática entre eq(key) e key. Ambos vão verificar se o método foi chamado com um argumento que é igual ao objeto key. A diferença se torna mais significativa quando você está lidando com múltiplos argumentos ou quando você quer usar matchers especiais para realizar verificações mais complexas ou menos estritas.
 
