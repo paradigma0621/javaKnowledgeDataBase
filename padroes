@@ -1,0 +1,11 @@
+Padrões de Projeto de Backend da Nova Mesa de Operações
+- Uso de "var" para declaração de campos locais que não fazem uso de polimorfismo (obs: é possível visualizar no código habilitando em Configurações->Edit->Inlay Hints->Types->Java)
+- Uso de Wildcard (à partir de 3 repetições)
+- Nome de método de @Test: português + camelCase
+	Exemplo:
+	@Test
+	public void  	deveLancarApiHaveRelationshipExceptionQuandoTentaDeletarElementoQuePossuiVinculo()
+	{
+
+- Descrição de commits em português
+- Testes com caminhos de sucesso E DE FALHAS 

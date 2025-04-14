@@ -1,0 +1,35 @@
+Obs: Long tenantId = customerId;
+
+	public static void forceTenant(Long tenantId) {
+		EntityManager entityManager = getEntityManager();
+		setCurrentTenant(entityManager, tenantId);
+	}
+
+
+
+	public static EntityManager getEntityManager() {
+		final Optional<?> entityManagerFactory = TransactionSynchronizationManager.getResourceMap()
+				.keySet()
+				.stream()
+				.filter(EntityManagerFactory.class::isInstance)
+					.findFirst();
+
+		if (entityManagerFactory.isPresent()) {
+			final Object resource = TransactionSynchronizationManager.getResource(entityManagerFactory.get());
+			if (resource instanceof EntityManagerHolder) {
+				return ((EntityManagerHolder) resource).getEntityManager();
+			}
+		}
+
+		return null;
+	}
+
+
+	public static final String MULTITENANT_PROPERTY_DEFAULT = "eclipselink.tenant-id";
+
+
+	public static void setCurrentTenant(EntityManager entityManager, Long tenantId) {
+		if (entityManager == null) throw new BusinessException("Can not set current Tenant");
+
+		entityManager.setProperty(PersistenceUnitProperties.MULTITENANT_PROPERTY_DEFAULT, String.valueOf(tenantId));
+	}

@@ -1,0 +1,46 @@
+
+No cabeçalho de uma classe de domínio pode-se colocar:
+@Multitenant 
+@TenantDiscriminatorColumn(name = "customer_id")
+
+* pergunta pro chatGPT
+** pergunta
+porque com o código da minha classe de domínio Task.java
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false, updatable = false, insertable = false)
+	private Customer customer;
+
+eu consigo rodar o comando repo.save(task)? O insertable não deveria barrar?
+** resposta
+#+BEGIN_SRC markdown
+A opção `insertable = false` na anotação `@JoinColumn` está relacionada diretamente à coluna do banco de dados e **não impede a operação `save()` de funcionar** para a entidade em si. O que acontece é que ela controla como o JPA gerencia a inserção de dados no campo relacionado (neste caso, o campo `customer_id`).
+
+Vamos analisar o comportamento detalhadamente:
+
+### Significado de `insertable = false`:
+
+Quando você usa `insertable = false` em uma `@JoinColumn`, isso significa que o **JPA não incluirá essa coluna (`customer_id`) na instrução `INSERT`** quando estiver persistindo a entidade `Task`. O JPA assume que o valor para essa coluna já foi definido ou é gerenciado de outra forma, por exemplo, através de um relacionamento gerenciado pelo banco de dados (um valor já existente) ou outro processo externo.
+
+### O que acontece ao executar `repo.save(task)`?
+
+1. **Salvar a entidade `Task`**: Quando você chama `repo.save(task)`, o JPA tenta salvar a entidade `Task` no banco de dados.
+2. **Coluna `customer_id` não é incluída no `INSERT`**: Como você definiu `insertable = false`, a coluna `customer_id` não será incluída na query de `INSERT` gerada pelo JPA. Isso significa que o JPA não tentará inserir um valor diretamente para essa coluna. Ele assumirá que esse valor já está presente no banco de dados ou será gerenciado de outra forma.
+3. **Relacional com `Customer`**: Embora o relacionamento entre `Task` e `Customer` seja definido, o JPA não vai persistir um novo valor para o campo `customer_id`. No entanto, a entidade `Customer` pode ainda estar associada ao `Task` de forma referencial (sem incluir essa informação na query `INSERT`).
+
+### Por que o `save()` não falha?
+
+- **A chave estrangeira já existe**: O `customer_id` provavelmente já foi inserido anteriormente no banco de dados (talvez em outro ponto do ciclo de vida do sistema ou via algum processo de inicialização).
+- **Valor gerenciado fora do `save()`**: A anotação `insertable = false` presume que o valor da coluna `customer_id` não é responsabilidade do JPA nesse ponto, então o JPA não precisa incluir esse valor explicitamente. Se o valor já estiver presente no banco de dados, o comando `save()` funcionará sem problemas.
+
+### Quando o `insertable = false` causaria problemas?
+Se o `customer_id` não estiver corretamente definido ou não existir no banco de dados antes da operação `save()`, então o JPA pode tentar salvar a entidade `Task` sem essa informação, e você pode receber erros de integridade referencial (FK) do banco de dados, pois ele esperaria que a coluna `customer_id` fosse preenchida.
+
+### Resumo:
+
+- O `insertable = false` apenas impede que o JPA tente inserir diretamente o valor na coluna `customer_id` no banco de dados.
+- Você consegue rodar o `repo.save(task)` porque o JPA ainda pode salvar a entidade `Task`, assumindo que o valor da coluna `customer_id` já está definido ou será gerenciado externamente.
+- Se o valor de `customer_id` já estiver corretamente gerenciado, a operação `save()` funcionará normalmente.
+#+END_SRC
+* Experimentação
+Mesmo rodando o comando repo.save(task) tendo feito task.setCustomer(new Customer(1L)) o Spring salva o customer_id do Tenant (e não esse 1L passado no construtor do new Customer()).

@@ -239,6 +239,30 @@ Para dentro de um teste unitário consiguir acessar métodos/objetos de dentro d
         String lorem = faker.lorem().sentence();
         String justName = faker.name().name();
 	}
+* descrição nos testes do @ParameterizedTest
+    void deveSeroDaTaskStage(String description,  //******** é preciso adicionar essa linha para que sejam setados os nomes dos testes. Obs: ela não é mencionada dentro do teste
+                             List<TaskStageDto> taskStageDtos,
+                             LocalDate expected) {
+...}
+
+    public static Stream<Arguments> taskStagesArgumentsToCalculateExecutionDate() {
+        TaskStageDto taskStageDto = new TaskStageDto();
+        taskStageDto.setTaskId(1L);
+        return Stream.of(
+                Arguments.of("Descrição de teste 1", getTaskStagesExample(), LocalDate.of(2023, 8, 20)),
+                Arguments.of("Descrição de teste 2", getTaskStagesExampleWhenDay20InUTCis19InBrazilForSaoPauloTimezone(), LocalDate.of(2023, 8, 19)),
+                Arguments.of("Descrição de teste 3", Collections.singletonList(taskStageDto), null)
+        );
+    }
+* Forma inteligente de fazer o @ParameterizedTest
+ao invés de parametrizar uma data início, uma fim, outra iníciom outra fim, ainda outra..... fazer como abaixo (manter uma fixa e adicionar e remover tempo nela)
+                Arguments.of("DTO1 com data de registro menor que o DTO2, retornar DTO1",
+                             new TaskWorkplaceDto(1L, 1L, 1L, dateTest.minusDays(1)),
+                             new TaskWorkplaceDto(2L, 1L, 1L, dateTest),
+                             new TaskWorkplaceDto(1L, 1L, 1L, dateTest.minusDays(1))),
+
+obs: parametrizações de:
+(String descriptionTest, TaskWorkplaceDto dto1, TaskWorkplaceDto dto2, TaskWorkplaceDto expectedDTO) 
 * @ParameterizedTest
 class ClockingTypeEnumTest extends TestUnitHelper {
     @ParameterizedTest
@@ -701,4 +725,36 @@ src/test/java/com/nexti/core/server/repository/comment/sql/OPDMountSQLFindWorkpl
         assertThat(actual.getParameter().getValue("workplace_id")).isEqualTo(workplaceId);
         assertThat(actual.getParameter().getValue("observation")).isEqualTo("%"+searchTerm+"%");
         verify(securityService, times(1)).getLoggedCustomer();
+    }
+* Criar campos diferentes para testar o valor que irá parametrizar o when, e o valor do expected
+
+    @Test
+    void deveRetornarPerformaceOperacional() {
+        BigDecimal performance = BigDecimal.ONE;
+        when(finderWithClientFilterBindService.findOperationalPerformance(any())).thenReturn(performance);
+        BigDecimal expected = BigDecimal.ONE;
+        // When
+        BigDecimal actual = controller.findOperationalPerformance(new FilterParamDto());
+        // Then
+        assertThat(actual).isEqualTo(expected);
+        verify(finderWithClientFilterBindService, times(1)).findOperationalPerformance(any());
+    }
+* Testes dos parameters
+@Test
+    void deveRetornarQueryParameterQueBuscaTarefasQueFoiFinalizadaPeloColaboradorDoPosto() {
+
+        // Given
+        Long personId = 1L;
+        Long customerId = 1L;
+        LocalDate referenceDate = LocalDate.of(2024, 10, 31);
+
+        // When
+        OPDQueryParameterDto actual = service.findTaskFinishedWorkplace(personId, referenceDate, customerId);
+
+        // Then
+        assertThat(actual.getParameter().getValue("customer_id")).isEqualTo(customerId);
+        assertThat(actual.getParameter().getValue("person_id")).isEqualTo(personId);
+        assertThat(actual.getParameter().getValue("reference_date")).isEqualTo(referenceDate);
+        assertThat(actual.getParameter().getValue("task_status")).isEqualTo(TaskStatusEnum.getStatusFinished());
+        verify(securityService, never()).getLoggedCustomer();
     }

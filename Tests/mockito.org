@@ -273,7 +273,7 @@ class ShiftRepositoryImplTest extends TestUnitHelper {
         private QueryParameterDto returnQueryParameterDto() {
         return new QueryParameterDto("", new MapSqlParameterSource());
     }
-** Caso de queryForObject
+** Caso de queryForObject 1
 *** repository
     @Override
     public Optional<Long> findTotalReplacementWorkplace(QueryParameterDto queryParameteDto) {
@@ -352,6 +352,218 @@ public class OPDFindObjectRepository {
         verify(namedParameterJdbcTemplate, times(1)).queryForObject(queryParameterDto.getSql(),
                                                         queryParameterDto.getParameter(), String.class);
     }
+** Caso de queryForObject - caso 4 (Core) - detalhe que nesse faço tb o teste do verify() do .queryForObject(
+*** repository
+public Page<TaskDto> findTaskStageByFilterPageable(final ControlFilterDto filter, final Pageable pageable) {
+        final MapSqlParameterSource parameters = buildQueryParametersToFindTaskStage(filter);
+        final String query = buildTaskStageQueryToFindTaskStages(filter, pageable);
+        final String countQuery = buildCountQueryToFindTaskStages(filter);
+
+        Long total = namedParameterJdbcTemplate.queryForObject(countQuery, parameters, Long.class);
+        List<TaskDto> taskDtoList = namedParameterJdbcTemplate.query(query, parameters, this::mapTaskDtoToFindTaskStages);
+
+        return new PageImpl<>(taskDtoList, pageable, total);
+    }
+*** test
+    @Test
+    void deveRetornarListaComDtoDeMarcacoesDeTempoEStatusRelativaAoDesenrolarDaTask() throws SQLException {
+        ControlFilterDto filter = new ControlFilterDto();
+        Pageable pageable = new PageRequest(0,10);
+        TaskDto expected = getTaskDtoExample();
+
+        ResultSet resultSet = mock(ResultSet.class);
+        setWhensForTasksResultSet(resultSet);
+
+        ArgumentCaptor<RowMapper> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
+
+        when(namedParameterJdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), rowMapperCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    RowMapper<TaskDto> rowMapper = invocation.getArgumentAt(2, RowMapper.class);
+                    return Arrays.asList(rowMapper.mapRow(resultSet, 1));
+                });
+
+        Long expectedNumberElements = 1L;
+        when(namedParameterJdbcTemplate.queryForObject(anyString(), any(MapSqlParameterSource.class), eq(Long.class)))
+                .thenReturn(expectedNumberElements);
+
+        Page<TaskDto> actual = repository.findTaskStageByFilterPageable(filter, pageable);
+
+        assertThat(actual).containsExactly(expected);
+        verify(namedParameterJdbcTemplate, times(1)).query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class));
+        verify(namedParameterJdbcTemplate, times(1)).queryForObject(anyString(), any(MapSqlParameterSource.class), eq(Long.class));  //****** O detalhe é esse, ond uso eq(Long.class)
+    }
+** Caso de queryForObject - caso 5 (Core) - enxuto
+*** repository
+
+    @Override
+    public Long findNumberQuestionsJustifiedAndExpiredByTaskIds(List<Long> taskIdsJustifiedAndExpired,
+                                                                FilterParamDto filterParamDto) {
+        if (taskIdsJustifiedAndExpired.isEmpty())
+            return 0L;
+
+        StringBuilder query = new StringBuilder();
+        applyFindTotalQuestionsForJustifiedAndExpiredOperationalTasks(query);
+
+        MapSqlParameterSource parameter = new MapSqlParameterSource();
+        parameter.addValue("task_ids", taskIdsJustifiedAndExpired, Types.INTEGER);
+        parameter.addValue("finish_date", filterParamDto.getFinishDate().atTime(LocalTime.MAX), Types.TIMESTAMP);
+
+        return namedParameterJdbcTemplate.queryForObject(query.toString(), parameter, Long.class);
+    }
+*** test
+    @Test
+    public void deveRetornarNumeroTotalDeQuestoesParaTarefasJustificadasEExpiradas() {
+        List<Long> taskIdsJustifiedAndExpired = Collections.singletonList(1L);
+        FilterParamDto filterParamDto = new FilterParamDto();
+        Long expected = 10L;
+
+        when(namedParameterJdbcTemplate.queryForObject(anyString(), any(MapSqlParameterSource.class), eq(Long.class)))
+                .thenReturn(expected);
+
+        Long actual = repository.findNumberQuestionsJustifiedAndExpiredByTaskIds(taskIdsJustifiedAndExpired, filterParamDto);
+
+        assertEquals(expected, actual);
+		verify(namedParameterJdbcTemplate, times(1)).queryForObject(anyString(), any(SqlParameterSource.class), eq(Long.class));
+    }
+
+** Caso de queryForList - Caso 1 (Core)
+*** repository
+
+    public List<Long> getTasksPartialJustifiedQuestionsIds(FilterParamDto filterParamDto, List<Long> taskIdsPartialJustified) {
+        if (taskIdsPartialJustified.isEmpty())
+            return new ArrayList<>();
+
+        MapSqlParameterSource parameterSource =  new MapSqlParameterSource();
+        parameterSource.addValue("task_ids", taskIdsPartialJustified, Types.INTEGER);
+        parameterSource.addValue("finish_date", filterParamDto.getFinishDate().atTime(LocalTime.MAX), Types.TIMESTAMP);
+
+        StringBuilder query = new StringBuilder();
+        findQuestionsForPartialJustifiedTasks(query);
+
+        return namedParameterJdbcTemplate.queryForList(query.toString(), parameterSource, Long.class);
+		verify(namedParameterJdbcTemplate, times(1)).queryForList(anyString(), any(SqlParameterSource.class), eq(Long.class));
+    }
+*** test
+
+    @Test
+    public void deveRetornarListaDeIdsDeQuestoesParcialmenteJustificadas() {
+        FilterParamDto filterParamDto = new FilterParamDto();
+        List<Long> expected = Arrays.asList(1L, 2L, 3L);
+        List<Long> taskIdsPartialJustified = Arrays.asList(1L, 2L, 3L, 4L, 5L);
+
+        when(namedParameterJdbcTemplate.queryForList(anyString(), any(SqlParameterSource.class), eq(Long.class)))
+                .thenReturn(expected);
+
+        List<Long>  actual = repository.getTasksPartialJustifiedQuestionsIds(filterParamDto, taskIdsPartialJustified);
+
+        assertEquals(expected, actual);
+    }
+** Caso onde usa query via jdbcTemplate e (rs ->  { ... } ==> RowCallbackHandler)
+*** code
+    public Page<TaskDto> findPageableCreatedByFilter(TaskDto dto, ControlFilterDto filter, Pageable pageable) {
+        String registerDate = NextiUtil.formatDate(dto.getRegisterDate(), "yyyy-MM-dd");
+        Long customerId = SecurityUtil.getCustomerOrThrowException().getId();
+
+        StringBuilder query = new StringBuilder();
+        query.append(" SELECT  t.id                 AS task_id, ");
+        query.append("         ch.name              AS checklist_name, ");
+        query.append("         ch.id                AS checklist_id, ");
+        query.append("         wor.id               AS workplace_id, ");
+        query.append("         wor.name             AS workplace_name, ");
+        query.append("         t.task_type_id       AS task_type_id, ");
+        query.append("         t.external_place     AS task_external_place, ");
+        query.append("         t.register_date     AS register_date, ");
+        query.append("         ua.id                AS user_account_id, ");
+        query.append("         ua.name              AS user_account_name ");
+        query.append(" FROM task t ");
+        query.append(" INNER JOIN user_account ua ON ua.id = t.user_account_id ");
+        query.append(" LEFT JOIN checklist ch ON ch.id = t.checklist_id AND ch.customer_id = ").append(customerId);
+        query.append(" LEFT JOIN workplace wor ON wor.id = t.workplace_id AND wor.customer_id = ").append(customerId);
+        query.append(" LEFT JOIN task_stage ts ON ts.task_id = t.id ");
+
+        if (!NextiUtil.arrayIsEmpty(dto.getAreaIds())) {
+            query.append(" LEFT JOIN area_workplace aw ON aw.workplace_id  = wor.id  ");
+            query.append(" LEFT JOIN area_client ac ON ac.client_id  = wor.client_id  ");
+        }
+
+        query.append(" WHERE t.customer_id = ").append(customerId);
+        query.append(" AND t.register_date = '").append(registerDate).append("' ");
+
+        taskStagesFilterPopulate(dto, query);
+
+        query.append(" AND ts.id IS NULL ");
+        query.append(" ORDER BY t.register_date ASC ");
+        query.append(NextiUtil.createQueryPagination(pageable));
+
+        StringBuilder count = new StringBuilder();
+        count.append(" SELECT   count(t.id) ");
+        count.append(" FROM task t ");
+        count.append(" INNER JOIN user_account ua ON ua.id = t.user_account_id ");
+        count.append(" LEFT JOIN checklist ch ON ch.id = t.checklist_id AND ch.customer_id = ").append(customerId);
+        count.append(" LEFT JOIN workplace wor ON wor.id = t.workplace_id AND wor.customer_id = ").append(customerId);
+        count.append(" LEFT JOIN task_stage ts ON ts.task_id = t.id ");
+
+        if (!NextiUtil.arrayIsEmpty(dto.getAreaIds())) {
+            count.append(" LEFT JOIN area_workplace aw ON aw.workplace_id  = wor.id  ");
+            count.append(" LEFT JOIN area_client ac ON ac.client_id  = wor.client_id  ");
+        }
+
+        count.append(" WHERE t.customer_id = ").append(customerId);
+        count.append(" AND t.register_date = '").append(registerDate).append("' ");
+
+        taskStagesFilterPopulate(dto, count);
+
+        count.append(" AND ts.id IS NULL ");
+
+        Long total = jdbcTemplate.queryForObject(count.toString(), Long.class);
+
+        List<TaskDto> taskDtoList = new ArrayList<>();
+        jdbcTemplate.query(query.toString(), rs ->{
+            TaskDto taskDto = new TaskDto();
+            taskDto.setId(rs.getLong("task_id"));
+            taskDto.setChecklistName(rs.getString("checklist_name"));
+            taskDto.setChecklistId(rs.getLong("checklist_id"));
+            taskDto.setWorkplaceId(rs.getLong("workplace_id"));
+            taskDto.setWorkplaceName(rs.getString("workplace_name") != null ? rs.getString("workplace_name") : rs.getString("task_external_place"));
+            taskDto.setTaskTypeId(rs.getLong("task_type_id"));
+            taskDto.setUserAccountId(rs.getLong("user_account_id"));
+            taskDto.setUserAccountName(rs.getString("user_account_name"));
+            taskDto.setRegisterDate(rs.getDate("register_date"));
+            taskDtoList.add(taskDto);
+        });
+
+        return new PageImpl<>(taskDtoList, pageable, total);
+    }
+
+*** test
+    @Test
+    void deveRetornarPageComTaskDtoDeDetalhesDeTarefasDoTipoARealizar() throws SQLException {
+        ControlFilterDto filter = new ControlFilterDto();
+        TaskDto taskDto = new TaskDto();
+        Pageable pageable = new PageRequest(0,10);
+        TaskDto expected = getTaskDtoExampleCreatedType();
+
+        ResultSet resultSet = mock(ResultSet.class);
+        setWhensForTasksCreatedResultSet(resultSet);
+
+        doAnswer(invocation -> {
+            RowCallbackHandler rch = invocation.getArgumentAt(1, RowCallbackHandler.class);
+            rch.processRow(resultSet);
+            return null;
+        }).when(jdbcTemplate)
+                .query(anyString(), any(RowCallbackHandler.class));
+
+        Long expectedNumberElements = 1L;
+        when(jdbcTemplate.queryForObject(anyString(), eq(Long.class)))
+                .thenReturn(expectedNumberElements);
+
+        Page<TaskDto> actual = repository.findPageableCreatedByFilter(taskDto, filter, pageable);
+
+        assertThat(actual).containsExactly(expected);
+        verify(jdbcTemplate, times(1)).query(anyString(), any(RowCallbackHandler.class));
+        verify(jdbcTemplate, times(1)).queryForObject(anyString(), eq(Long.class));
+    }
+
 ** Caso de query aplicado no Report (com  nextiControlDtoMapper.mapRowToTasks...)
 *** code
 
@@ -478,6 +690,256 @@ public class OPDFindObjectRepository {
         when(resultSet.getLong("id")).thenReturn(123L);
         when(resultSet.getLong("workplaceId")).thenReturn(456L);
     }
+** Caso do report onde eu não retorno nada dentro do método .query, mas populo map
+*** code
+
+    @Override
+    public Map<Long, List<String>> findAreasBy(List<Long> locationIds, Integer customerId) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("location_ids", locationIds, Types.INTEGER);
+        parameters.addValue("customer_id", customerId, Types.INTEGER);
+
+        final String query = buildFindAreas();
+
+        Map<Long, List<String>> areaByLocationId = new HashMap<>();
+
+        readReplicaNamedParameterJdbcTemplate.query(query, parameters, (rs, row) ->
+            areaByLocationId
+                    .computeIfAbsent(rs.getLong("location_id"), key -> new ArrayList<>())
+                    .add(rs.getString("area_name"))
+        );
+
+        return areaByLocationId;
+    }
+
+*** test
+    @Test
+    void deveRetornarMapaComStringDeNomeDeArea() throws SQLException {
+        Long locationId = 1234L;
+        Integer customerId = 458;
+        String areaName = "Area XYZ";
+        List<Long> locationIds = Collections.singletonList(locationId);
+
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.getLong("location_id")).thenReturn(locationId);
+        when(resultSet.getString("area_name")).thenReturn(areaName);
+
+        ArgumentCaptor<RowMapper> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
+
+        when(namedParameter.query(anyString(), any(SqlParameterSource.class), rowMapperCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    RowMapper<?> rowMapper = rowMapperCaptor.getValue();
+                    rowMapper.mapRow(resultSet, 1);
+                    return null;
+                });
+
+        Map<Long, List<String>> actual = nextiControlV2Dao.findAreasBy(locationIds, customerId);
+
+        assertThat(actual.containsKey(locationId)).isTrue();
+        assertThat(actual.get(locationId)).containsExactly(areaName);
+
+        verify(namedParameter, times(1)).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
+    }
+
+** Exemplo de teste onde é salvo um registro no banco e é retornado o id do mesmo (KeyHolder)
+*** repository
+
+	public Long saveDataIntoOperationDeskFilter(String name, Long userAccountIdLogged, Long customerId) {
+
+		String query = "INSERT INTO operation_desk_filter(customer_id, name, user_account_id, register_date) " +
+				" SELECT :customer_id, :name, :user_account_id, NOW()";
+
+		MapSqlParameterSource parameters = new MapSqlParameterSource();
+		parameters.addValue("customer_id", customerId, Types.INTEGER);
+		parameters.addValue("name", name, Types.VARCHAR);
+		parameters.addValue("user_account_id", userAccountIdLogged, Types.INTEGER);
+
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		namedParameterJdbcTemplate.update(query, parameters, keyHolder, new String[]{"id"});
+		return keyHolder.getKey().longValue();
+	}
+*** teste
+    @Test
+    void deveSalvarDadosNaTabelaOperationDeskFilterERetornarIdGerado() {
+        String name = "Filter Name";
+        Long customerId = 1L;
+        Long userAccountIdLogged = 123L;
+        Long expected = 456L;
+
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        Map<String, Object> keyMap = new HashMap<>();
+        keyMap.put("id", expected);
+        keyHolder.getKeyList().add(keyMap);
+
+        doAnswer(invocation -> {
+            KeyHolder providedKeyHolder = (KeyHolder) invocation.getArguments()[2];
+            providedKeyHolder.getKeyList().add(keyMap);
+            return 1;
+        }).when(namedParameterJdbcTemplate).update(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(KeyHolder.class),
+                any(String[].class)
+        );
+
+        Long actual = repository.saveDataIntoOperationDeskFilter(name, userAccountIdLogged, customerId);
+
+        assertEquals(expected, actual);
+        verify(namedParameterJdbcTemplate).update(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(KeyHolder.class),
+                any(String[].class)
+        );
+    }
+** Exemplo do report que usa ResultSetExtractor
+*** repository
+
+    @Override
+    public CustomerDto findLogoAndTimezoneFromCustomer(NextiControlFilterDto filter) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("customer_id", filter.getIdsCustomer().get(0), Types.INTEGER);
+
+        final String query = buildLogoAndTimezoneFromCustomerQuery();
+
+        return readReplicaNamedParameterJdbcTemplate.query(query, parameters, rs -> {
+                if (rs.next()) {
+                    CustomerDto customerDto = new CustomerDto();
+                    customerDto.setLogo(rs.getString("logoImagePath"));
+                    customerDto.setTimeZone(rs.getString("timezone"));
+                    return customerDto;
+                } else
+                    return null;
+            }
+        );
+    }
+*** teste
+    @Test
+    void deveRetornarDtoComInformacoesDeTimezoneELogoDeCustomer() throws SQLException {
+        NextiControlFilterDto filter = getGenericNextiControlFilterDto();
+        CustomerDto expected = getCustomerDtoExample();
+
+        doAnswer(invocation -> {
+            ResultSet resultSet = mock(ResultSet.class);
+            when(resultSet.next()).thenReturn(true);
+            when(resultSet.getString("logoImagePath")).thenReturn("https://nexti-files.s3.amazonaws.com/458/Logo/G4S+-++ambriente.png");
+            when(resultSet.getString("timezone")).thenReturn("America/Sao_Paulo");
+
+            ResultSetExtractor<ScheduleDto> rse = invocation.getArgumentAt(2, ResultSetExtractor.class);
+
+            return rse.extractData(resultSet);
+        }).when(namedParameter)
+                .query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+
+        CustomerDto actual = nextiControlV2Dao.findLogoAndTimezoneFromCustomer(filter);
+
+        assertEquals(expected, actual);
+        verify(namedParameter, times(1)).query(anyString(), any(SqlParameterSource.class), any(ResultSetExtractor.class));
+    }
+
+    private CustomerDto getCustomerDtoExample() {
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setLogo("https://nexti-files.s3.amazonaws.com/458/Logo/G4S+-++ambriente.png");
+        customerDto.setTimeZone("America/Sao_Paulo");
+        return customerDto;
+    }
+** Exemplo do core retornando Optional<String> e usando ResultSetExtractor
+	
+	@Test
+	void deveRetornarOptionalDeTimezoneDoPostoOuDoCustomer() {
+		// Given
+		String expected = "America/Sao_Paulo";
+		OPDQueryParameterDto queryParameterDto = new OPDQueryParameterDto("", new MapSqlParameterSource());
+
+		doAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				ResultSet result = mock(ResultSet.class);
+				when(result.next()).thenReturn(true);
+				when(result.getString("workplaceTimezone")).thenReturn("America/Sao_Paulo");
+				ResultSetExtractor<String> rse = invocation.getArgumentAt(2, ResultSetExtractor.class);
+				return rse.extractData(result);
+			}
+		}).when(namedParameter).query(anyString(), any(SqlParameterSource.class), any(ResultSetExtractor.class));
+
+		// When
+		Optional<String> actual = repository.findTimezone(queryParameterDto);
+
+		// Then
+		assertEquals(expected, actual.get());
+		verify(namedParameter, times(1))
+				.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+	}
+** Exemplo de quando usa 
+*** repository JdbcTemplate
+	private JdbcTemplate readReplicaJdbcTemplate;
+
+    @Override
+    public List<PersonDto> findPersonWithClockingButNotAccess(Filter filter) {
+		FilterIdsDto filterIdsDto = new FilterIdsDto(filter);
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("   select ");
+			.....
+  
+
+
+		return readReplicaJdbcTemplate.query(sql.toString(), (rs, rowNum) -> PersonDto.createPersonWithClockingButNotAccess(rs));
+    }
+
+*** teste
+	@Mock
+	private JdbcTemplate readReplicaJdbcTemplate;
+
+	@ParameterizedTest
+	@MethodSource("validDataProviderForPersonHasClockingButNotAccessReport")
+	void deveRetornarPersonDtoParaGeracaoDeRelatorioDeColaboradoresQuePossuemHorarioNoDiaMasNaoPossuemAcesso(
+				String description,	PersonFilterDto filter) throws SQLException {
+		PersonDto expected = returnPersonDtoExampleForPersonHasClockingButNotAccessReport();
+
+		ResultSet resultSet = mock(ResultSet.class);
+		setPersonDtoWhensForPersonHasClockingButNotAccessReport(resultSet);
+
+		ArgumentCaptor<RowMapper> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
+
+		when(readReplicaJdbcTemplate.query(anyString(), rowMapperCaptor.capture()))
+				.thenAnswer(invocation -> {
+					RowMapper<PersonDto> rowMapper = invocation.getArgumentAt(1, RowMapper.class);
+					return Arrays.asList(rowMapper.mapRow(resultSet, 1));  //***************************  ", 1"
+				});
+
+		List<PersonDto> personDtos = personDao.findPersonWithClockingButNotAccess(filter);
+		PersonDto actual = personDtos.get(0);
+
+		assertEquals(expected.toString(), actual.toString());
+		verify(readReplicaJdbcTemplate, times(1)).query(anyString(), any(RowMapper.class));
+	}
+
+
+
+** Exemplo do core
+*** test
+	@Test
+	void deveRetornarColoredShiftIndicatorDtoParaEspecificacaoDoNomeDoHorarioDoDiaRelativoNoCartaoPonto() throws SQLException {
+		// Given
+		List<ColoredShiftIndicatorDto> expected = returnColoredShiftIndicatorDtoExample();
+
+		ResultSet resultSet = mock(ResultSet.class);
+		setColoredShiftIndicatorDtoWhens(resultSet);
+
+		ArgumentCaptor<RowMapper> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
+
+		when(namedParameter.query(anyString(), any(SqlParameterSource.class), rowMapperCaptor.capture())).thenAnswer(invocation -> {
+			RowMapper<ColoredShiftIndicatorDto> rowMapper = invocation.getArgumentAt(2, RowMapper.class);
+			return Arrays.asList(rowMapper.mapRow(resultSet, 1));
+		});
+
+		List<ColoredShiftIndicatorDto> actual = repo.findSchedulePersonReplacementPeriod(1L, new Date(11111), new Date(22222));
+
+		assertThat(actual).containsExactlyElementsOf(expected);
+		verify(namedParameter, times(1)).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
+	}
+
 * qual a diferença em relação a não passar o eq, mas apenas: verify(redisTemplate, never()).opsForValue(key)?
 Na maioria dos casos, especialmente quando lidando com um único argumento, não há diferença prática entre eq(key) e key. Ambos vão verificar se o método foi chamado com um argumento que é igual ao objeto key. A diferença se torna mais significativa quando você está lidando com múltiplos argumentos ou quando você quer usar matchers especiais para realizar verificações mais complexas ou menos estritas.
 
