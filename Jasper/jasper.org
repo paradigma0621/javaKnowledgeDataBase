@@ -1,0 +1,128 @@
+* configuração de imagem que adquiri um tamanho limite máximo, porém se for menor, fica menor
+		<band height="400">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<image scaleImage="RealSize" onErrorType="Blank">
+				<reportElement x="5" y="0" width="465" height="390" uuid="3b62801d-17ec-4940-b239-a54645ae1d65">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineColor="#73F08A"/>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#030303"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#030303"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#030303"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#030303"/>
+				</box>
+				<imageExpression><![CDATA[$F{reportImage}]]></imageExpression>
+			</image>
+		</band>
+
+* o que significa o "Position Type"="Float" no Jasper?
+No JasperReports, o atributo **"Position Type"** com valor **"Float"** controla como um elemento ou componente (como um campo, texto ou imagem) será posicionado em relação aos outros elementos no relatório. 
+
+### Significado do "Float":
+
+1. **Comportamento Flutuante**:
+   - Quando o "Position Type" é definido como **"Float"**, o elemento flutua em relação aos outros componentes que estão acima dele.
+   - Isso significa que o elemento será empurrado para baixo se os elementos anteriores ocuparem mais espaço do que o previsto (como em casos de crescimento dinâmico de campos ou sub-relatórios).
+
+2. **Ajuste Dinâmico**:
+   - É útil quando você trabalha com elementos cujo tamanho ou conteúdo pode variar, como campos de texto com dados longos, listas ou sub-relatórios.
+   - Isso evita sobreposição entre os elementos, pois o sistema ajusta automaticamente a posição do componente com base na altura real dos itens acima dele.
+
+### Comparação com "Fix Relative to Top" (Posição Fixa):
+- **Fix Relative to Top**:
+  - Nesse modo, o componente mantém sua posição exata, independentemente do que acontece com os outros elementos.
+  - Isso pode causar sobreposição caso os elementos acima mudem de tamanho.
+
+- **Float**:
+  - O componente se move para baixo (ou flutua) conforme o espaço necessário para os elementos anteriores aumenta.
+
+### Quando usar "Float":
+- **Textos ou campos de tamanho variável**: Quando você espera que um campo tenha tamanho dinâmico, como descrições longas ou campos de banco de dados com diferentes comprimentos de texto.
+- **Sub-relatórios ou tabelas dinâmicas**: Para garantir que o conteúdo do sub-relatório ou da tabela não sobreponha outros elementos.
+- **Seções dinâmicas**: Relatórios que possuem várias seções cujas alturas podem mudar.
+
+### Exemplo:
+Imagine um relatório com dois campos de texto:
+1. O campo superior contém uma descrição longa que pode expandir.
+2. O campo inferior tem "Position Type" = **"Float"**.
+
+- Se a descrição longa aumentar, o campo inferior será automaticamente empurrado para baixo, mantendo a integridade visual do relatório.
+
+* no jasper, no componente Image: o que significa as parametrizações "Lazy" e "Evaluation time"?
+No JasperReports, ao configurar um componente **Image**, as opções **"Lazy"** e **"Evaluation Time"** controlam como a imagem será carregada e avaliada no relatório. Aqui está o que cada uma significa:
+
+---
+
+### **1. Lazy (Carregamento Preguiçoso)**
+
+- **Definição**:
+  - A propriedade **Lazy** controla **quando e como a imagem será carregada na memória** durante a geração do relatório.
+
+- **Valores**:
+  - **True (Ativado)**:
+    - A imagem será carregada **somente quando for realmente necessária** para ser exibida.
+    - Isso ajuda a economizar memória, especialmente em relatórios com muitas imagens grandes.
+    - Útil para situações em que as imagens são carregadas de fontes externas, como URLs ou arquivos.
+
+  - **False (Desativado)**:
+    - A imagem será carregada imediatamente, mesmo que ainda não esteja visível no relatório.
+    - Pode aumentar o uso de memória, mas garante que todas as imagens estejam disponíveis desde o início.
+
+- **Quando usar Lazy = True**:
+  - Relatórios com muitas imagens ou imagens grandes.
+  - Imagens carregadas dinamicamente (ex.: de uma URL ou banco de dados).
+  - Para melhorar o desempenho e economizar memória.
+
+---
+
+### **2. Evaluation Time (Tempo de Avaliação)**
+
+- **Definição**:
+  - O **"Evaluation Time"** define **em qual momento da execução do relatório** o valor da imagem será avaliado e resolvido.
+  - Isso é importante em casos onde o valor da imagem depende de outros dados que são processados em diferentes momentos.
+
+- **Opções e Significados**:
+  - **Now** (Padrão):
+    - A avaliação ocorre imediatamente, no momento em que o componente é processado.
+    - Use isso se a imagem não depende de dados dinâmicos.
+
+  - **Report**:
+    - A avaliação ocorre no final da execução do relatório.
+    - Útil se o valor da imagem depende de dados agregados ou cálculos feitos durante todo o relatório.
+
+  - **Page**:
+    - A avaliação ocorre no final de cada página.
+    - Útil para exibir imagens que dependem de dados ou cálculos por página.
+
+  - **Column**:
+    - A avaliação ocorre no final de cada coluna.
+    - Relevante para relatórios com layouts de várias colunas.
+
+  - **Group**:
+    - A avaliação ocorre no final de um grupo específico.
+    - Útil para exibir imagens que dependem de valores agrupados.
+
+  - **Band**:
+    - A avaliação ocorre quando a banda é processada.
+    - Use isso se a imagem é específica de uma banda no relatório.
+
+- **Quando usar cada tipo de Evaluation Time**:
+  - **Now**: Para imagens estáticas ou que não dependem de dados dinâmicos.
+  - **Report**: Para imagens que devem ser definidas após o relatório completo ser processado.
+  - **Page** ou **Group**: Para imagens relacionadas a páginas ou agrupamentos específicos.
+
+---
+
+### **Exemplo Prático**:
+
+1. **Lazy = True e Evaluation Time = Now**:
+   - Uma imagem carregada de uma URL ou banco de dados que não depende de cálculos dinâmicos.
+   - O carregamento será adiado até que a imagem precise ser exibida.
+
+2. **Lazy = False e Evaluation Time = Group**:
+   - Uma imagem que depende de dados agregados dentro de um grupo.
+   - O carregamento ocorrerá imediatamente, mas será avaliado apenas ao final do grupo.

@@ -1,0 +1,63 @@
+* como saber a ordem de atribuição que é gerada pelo construtor
+** pergunta
+como posso criar uma instância de:
+import lombok.Data;
+
+@Data
+public class ScheduleAndScheduleTurnNamesDto
+{
+	private String scheduleName;
+	private String scheduleTurnName;
+}
+garantindo que a primeira string fornecida no construtor é scheduleName?
+** resposta
+Para garantir que a primeira string fornecida no construtor seja atribuída a `scheduleName`, você pode usar a anotação `@AllArgsConstructor` do Lombok ou definir manualmente um construtor.
+
+## Solução 1: Usando `@AllArgsConstructor`
+A anotação `@AllArgsConstructor` gera um construtor com **todos os campos na ordem em que estão declarados na classe**:
+
+```java
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ScheduleAndScheduleTurnNamesDto {
+    private String scheduleName;
+    private String scheduleTurnName;
+}
+```
+
+Agora, você pode instanciar a classe garantindo a ordem correta:
+
+```java
+ScheduleAndScheduleTurnNamesDto dto = new ScheduleAndScheduleTurnNamesDto("Morning Shift", "First Half");
+System.out.println(dto.getScheduleName()); // Morning Shift
+System.out.println(dto.getScheduleTurnName()); // First Half
+```
+
+---
+
+## Solução 2: Criando um Construtor Manualmente
+Se quiser ter mais controle e evitar a inclusão automática de um construtor pelo Lombok, você pode definir um manualmente:
+
+```java
+import lombok.Data;
+
+@Data
+public class ScheduleAndScheduleTurnNamesDto {
+    private String scheduleName;
+    private String scheduleTurnName;
+
+    public ScheduleAndScheduleTurnNamesDto(String scheduleName, String scheduleTurnName) {
+        this.scheduleName = scheduleName;
+        this.scheduleTurnName = scheduleTurnName;
+    }
+}
+```
+
+Isso impede que Lombok gere um construtor diferente e mantém a ordem dos parâmetros sob controle.
+
+Essa abordagem é útil se futuramente for necessário adicionar validações dentro do construtor.

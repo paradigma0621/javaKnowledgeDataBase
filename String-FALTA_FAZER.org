@@ -2,7 +2,7 @@ pegar conteudo daqui:
 https://www.digitalocean.com/community/tutorials/java-string
 
 
-
+	
 * Strings
 ** Múltiplas criações
 Cada subconcatenação de strings gera uma string no Pool de Strings. Ex:
@@ -26,3 +26,98 @@ String nome = new String();
 nome="Pedro";
 (??)
 
+
+* myStr.codePoints()
+No **Java 8**, o método **`s.codePoints()`** retorna um **`IntStream`** dos **códigos Unicode** (code points) da `String s`.
+
+---
+
+## **O que é um code point?**
+Em Unicode, um **code point** é um número inteiro que representa um caractere. Ele pode ser de **16 bits** (para caracteres comuns) ou **32 bits** (para caracteres especiais, como emojis e símbolos raros).
+
+- O Java **representa Strings internamente como UTF-16**, onde cada **char** pode ocupar **1 ou 2 unidades de 16 bits**.
+- O método **`s.codePoints()`** retorna um fluxo (`IntStream`) de inteiros correspondentes a cada **code point**, garantindo que caracteres acima de `0xFFFF` sejam corretamente interpretados.
+
+---
+
+## **Exemplo Simples**
+```java
+public class CodePointsExample {
+    public static void main(String[] args) {
+        String s = "A𐍈B"; // O caractere 𐍈 é um code point acima de U+FFFF
+
+        s.codePoints().forEach(cp -> System.out.println("Code point: " + cp));
+    }
+}
+```
+
+**Saída:**
+```
+Code point: 65   // 'A' → U+0041
+Code point: 66312 // '𐍈' → U+10348 (representado por dois `char`)
+Code point: 66   // 'B' → U+0042
+```
+
+---
+
+## **Diferença entre `codePoints()` e `chars()`**
+- **`s.chars()`** retorna um **`IntStream` de `char`**, onde cada elemento tem **16 bits** (`char`).
+- **`s.codePoints()`** retorna um **`IntStream` de código Unicode completo**, considerando caracteres que precisam de **dois `char`**.
+
+**Exemplo comparativo:**
+```java
+String s = "𐍈A"; // Contém um caractere que ocupa 2 `char`
+
+System.out.println("chars():");
+s.chars().forEach(c -> System.out.println(c));
+
+System.out.println("\ncodePoints():");
+s.codePoints().forEach(cp -> System.out.println(cp));
+```
+
+**Saída (`chars()`)**:
+```
+chars():
+55304  // Primeiro `char` de '𐍈'
+56392  // Segundo `char` de '𐍈'
+65     // 'A'
+```
+Aqui, `chars()` não trata `𐍈` corretamente e divide em duas unidades UTF-16.
+
+**Saída (`codePoints()`)**:
+```
+codePoints():
+66312  // '𐍈'
+65     // 'A'
+```
+Aqui, `codePoints()` trata `𐍈` corretamente como um único número.
+
+---
+
+## **Usos Comuns**
+✅ **Converter String em lista de caracteres Unicode**
+```java
+List<Integer> codePointList = s.codePoints().boxed().collect(Collectors.toList());
+System.out.println(codePointList);
+```
+
+✅ **Remover caracteres não-ASCII**
+```java
+String filtered = s.codePoints()
+                   .filter(cp -> cp <= 127)  // Mantém apenas ASCII
+                   .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                   .toString();
+```
+
+✅ **Contar caracteres Unicode corretamente**
+```java
+long count = s.codePoints().count();
+```
+Isso evita contar caracteres **duas vezes** quando são representados por dois `char`.
+
+---
+
+### **Conclusão**
+- **`s.codePoints()`** retorna um **`IntStream`** de **code points Unicode**.
+- **Garante que caracteres acima de `0xFFFF` sejam tratados corretamente**.
+- **Diferente de `chars()`, que retorna unidades UTF-16 individuais**.

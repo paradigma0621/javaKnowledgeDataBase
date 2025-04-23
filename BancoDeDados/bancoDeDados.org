@@ -519,3 +519,88 @@ Ambas as consultas são equivalentes em termos de resultado e eficiência. A esc
 
 
 	
+** Em quais classes devo colocar a annotation @Repository? Diga em relação à TesteRepositoryCustom, TesteInterface e TesteRepositoryImpl
+A anotação `@Repository` no Spring é usada para marcar classes que interagem diretamente com a base de dados. Ela serve como uma especialização de `@Component`, ajudando o Spring a detectar e registrar essas classes automaticamente no contexto da aplicação. Além disso, adiciona funcionalidades relacionadas ao tratamento de exceções específicas de persistência.
+
+Vamos analisar a aplicação da `@Repository` em relação às classes mencionadas:
+
+### **1. `TesteRepositoryCustom`**
+Esta é uma **interface ou classe** que geralmente declara métodos customizados adicionais para o repositório principal.
+
+- **Deve receber `@Repository`?**  
+  **Não.** Esta interface não deve ser anotada com `@Repository`, porque ela é usada apenas para declarar métodos customizados e será implementada por outra classe (geralmente `TesteRepositoryImpl`).
+
+---
+
+### **2. `TesteRepositoryImpl`**
+Esta é a **implementação da interface customizada** (`TesteRepositoryCustom`). Aqui você implementa a lógica dos métodos customizados que não são suportados diretamente pelo Spring Data JPA.
+
+- **Deve receber `@Repository`?**  
+  **Sim.** A classe `TesteRepositoryImpl` deve ser anotada com `@Repository` para ser reconhecida pelo Spring como um componente de repositório, caso ela não seja usada em conjunto com um repositório Spring Data JPA padrão (como uma interface extendendo `JpaRepository` ou `CrudRepository`).
+
+  No entanto, se essa implementação for usada como uma extensão de um repositório Spring Data JPA, o Spring detectará automaticamente sem a necessidade explícita de `@Repository`.
+
+  **Exemplo:**
+  ```java
+  @Repository
+  public class TesteRepositoryImpl implements TesteRepositoryCustom {
+      @Override
+      public void metodoCustomizado() {
+          // Implementação personalizada
+      }
+  }
+  ```
+
+---
+
+### **3. `TesteInterface`**
+Esta é uma **interface principal do repositório**, geralmente extendendo `JpaRepository`, `CrudRepository`, ou outras interfaces do Spring Data JPA.
+
+- **Deve receber `@Repository`?**  
+  **Não é necessário explicitamente.**  
+  Interfaces que estendem `JpaRepository` ou `CrudRepository` já são detectadas automaticamente pelo Spring, sem a necessidade de adicionar `@Repository`. O Spring Data JPA já registra essas interfaces como beans de repositório.
+
+  **Exemplo:**
+  ```java
+  public interface TesteInterface extends JpaRepository<Teste, Long>, TesteRepositoryCustom {
+      // Métodos JPA padrão ou adicionais
+  }
+  ```
+
+  No entanto, se você estiver configurando repositórios manualmente ou usar uma implementação diferente (por exemplo, repositórios sem Spring Data), você pode adicionar `@Repository`.
+
+---
+
+### **Resumo da Anotação `@Repository`**
+| Classe/Interface                  | Necessita de `@Repository`? | Observação                                                                  |
+|-----------------------------------|-----------------------------|-----------------------------------------------------------------------------|
+| `TesteRepositoryCustom`           | Não                         | Apenas declara métodos customizados; implementada por `TesteRepositoryImpl`.|
+| `TesteRepositoryImpl`             | Sim                         | Necessário se for uma implementação customizada sem integração automática.  |
+| `TesteInterface` (Spring Data JPA)| Não                         | Detectada automaticamente ao estender `JpaRepository` ou `CrudRepository`.  |
+
+---
+
+### **Cenário Completo**
+```java
+// Interface principal do repositório, extendendo Spring Data JPA
+public interface TesteInterface extends JpaRepository<Teste, Long>, TesteRepositoryCustom {
+    // Métodos padrão ou específicos
+}
+
+// Interface que declara métodos customizados
+public interface TesteRepositoryCustom {
+    void metodoCustomizado();
+}
+
+// Implementação dos métodos customizados
+@Repository
+public class TesteRepositoryImpl implements TesteRepositoryCustom {
+    @Override
+    public void metodoCustomizado() {
+        // Lógica personalizada
+    }
+}
+```
+
+### **Conclusão**
+Você só precisa adicionar `@Repository` na classe que realmente implementa a lógica de persistência customizada (`TesteRepositoryImpl`) se não for usada automaticamente pelo Spring Data JPA. Classes que estendem interfaces Spring Data JPA (`TesteInterface`) não precisam explicitamente da anotação, mas podem ser anotadas se você quiser maior clareza.

@@ -1,3 +1,39 @@
+* Exemplo de uso em query
+** interface
+public interface TaskWorkplaceRepository {
+    Optional<TaskSupervisorDetailedDto> findSupervisorDetailedResponseTasks(OPDQueryParameterDto queryParameterDto);
+}
+
+** repositotyImpl
+    @Override
+    public Optional<TaskSupervisorDetailedDto> findSupervisorDetailedResponseTasks(OPDQueryParameterDto queryParameterDto) {
+        return namedParameterJdbc.query(queryParameterDto.getSql(),
+                                        queryParameterDto.getParameter(), result -> {
+                    if(result.next())
+                        return Optional.of(new TaskSupervisorDetailedDto.Builder()
+                                            .taskId(result.getLong("taskId"))
+                                            .maximumExecutionTime(result.getLong("maximumExecutionTime"))
+                                            .photoRequiredMovable(result.getBoolean("photoRequiredMovable"))
+                                            .stageRequiredMovable(result.getBoolean("stageRequiredMovable"))
+                                            .checkInRequiredQrcode(result.getBoolean("checkInRequiredQrcode"))
+                                            .checkInRequiredGeolocation(result.getBoolean("checkInRequiredGeolocation"))
+                                            .timelineName(result.getString("timelineName"))
+                                            .reason(result.getString("reason"))
+                                            .locationId(result.getLong("locationId"))
+                                            .planningId(result.getLong("planningId"))
+                                            .workplaceId(result.getLong("workplaceId"))
+                                            .build()
+                        );
+                    return Optional.empty();
+                });
+    }
+** service
+    public TaskSupervisorDetailedDto find(Long taskId) {
+        OPDQueryParameterDto queryParameterDto =  mountQueryParameterTaskService.findTaskDetailed(taskId);
+        return taskWorkplaceRepository.findSupervisorDetailedResponseTasks(queryParameterDto)
+                .orElseThrow(() -> new BusinessException("TASK_NOT_FOUND"));
+    }
+
 * Notes
 ** Remember that just because something is marked Optional doesn’t guarantee that the caller will not pass null.
 
@@ -60,7 +96,6 @@ public void save(Optional<User> user){
 #+END_SRC
 
 * Usos em meus códigos
-
 ** Set<String>allDevicesNotRepeatedAsList.addAll(allDevicesNotRepeated<List>); (Se allDevicesNotRepeatedAsList for null dá nullpointer)
  acredito que aqui seja passível de um Optional por caso venha nulo essa lista, pode causar um null pointer no método addAll. Exemplo:
 *** antes
@@ -78,6 +113,64 @@ Set<String> allDevicesNotRepeated = 	 Optional.ofNullable(getAllDevicesVinculate
             Optional<ReplacementDto> replacementDto = personReplacements.stream().filter(r -> r.getAbsenteeId().equals(personId)).findFirst();
             responsePersonIds.add(replacementDto.map(ReplacementDto::getPersonId).orElse(personId));
         }
+* Que me deparei em CR e fiquei em dúvida se era correto
+** Optional.ofNullable() pode ser aplicado para chamadas de métodos que não retornam Optional? É uma boa prática?
+considerando o método:
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public ScheduleTransfer findByIds(Long id, Long customerId) {
+		SecurityUtil.forceTenant(customerId);
+		String query = "select st from ScheduleTransfer st where st.id ="+id+" and (st.removed is null or st.removed = false) ";
+		List<ScheduleTransfer> scheduleTransferList = em.createQuery(query, ScheduleTransfer.class).getResultList();
+		return !scheduleTransferList.isEmpty() ? scheduleTransferList.get(0) : null;
+	}
+
+
+Faz sentido sua chamada com:
+		final ScheduleTransfer scheduleTransfer = Optional.ofNullable(repo.findByIds(id, securityService.getLoggedCustomerId()))
+				.orElseThrow(() -> new BusinessException(Translate.use("DATA_NOT_FOUND_OR_REMOVED")));
+?
+*** Resposta (ChatGPT)
+#+BEGIN_SRC markdown
+Sim, faz sentido utilizar a chamada com `Optional.ofNullable(repo.findByIds(...))` no contexto que você forneceu, desde que o objetivo seja evitar retornos nulos e lançar uma exceção personalizada no caso de o valor não ser encontrado.
+
+Aqui está o porquê:
+
+### 1. **Método `findByIds` Retorna `null` se Não Encontrar Dados**
+
+No método `findByIds`, se a lista `scheduleTransferList` estiver vazia, o código retorna `null`. Portanto, quando você chama esse método, há a possibilidade de o retorno ser `null` caso nenhum registro seja encontrado ou os registros tenham sido marcados como "removidos".
+
+### 2. **Uso de `Optional.ofNullable(...)`**
+
+Ao envolver o resultado da chamada de `repo.findByIds(...)` em um `Optional.ofNullable(...)`, você está basicamente encapsulando a possibilidade de retorno nulo e criando uma forma mais segura de lidar com isso. O `Optional` oferece uma maneira fluente de manipular o retorno, evitando verificações explícitas de `null`.
+
+### 3. **Encadeamento com `orElseThrow(...)`**
+
+Se o valor dentro do `Optional` for `null` (ou seja, `findByIds` não encontrou nenhum registro), o método `orElseThrow` lançará uma exceção. No caso, você está lançando uma exceção `BusinessException` com uma mensagem personalizada (`"DATA_NOT_FOUND_OR_REMOVED"`), o que é apropriado quando você deseja informar ao chamador que não foi possível encontrar o dado solicitado.
+
+### 4. **Fluxo de Execução Simplificado**
+
+Este padrão simplifica a lógica de checagem e tratamento de erro em uma linha, comparado a um código mais tradicional com múltiplas verificações de `null`, como:
+
+```java
+ScheduleTransfer scheduleTransfer = repo.findByIds(id, securityService.getLoggedCustomerId());
+if (scheduleTransfer == null) {
+    throw new BusinessException(Translate.use("DATA_NOT_FOUND_OR_REMOVED"));
+}
+```
+
+Ao invés de verificar explicitamente se o valor é `null`, você delega essa responsabilidade ao `Optional` e ao método `orElseThrow`.
+
+### 5. **Melhor Legibilidade**
+
+O código com `Optional` é mais conciso e legível, pois expressa claramente a intenção: **se o valor não estiver presente (nulo), lance uma exceção**.
+
+### Considerações Finais
+
+O uso de `Optional` nesse caso faz total sentido e melhora a legibilidade e segurança do código, evitando potenciais problemas com `null` e garantindo que, caso o valor não seja encontrado, uma exceção apropriada seja lançada. Portanto, essa abordagem é uma prática recomendada ao lidar com valores que podem ser ausentes.
+
+#+END_SRC
 * exemplos
 ** interessante 1
 Código interessante de uso de Optional
@@ -103,3 +196,14 @@ Código interessante de uso de Optional
 		public double calculaValor(double premioTotal){
 		return premioTotal * (percentual / 100);
 	... }
+** interessante 2
+    public Date getValidDateFromOperationRequest(OperationRequest operationRequest){
+        if(isNull(operationRequest) || isNull(operationRequest.getOperationRequestContent()))
+            throw new BusinessException(Translate.use("ERROR_CONTACT_SUPPORT"));
+
+        Date validDate = Optional.ofNullable(operationRequest.getOperationRequestContent().getStartDate()).orElse(operationRequest.getOperationRequestContent().getTransferDate());  // ***********
+     
+	   if(isNull(validDate))
+            throw new BusinessException(Translate.use("START_DATE_REQUIRED"));
+        return validDate;
+    }

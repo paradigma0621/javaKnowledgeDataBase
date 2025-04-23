@@ -1,3 +1,7 @@
+* em relação à alertar ao rodar .parallelStream()
+depende se a collection é thread safe:
+https://stackoverflow.com/questions/60095513/why-is-list-parallelstream-foreach-not-processing-all-the-elements-in-the-li
+
 * Em relação à código que usa @Autowired e @Async
 Dependendo não tem como declarar tanto @Autowired como @Async numa mesma classe
 ** ChatGpt + AP
@@ -49,7 +53,8 @@ que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não f
 
         when(ans.join()).thenReturn(null);
 * Jeito confirmado de fazer processamento paralelo, que não com @Async
-			List<CompletableFuture<JasperPrint>> threads = new ArrayList<>();
+** confirmado como efetivo
+List<CompletableFuture<JasperPrint>> threads = new ArrayList<>();
 			for (int i = 0; i < NUMBER_THREADS; i++) {
 				final int index = i;
 				JasperReport jasperReport = compileReport(this.getClass().getResourceAsStream(reportFile.getLocation()));
@@ -65,6 +70,50 @@ que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não f
 								 List<NextiControlDto> listCollectionBean, int NUMBER_THREADS) {
 	...
 	}
+** implementei quando o método a ser executado é Void - pelo console confirmei que roda assíncrono
+            CompletableFuture<Void> futureGetBuildAreasNamesCompletableFuture = CompletableFuture.runAsync(() ->
+                getBuildAreasNames(listBean, filter)
+            );
+
+                CompletableFuture.allOf(taskStageByTaskIdCompletableFuture,
+                                        futureGetBuildAreasNamesCompletableFuture,
+                                        futureGetBuildChecklistsNamesCompletableFuture).join();
+
+** qual a diferença entre esses 2 modos de execução? .supplyAsync(()  e   .runAsync(() ?
+A diferença principal entre os dois métodos está no **retorno do `CompletableFuture`**:
+
+###  **1) `supplyAsync` – Retorna um valor**
+```java
+CompletableFuture<Map<Long, ScheduleAndScheduleTurnNamesDto>> future =
+    CompletableFuture.supplyAsync(() -> repo.getScheduleAndScheduleTurn(scheduleIds, customerId));
+```
+- ✅ **Retorna um `CompletableFuture<Map<Long, ScheduleAndScheduleTurnNamesDto>>`**.
+- ✅ A função passada precisa **retornar um valor**.
+- ✅ O valor pode ser obtido depois com `.get()` ou `.join()`.
+-  Se ocorrer uma exceção, o `CompletableFuture` será completado com erro.
+
+###  **2) `runAsync` – Apenas executa uma ação, sem retorno**
+```java
+CompletableFuture<Void> future =
+    CompletableFuture.runAsync(() -> repo.getScheduleAndScheduleTurn(scheduleIds, customerId));
+```
+- ✅ **Retorna um `CompletableFuture<Void>`**.
+- ✅ Executa a ação, mas **ignora qualquer retorno**.
+-  Se `repo.getScheduleAndScheduleTurn(...)` retorna um valor, ele será descartado.
+-  Não é possível acessar o resultado da execução.
+
+### **Quando usar cada um?**
+| Método        | Quando usar?                                                                                                      |
+|---------------+-------------------------------------------------------------------------------------------------------------------|
+| `supplyAsync` | Quando precisa **recuperar o valor retornado** pela execução assíncrona.                                          |
+| `runAsync`    | Quando só precisa **executar algo sem se importar com o resultado** (exemplo: log, notificação, envio de e-mail). |
+
+### ⚠️ **No seu caso (`repo.getScheduleAndScheduleTurn(...)` retorna um `Map`), você deve usar `supplyAsync`**:
+```java
+CompletableFuture<Map<Long, ScheduleAndScheduleTurnNamesDto>> schedulesAndScheduleTurns =
+    CompletableFuture.supplyAsync(() -> repo.getScheduleAndScheduleTurn(scheduleIds, customerId));
+```
+Caso contrário, o resultado da query será perdido e não poderá ser utilizado depois.
 * código de colega a se avaliar
 		final CompletableFuture<Void> allOf = CompletableFuture.allOf(futureMapEffectiveDay, futureMapReplacement, clockingFuture);
 		allOf.thenRun(() -> listDto.forEach(wor -> wor.getHistoricDates().forEach(historicDates -> {
@@ -83,3 +132,83 @@ que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não f
                         .thenComparing(ClockingDto::getClockingTypeId)).collect(Collectors.toList());
         historicDates.getClockings().addAll(filteredAndSortedClocking);
 	}
+* join() vs get()
+** pergunta
+Dado que foi programado:
+        allOf(futureTaskLocationResponseDto,
+              futureTaskSupervisorChecklistDtos,
+              futureTaskStageLocationResponseDtos,
+              futureWorkplaceTaskResponse).join();
+
+Quando eu uso cada uma das opções abaixo?
+
+Opção 1)
+        return new TaskSupervisorDetailedResponseDto(detailedDto,
+                                                    futureTaskLocationResponseDto.join(), 
+                                                    futureTaskSupervisorChecklistDtos.join(), 
+                                                    futureTaskStageLocationResponseDtos.join(), 
+                                                    futureWorkplaceTaskResponse.join(), 
+                                                    null);
+                                                    
+Opção 2)
+        return new TaskSupervisorDetailedResponseDto(detailedDto,
+                                                    futureTaskLocationResponseDto.get(), 
+                                                    futureTaskSupervisorChecklistDtos.get(), 
+                                                    futureTaskStageLocationResponseDtos.get(), 
+                                                    futureWorkplaceTaskResponse.get(), 
+                                                    null);             
+
+** resposta
+A principal diferença entre as opções que utilizam `join()` e `get()` em `CompletableFuture` está relacionada ao tratamento de exceções e à maneira como elas bloqueiam a execução.
+
+### Opção 1: Usando `join()`
+```java
+return new TaskSupervisorDetailedResponseDto(detailedDto,
+                                             futureTaskLocationResponseDto.join(), 
+                                             futureTaskSupervisorChecklistDtos.join(), 
+                                             futureTaskStageLocationResponseDtos.join(), 
+                                             futureWorkplaceTaskResponse.join(), 
+                                             null);
+```
+
+- **`join()`** bloqueia a execução atual até que o resultado da `CompletableFuture` esteja disponível, mas lança uma exceção não verificada (`CompletionException`) se ocorrer um erro durante a execução.
+- Como `CompletionException` é uma exceção não verificada, ela não precisa ser explicitamente tratada com um bloco `try-catch` e pode ser propagada automaticamente, sendo mais conveniente para cenários onde você não quer lidar diretamente com exceções verificadas.
+- **Uso recomendado**: Se você não quiser lidar diretamente com exceções verificadas, e se estiver confiante de que exceções são raras ou já foram tratadas em outro lugar.
+
+### Opção 2: Usando `get()`
+```java
+return new TaskSupervisorDetailedResponseDto(detailedDto,
+                                             futureTaskLocationResponseDto.get(), 
+                                             futureTaskSupervisorChecklistDtos.get(), 
+                                             futureTaskStageLocationResponseDtos.get(), 
+                                             futureWorkplaceTaskResponse.get(), 
+                                             null);
+```
+
+- **`get()`** também bloqueia a execução até que o resultado esteja disponível, mas lança exceções verificadas como `InterruptedException` e `ExecutionException`.
+- Isso significa que o uso de `get()` exige que você trate as exceções com um bloco `try-catch` ou que declare essas exceções na assinatura do método.
+- **Uso recomendado**: Quando você precisa tratar exceções de maneira explícita ou quer capturar exceções verificadas (como quando é necessário interromper a execução ou tratar a exceção gerada pelo `CompletableFuture` de forma mais precisa).
+
+### Resumo
+- **Use `join()`** quando não quiser lidar com exceções verificadas e preferir a simplicidade de uma exceção não verificada que pode ser tratada posteriormente ou propagada.
+- **Use `get()`** se você precisar tratar exceções verificadas diretamente ou se o comportamento de lançamento de exceções for crítico para o fluxo de controle do seu programa.
+
+Em ambientes onde você precisa de maior controle sobre o tratamento de erros, como cenários críticos ou de alta confiabilidade, a **opção 2** com `get()` pode ser mais apropriada. Para casos onde as exceções são raras ou não críticas, a **opção 1** com `join()` oferece uma sintaxe mais limpa e menos verbosa.
+
+
+7. Conclusion
+In this quick article, we’ve learned that join() and get() are both methods used to retrieve the result of a CompletableFuture, but they handle exceptions differently. The join() method throws unchecked exceptions, making it easier to use when we don’t want to handle exceptions explicitly. On the other hand, the get() method throws checked exceptions, providing more detailed exception handling and timeout support. Generally, join() should be preferred for new code due to its simplicity, while get() remains available for legacy compatibility.
+* exemplo
+		List<PersonDto> persons = this.personRepository.findByFilter(filter.getFilterDate(), filter.getWorkplaceIds());
+		Map<Long, List<PersonDto>> personMap = persons.stream()
+		.collect(Collectors.groupingBy(PersonDto::getWorkplaceId));
+
+return CompletableFuture.allOf(personMap.values().stream()
+   .map(this::processPersonsAvatarAsync).toArray(CompletableFuture[]::new))
+				.thenApply(v -> persons);
+
+protected CompletableFuture<Void> processPersonsAvatarAsync(List<PersonDto> persons) {
+....
+	return CompletableFuture.runAsync(() -> persons.forEach(this::processAvatarInPerson));
+}
+

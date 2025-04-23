@@ -1,0 +1,236 @@
+* qual o impacto demonstrado pelo campo "Filtered" no comando  do mysql: explain format=json?
+### 🔎 **O que significa o campo `"filtered"` no `EXPLAIN FORMAT=JSON` do MySQL?**
+O campo `"filtered"` no resultado do `EXPLAIN FORMAT=JSON` representa **a porcentagem estimada de linhas que permanecem após a aplicação das condições de filtro** (`WHERE`, `ON`, etc.).  
+ 
+Ele indica **quão seletiva é a condição aplicada** a uma tabela. **Quanto menor o valor de "filtered", maior o número de linhas descartadas** pelo MySQL.
+
+---
+
+## **📌 Como interpretar `filtered`?**
+O valor `"filtered"` é dado como uma porcentagem **de 0 a 100%**.  
+
+| `"filtered"`    | **Interpretação**                                                              |
+|-----------------+--------------------------------------------------------------------------------|
+| **100%**        | Todas as linhas da tabela ou índice **são mantidas** (nenhum filtro aplicado). |
+|                 | O MySQL **descarta metade** das linhas depois de aplicar os filtros.           |
+| **10%**         | Apenas **10% das linhas** são relevantes para a query (muito seletiva).        |
+| **1% ou menos** | A tabela tem **muitas linhas descartadas** (possível gargalo).                 |
+
+---
+
+## **📌 Exemplo Prático**
+Vamos analisar um caso real.
+
+```sql
+EXPLAIN FORMAT=JSON 
+SELECT * FROM employees 
+WHERE department = 'Finance';
+```
+
+🔎 **Resultado JSON**
+```json
+{
+  "query_block": {
+    "select_id": 1,
+    "table": {
+      "table_name": "employees",
+      "access_type": "ALL",
+      "rows_examined_per_scan": 1000000,
+      "rows_produced_per_join": 10000,
+      "filtered": "1.00"
+    }
+  }
+}
+```
+
+### **📌 Como interpretar?**
+- **`rows_examined_per_scan: 1.000.000`** → O MySQL **varreu todas as 1 milhão de linhas** da tabela.
+- **`rows_produced_per_join: 10.000`** → Apenas **10.000 linhas** foram relevantes para o filtro.
+- **`filtered: "1.00"`** → O MySQL manteve **apenas 1% das linhas lidas**.
+
+📌 **Problema:**  
+🔴 **A consulta está fazendo FULL TABLE SCAN (`ALL`)!**  
+🔴 **O `"filtered"` está baixo** → Muitas linhas estão sendo descartadas.  
+
+✅ **Solução:** Criar um **índice no campo `department`** para melhorar a performance:
+
+```sql
+CREATE INDEX idx_department ON employees(department);
+```
+
+Agora, ao rodar `EXPLAIN FORMAT=JSON` novamente, veremos:
+
+```json
+{
+  "query_block": {
+    "select_id": 1,
+    "table": {
+      "table_name": "employees",
+      "access_type": "ref",
+      "rows_examined_per_scan": 10000,
+      "rows_produced_per_join": 10000,
+      "filtered": "100.00"
+    }
+  }
+}
+```
+📌 **Agora o `"filtered"` está em `100%`!**  
+✅ **O MySQL lê apenas as linhas necessárias, sem desperdício de recursos**.
+
+---
+
+## **📌 Quando `"filtered"` Baixo Indica Problema?**
+Se `"filtered"` for muito baixo (1% ou menos), **indica um problema potencial**, como:
+- **FULL TABLE SCAN** em tabelas grandes (`ALL` no `access_type`).
+- **Falta de índices** para as colunas filtradas.
+- **Índices ineficientes**, que não estão sendo aproveitados pela consulta.
+- **Consulta mal escrita** que lê mais dados do que precisa.
+
+**Exemplo de problema comum (`filtered` baixo + `ALL`):**
+```json
+{
+  "table_name": "sales",
+  "access_type": "ALL",
+  "rows_examined_per_scan": 5000000,
+  "rows_produced_per_join": 25000,
+  "filtered": "0.50"
+}
+```
+📌 **Solução:** Criar índices apropriados para reduzir o número de linhas examinadas.
+
+---
+
+## **📌 Melhorando Queries com `"filtered"` Baixo**
+| 🚨 Problema                                   | ✅ Solução                                                     |
+|-----------------------------------------------+----------------------------------------------------------------|
+| `"filtered"` baixo (1% ou menos)              | Criar ou melhorar **índices** nas colunas do `WHERE`           |
+| `"filtered"` alto, mas `ALL` no `access_type` | **Evitar FULL TABLE SCAN**, otimizando `JOINs` e índices       |
+| `rows_examined_per_scan` muito alto           | **Reduzir leituras desnecessárias**, criando índices compostos |
+
+---
+
+## **🎯 Conclusão**
+🔹 **O `"filtered"` mostra a eficiência do filtro** na consulta.  
+🔹 **Se `"filtered"` estiver baixo, o MySQL está descartando muitas linhas** → **precisa de otimização**.  
+🔹 **Usar índices corretamente pode aumentar `"filtered"` e reduzir leituras desnecessárias**.  
+
+Agora você pode **identificar gargalos e melhorar a performance** das suas queries com **`EXPLAIN FORMAT=JSON`**! 🚀
+* qual o papel de um índice  numa consulta do mysql?
+## 🎯 **O Papel de um Índice em uma Consulta do MySQL**
+Um **índice** no MySQL tem o papel de **acelerar a busca de dados** e **otimizar a performance** das consultas ao reduzir o número de leituras necessárias para encontrar os registros desejados.
+
+---
+
+## 🔥 **Como um Índice Funciona?**
+- Um índice funciona **como um índice de um livro** 📖:  
+  - **Sem índice:** Você precisaria **folhear todas as páginas** para encontrar um capítulo específico (**FULL TABLE SCAN**).  
+  - **Com índice:** Você **vai direto à página correta**, reduzindo o tempo de busca.  
+
+💡 **No MySQL, o índice permite que a engine do banco de dados encontre os registros de forma muito mais eficiente, evitando a leitura completa da tabela.**
+
+---
+
+## ⚡ **Benefícios de um Índice**
+✅ **Melhora a velocidade das consultas (`SELECT`)**  
+✅ **Evita `FULL TABLE SCAN`, reduzindo I/O**  
+✅ **Otimiza `JOINs` e `ORDER BY`**  
+✅ **Ajuda no `WHERE` e `GROUP BY`**  
+✅ **Melhora `EXPLAIN` e reduz `query_cost`**  
+
+---
+
+## 🔎 **Tipos de Índices no MySQL**
+| Tipo de Índice     | Uso                                                                 |
+|--------------------+---------------------------------------------------------------------|
+| **PRIMARY KEY**    | Índice único para a chave primária.                                 |
+| **UNIQUE INDEX**   | Impede valores duplicados.                                          |
+| **INDEX (B-TREE)** | Índice padrão para buscas otimizadas.                               |
+| **FULLTEXT INDEX** | Índice para buscas textuais (`LIKE`, `MATCH` em `VARCHAR`, `TEXT`). |
+| **SPATIAL INDEX**  | Índice para dados geográficos (`GEOMETRY`, `POINT`).                |
+
+---
+
+## 🚀 **Exemplo Prático**
+### **1️⃣ Sem Índice (FULL TABLE SCAN)**
+```sql
+EXPLAIN FORMAT=JSON
+SELECT * FROM employees WHERE department = 'Finance';
+```
+🔍 **Saída do EXPLAIN**
+```json
+{
+  "table_name": "employees",
+  "access_type": "ALL",
+  "rows_examined_per_scan": 1000000
+}
+```
+🔴 **Problema:** **`access_type: ALL`** → O MySQL está **lendo TODAS as 1 milhão de linhas**.
+
+---
+
+### **2️⃣ Criando um Índice**
+```sql
+CREATE INDEX idx_department ON employees(department);
+```
+Agora, rodamos a consulta novamente:
+
+```sql
+EXPLAIN FORMAT=JSON
+SELECT * FROM employees WHERE department = 'Finance';
+```
+🔍 **Nova Saída**
+```json
+{
+  "table_name": "employees",
+  "access_type": "ref",
+  "rows_examined_per_scan": 10000
+}
+```
+✅ **Agora apenas 10.000 linhas foram examinadas, em vez de 1 milhão**! 🚀
+
+---
+
+## ⚠️ **Quando um Índice NÃO é Efetivo?**
+🔴 **1. Uso do `LIKE '%valor%'` em índices B-TREE**  
+```sql
+SELECT * FROM customers WHERE name LIKE '%Silva%';
+```
+🔍 **Problema:** O `%` no início impede o uso do índice.  
+✅ **Solução:** **Criar um `FULLTEXT INDEX`** para buscas eficientes.  
+
+---
+
+🔴 **2. Índices em Colunas com Poucos Valores Únicos**  
+Se você criar um índice em uma coluna com poucos valores distintos (`sexo` = `M` ou `F`), o MySQL **não usará o índice** porque a filtragem é ineficaz.
+
+```sql
+CREATE INDEX idx_sexo ON people(sexo);
+```
+🔍 **Problema:** Como existem poucos valores (`M` e `F`), o MySQL pode achar mais rápido **fazer um FULL TABLE SCAN** do que usar o índice.
+
+---
+
+🔴 **3. `ORDER BY` Diferente da Ordenação do Índice**  
+Se um índice for **`(A, B)`**, mas a consulta usar `ORDER BY B`, o índice pode ser ignorado.
+
+```sql
+CREATE INDEX idx_example ON sales(customer_id, order_date);
+```
+🚀 **Este índice será eficiente para**:
+```sql
+SELECT * FROM sales WHERE customer_id = 10 ORDER BY order_date;
+```
+🔴 **Mas será ineficiente para**:
+```sql
+SELECT * FROM sales ORDER BY order_date;
+```
+
+✅ **Solução:** Criar um **índice separado para `order_date`**.
+
+---
+
+## 🏆 **Conclusão**
+📌 **Índices são fundamentais para acelerar consultas e evitar FULL TABLE SCAN.**  
+📌 **Use índices nas colunas mais filtradas e usadas em `JOINs`, `WHERE`, `ORDER BY`.**  
+📌 **Evite índices desnecessários para colunas com poucos valores únicos.**  
+📌 **Sempre use `EXPLAIN FORMAT=JSON` para verificar se um índice está sendo usado.**  

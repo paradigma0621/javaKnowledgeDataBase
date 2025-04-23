@@ -1,3 +1,51 @@
+* @Transactional(propagation = Propagation.REQUIRES_NEW)
+** Exemplo de código que peguei em CR
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public ScheduleTransfer findByIds(Long id, Long customerId) {
+		SecurityUtil.forceTenant(customerId);
+		String query = "select st from ScheduleTransfer st where st.id =" + id + " and (st.removed is null or st.removed = false) ";
+		List<ScheduleTransfer> scheduleTransferList = em.createQuery(query, ScheduleTransfer.class).getResultList();
+		return !scheduleTransferList.isEmpty() ? scheduleTransferList.get(0) : null;
+	}
+** Resposta do ChatGPT para: o que significa: @Transactional(propagation = Propagation.REQUIRES_NEW) ?
+A anotação `@Transactional(propagation = Propagation.REQUIRES_NEW)` é usada no Spring para definir o comportamento transacional de um método. Vamos destrinchar o que cada parte significa:
+
+### `@Transactional`
+Essa anotação é usada para indicar que um método deve ser executado dentro de uma transação. No Spring, essa anotação pode ser aplicada em classes ou métodos e configura o gerenciamento de transações de forma declarativa. Quando aplicada, o Spring gerencia automaticamente o início, a confirmação (commit) ou a reversão (rollback) da transação.
+
+### `propagation = Propagation.REQUIRES_NEW`
+O atributo `propagation` define como o método transacional interage com transações já existentes. O valor `Propagation.REQUIRES_NEW` especifica que:
+
+1. **Nova transação sempre**: Quando o método é chamado, o Spring suspende qualquer transação existente (se houver) e cria uma nova transação isolada.
+   - Isso significa que uma transação atual que está em andamento será pausada e, depois que o método com `REQUIRES_NEW` for concluído (com sucesso ou falha), essa transação anterior será retomada.
+
+2. **Comprometimento ou rollback separado**: A transação criada para o método com `REQUIRES_NEW` é completamente independente da transação externa. Mesmo que a transação externa falhe ou seja revertida (rollback), a transação criada dentro desse método pode ser confirmada (commit), e vice-versa.
+   - Por exemplo, se o método falhar e houver um rollback na nova transação, isso não afetará a transação anterior, que pode ser confirmada normalmente.
+
+### Exemplo Prático
+
+Imagine um cenário onde você tem dois métodos transacionais:
+- O método `A()` está dentro de uma transação maior.
+- O método `B()` é anotado com `@Transactional(propagation = Propagation.REQUIRES_NEW)`.
+
+Se `A()` chamar `B()`, o que acontece?
+
+1. Quando `A()` chama `B()`, a transação de `A()` será **suspensa**.
+2. O Spring abrirá uma nova transação para `B()`.
+3. Se `B()` for concluído, o Spring confirmará a transação de `B()` independentemente de `A()`.
+4. Após `B()` ser finalizado, o Spring retoma a transação de `A()`.
+
+### Cenário de Uso
+`REQUIRES_NEW` é útil quando você quer garantir que uma operação crítica, como um **log** ou uma **atualização de status**, seja salva no banco de dados independentemente do sucesso ou falha de uma transação maior. Isso pode ser útil, por exemplo, para:
+
+- **Auditorias**: Quando você quer garantir que ações específicas sejam registradas no banco de dados, independentemente de uma falha em outra parte do processo.
+- **Fluxos de compensação**: Quando você precisa garantir que uma parte de um processo seja confirmada, mesmo se o restante falhar.
+
+### Resumo:
+- `Propagation.REQUIRES_NEW` força o Spring a criar uma nova transação para o método, suspendendo qualquer transação existente.
+- As transações são independentes: o sucesso ou falha da transação interna (nova) não afeta a transação externa, e vice-versa.
+- É útil para cenários onde uma operação deve ser confirmada separadamente da transação que a envolve.
 * ChatGPT
 ** o que faz: @JoinColumn() do JPA?
 #+BEGIN_SRC markdown

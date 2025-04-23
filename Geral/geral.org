@@ -102,3 +102,5 @@ BiFunction<Double, Double, String> resultado = (n1, n2) -> {
 };
 * Exceções
 É válido dentro de um projeto, um jogo como o campo minado, por exemplo, usar exceções (aquelas dos erros mesmos) para trabalhar com métodos do jogo (exemplo: o jogador escolheu no campo minado um quadrado que é bomba), etc...
+* Conversão da String do nome do Enum para o Enum propriamente dito
+TaskStatusEnum.valueOf(resultSet.getString("taskStatus"))
