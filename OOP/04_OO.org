@@ -67,7 +67,7 @@ Podemos criar objetos específicos como:
 //(A classe ArrayList é uma implementação da interface List). Daí surge uma dúvida pessoal: o que foi ensinado sobre como definir uma instância começando pelo nome da classe-pai ("Carro"), e depois colocando o nome da sub-classe que herda ("FiatUno()") = Carro carro1 = new FiatUno();
 acontece o mesmo para quando uma classe é implementada da interface da outra, como em:
 	List<Usuario> lista = new ArrayList<>();
-por exemplo? ou seja: a variável lista vai ter todos os atributos e métodos de ArrayList apesar de se ter usado a classe List para instância-la??
+por exemplo? ou seja: a variável lista vai ter todos os atributos e métodos de ArrayList apesar de se ter usado a classe List para instância-la?? 
 
 ** Polimorfismo
 *** Estático
@@ -150,7 +150,160 @@ De modo que:
 			return 1;
 		}
 	}
+** Notas de estudos pessoais sobre interfaces
 
+*** Quando é declarado um objeto do tipo da interface
+OBS: O que digo nos tópicos abaixo valem para quando uso do Spring fazendo injeção de dependência (via @Autowired, ou Injeção de Dependência via Construtor). Via java puro é possível criar algo semelhante usando o padrão de projeto Factory ou Service Locator, e também o Java Reflection - mas não os abordarei aqui.
+**** Interface
+public interface PersonJobInterface {
+    String myJobIs();
+    Integer myAgeIs();
+}
+**** Implementação da interface
+public class EmployedPerson implements PersonJobInterface {
+    @Override
+    public String myJobIs() {
+        return "Employed Person - CLT contract";
+    }
+
+    @Override
+    public Integer myAgeIs() {
+        return 40;
+    }
+
+    public String extraMethod() {
+        return "this is an extra"; 
+    }
+}
+
+**** Caso haja uma segunda implementação de interface + fizer instanciação da classe da interface
+É possível ter mais de uma implementação da interface, porém, se com as 2 implementações de interface desejarmos usar:
+
+	@Autowired
+	private PersonJobInterface personJobInterface;
+
+	(ou via construtor:
+                   private PersonJobInterface personJobInterface;
+                   public OtherDoorToSystem(PersonJobInterface personJobInterface) {
+                       this.personJobInterface = personJobInterface;
+                   }
+	)
+
+dentro de uma classe, ocorrerá o erro abaixo:
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Field personJobInterface in com.example.demo.controller.OtherDoorToSystem required a single bean, but 2 were found:
+	- employedPerson: defined in file [/home/lucas/Documentos/programacao/timeFlowSystem/projetosDeAprendizadoProprio/aprendizados-geral/target/classes/com/example/demo/domain/job/EmployedPerson.class]
+	- selfEmployedPerson: defined in file [/home/lucas/Documentos/programacao/timeFlowSystem/projetosDeAprendizadoProprio/aprendizados-geral/target/classes/com/example/demo/domain/job/SelfEmployedPerson.class]
+
+This may be due to missing parameter name information
+...
+
+---------------------------------------
+É possível sim, quando não temos a instânciação direta da interface (nesse exemplo: "PersonJobInterface personJobInterface"), termos as 2 ou mais implementações da mesma interface. Nesse caso podemos instanciar as classes como:
+
+        PersonJobInterface personJobInterface = new EmployedPerson();
+        PersonJobInterface personCNPJ  = new SelfEmployedPerson();
+		...
+---------------------------------------
+
+Outro ponto importante de quando temos apenas uma instância da interface com esse @Autowired (ou com uso do contrutor), é que não importa de onde nós chamamos o método dessa interface - exemplo:
+public class SomeAnyClass {
+    @Autowired
+    private PersonJobInterface personJobInterface;
+...
+public void someMethod() {
+	String myJob = personJobInterface.myJobIs();
+...
+}
+
+O Java vai executar o método lá de dentro da classe que implementa essa interface.  
+Volto a afirmar: isso só acontece quando temos apenas uma classe dizendo que implementa a interface. Se tiver 2 ou mais, quebra como na mensagem de erro "APPLICATION FAILED TO START" acima.
+
+Me dei conta que isso aconteceu, da primeira vez, quando assistindo o curso de Spring Security da Udemy. O professor implementou a interface do Spring no projeto pessoal, e quando o próprio Spring chamou a interface da própria biblioteca Spring, executou o método do professor do projeto pessoal.
+***** código de projeto de onde o que eu disse na linha acima foi feito
+public class TimeflowUserDetailsService implements UserDetailsService {
+        @Override
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+		-------------
+e quando chamado em:
+public class TimeflowUsernamePwdAuthenticationProvider implements AuthenticationProvider {
+
+    private final UserDetailsService userDetailsService; //Ver declaração dessa interface do  Spring logo abaixo
+ 
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+           UserDetails userDetails = userDetailsService.loadUserByUsername(username);  // essa chamada
+										// executa o método da classe TimeflowUserDetailsService
+		-------------
+considerando que no Spring temos:
+	public interface UserDetailsService {...}
+**** execução de métodos não declarados na interface, mas apenas na classe que a implementa (método auxiliar)
+Quando declaramos:
+
+	PersonJobInterface personEmployee = new EmployedPerson();
+
+NÃO conseguimos rodar o método auxiliar (método auxiliar: que é implementado em uma classe que implementa uma interface, mas que não faz parte da própria interface):
+
+	personEmployee.extraMethod();
+
+apenas quando declaramos a instância como sendo uma da classe do tipo  que implementa a interface:
+	EmployedPerson personEmployee = new EmployedPerson();
+
+**** quando tentado instanciar um  objeto da interface dentro do método
+Possível através da declaração de *classe anônima*:
+
+    public String getJob2Info() {
+        PersonJobInterface x = new PersonJobInterface() {
+            @Override
+            public String myJobIs() {
+                return "";
+            }
+
+            @Override
+            public Integer myAgeIs() {
+                return 0;
+            }
+        };
+
+Não é possível fazer a declaração simples (a menos que a interface tenha apenas um método) sem utilizar de algum artifício.
+
+Segue exemplo abaixo para quando há apenas 1 método abstrato na interface:
+***** Usando Classes Lambda (Somente para Interfaces Funcionais):
+Se a interface tiver apenas um único método abstrato (também chamada de interface funcional), você pode usar expressões lambda para simplificar a implementação. Por exemplo, se a interface tiver apenas um método, como:
+
+@FunctionalInterface
+public interface PersonJobInterface {
+    String myJobIs(); // Interface funcional tem apenas 1 método abstrato
+}
+Você poderia fazer algo assim:
+
+public String getJob2Info() {
+    PersonJobInterface x = () -> "My job is developer";
+    return x.myJobIs();
+}
+
+Neste exemplo, a interface funcional foi instanciada usando uma expressão lambda, que é mais concisa.
+**** porque via Java puro é mais complicado instanciar a interface diretamente
+pelo fato de:
+
+    public static void main(String[] args) {
+        DoorToSystem doorToSystem = new DoorToSystem(); // Aqui chamamos o construtor que supostamente instanciar a interface
+        doorToSystem.getJob2Info();
+    }
+
+porém para que fosse instanciada a interface precisaríamos ter um construtor parecido com o do Spring:
+    public DoorToSystem(PersonJobInterface personJobInterface) {
+        this.personJobInterface = personJobInterface;
+    }
+
+o que exigiria que já tivéssemos a interface instanciada, o que não acontece de modo trivial (sem usar o padrão de projeto Factory ou Service Locator, ou também o Java Reflection).
 * Abstração:
 	- Simplificação. A capacidade de simplificar e pegar aquilo que interessa do mundo real. 
 	- Nem tudo o que está no mundo real eu tenho no software e nem tudo o que eu tenho no software eu tenho no mundo real.

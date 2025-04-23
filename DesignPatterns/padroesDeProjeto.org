@@ -3,4 +3,3 @@ Um macete é que usamos:
  - Chain of responsability  vários if's
  - Strategy                 vários cases    
  - Template method          aproveitamento de método/código (ex: repetir pageable - para métodos que sempre se repetem)
-

@@ -1,3 +1,50 @@
+* cadastro de senha do mysql
+** entrar no terminal de mysql como root
+//Para instalar o container
+sudo docker run --name mysql8container -e MYSQL_ROOT_PASSWORD=12345678 -p 3306:3306 -d mysql:8
+
+//esse comando é o importante
+ docker exec -it mysql8container  mysql -uroot -p
+
+** obtinha erro: MySQL ERROR 1045 (28000): Access denied for user 'bill'@'localhost' (using password: YES)
+*** solução
+
+CREATE USER 'bill'@'%' IDENTIFIED BY 'passpass';
+
+and
+
+CREATE USER 'bill'@'localhost' IDENTIFIED BY 'passpass';
+
+para confirmar, rodar:
+select user,host from mysql.user;
+
+** dar privilégios para o user cadastrado
+na linha de comando: sudo mysql
+ 
+depois no mysql segue:
+GRANT ALL ON mysqlDatabase.* TO 'timeflow'@'%';
+
+*** se não der bom o comando acima
+**** como adiciono o usuário 'timeflow'/'%'?
+CREATE USER 'timeflow'@'%' IDENTIFIED BY 'sua_senha';
+GRANT ALL PRIVILEGES ON *.* TO 'timeflow'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+**** se der o erro: Public Key Retrieval is not allowed
+Se você estiver usando uma URL de conexão no seu cliente (como no JDBC), adicione o parâmetro allowPublicKeyRetrieval=true na string de conexão:
+
+Exemplo para JDBC:
+
+	jdbc:mysql://localhost:3306/mysqlDatabase?allowPublicKeyRetrieval=true&useSSL=false
+
+allowPublicKeyRetrieval=true: Permite que o cliente recupere a chave pública para autenticação.
+useSSL=false: Desativa o SSL, se não for necessário. 
+** quando acabar as operações: FLUSH PRIVILEGES;
+You should use 
+	FLUSH PRIVILEGES; 
+only if you modify the grant tables directly using statements such as INSERT, UPDATE, or DELETE.
+* Banco de Dados
+** Como criar um Schema (AP: Schema = conjunto de tabelas)
+CREATE SCHEMA my_database;
 * HAVING
 Nesse vídeo, conheceremos o HAVING, que é um filtro que se aplica ao resultado de um agregação. Ou seja, não o usamos no SELECT em si, mas sobre o resultado de um SELECT que é agrupado (AP: quando ele diz aqui que é "agrupado", quer dizer apenas quando usamos GROUP BY?? veja resposta no tópico ChatGPT).
 
@@ -83,6 +130,8 @@ pega à partir do elemento 0 (= primeiro elemento do resultado) e traz 2 registr
 
 SELECT * FROM tabela_de_produtos LIMIT 999, 10;
 pega à partir do elemento 1000 (= primeiro elemento do resultado) e traz 10 registros.
+* como renomeio o nome de uma tabela no mysql?
+RENAME TABLE old_table_name TO new_table_name;
 * ChatGPT
 ** numa consulta de mysql, o uso do HAVING está necesssáriamente vinculado ao uso do GROUP BY?
 #+BEGIN_SRC markdown
@@ -469,3 +518,4 @@ Ambas as consultas são equivalentes em termos de resultado e eficiência. A esc
 
 
 
+	
