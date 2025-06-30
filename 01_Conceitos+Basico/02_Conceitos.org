@@ -638,5 +638,68 @@ As variáveis `pessoa`, `outraPessoa`, `z` e `k` dentro do método `outroMetodo`
 #+END_SRC
 * Dúvidas
 ** variável x campo
-2.1) os nomes "campo" e "variável" são sinônimos no java?
-2.2) atributos final são variáveis (pergunto pelo fato de seu valor "não variar")? tipos primitivos são variáveis?
+*** 2.1) os nomes "campo" e "variável" são sinônimos no java?
+Não, **"campo" e "variável" não são sinônimos** em Java. Embora ambos representem **armazenamento de dados**, eles têm diferenças importantes no contexto da linguagem.
+
+---
+ 
+### 📌 **1. Campo (Field)** (ou Atributo):
+Um **campo** é uma variável **declarada dentro de uma classe** e que faz parte do estado de um objeto ou da própria classe (se for `static`).
+
+🔹 **Exemplo de campos de instância (não estáticos):**
+```java
+public class User {
+    private String name;  // Campo de instância
+    private int age;      // Campo de instância
+}
+```
+- **Pertence ao objeto** (cada instância tem sua cópia).
+- **Pode ter modificadores de acesso** (`private`, `protected`, `public`).
+- **Pode ser `final` para garantir imutabilidade**.
+- **Mantém seu valor durante a vida útil do objeto**.
+
+🔹 **Exemplo de campos estáticos:**
+```java
+public class Config {
+    public static final String APP_NAME = "MyApp";  // Campo estático (pertence à classe)
+}
+```
+- **Pertence à classe e não a uma instância**.
+- **Único valor compartilhado por todas as instâncias**.
+- **Acessado via `Config.APP_NAME` (não precisa de um objeto).**
+
+---
+
+### 📌 **2. Variável**
+Uma **variável** é um conceito mais amplo. Em Java, o termo "variável" pode se referir a diferentes tipos de armazenamento temporário de dados, incluindo **campos**, mas também **variáveis locais**, **parâmetros de método** e **variáveis de instância**.
+
+#### 🔹 **Tipos de variáveis**
+| Tipo                    | Onde é declarada?                         | Tempo de vida                                     |
+|-------------------------+-------------------------------------------+---------------------------------------------------|
+| **Campo de instância**  | Dentro de uma classe, mas fora de métodos | Existe enquanto o objeto existir                  |
+| **Campo estático**      | Dentro de uma classe com `static`         | Existe enquanto a classe estiver carregada na JVM |
+| **Variável local**      | Dentro de um método ou bloco de código    | Existe apenas dentro do método onde foi declarada |
+| **Parâmetro de método** | Declarada como argumento de um método     | Existe enquanto o método estiver em execução      |
+|                         |                                           |                                                   |
+
+🔹 **Exemplo de variáveis locais e parâmetros:**
+```java
+public void process(String input) {  // "input" é um parâmetro de método
+    int count = 10;  // "count" é uma variável local
+    System.out.println(input + " - " + count);
+}
+```
+- **Variáveis locais vivem apenas dentro do método** e não podem ter modificadores de acesso (`public`, `private`, etc.).
+- **Parâmetros são variáveis que recebem valores passados para o método.**
+
+---
+
+### 📌 **Resumo**
+| Termo             | Definição                                                                  | Exemplos                                                |
+|-------------------+----------------------------------------------------------------------------+---------------------------------------------------------|
+| **Campo (Field)** | Variável declarada em uma classe, pode ser de instância ou estática        | `private String name;` ou `static final int MAX = 100;` |
+| **Variável**      | Qualquer valor armazenado, incluindo campos, variáveis locais e parâmetros | `int number = 5;` dentro de um método                   |
+
+💡 **Conclusão:**  
+Todos os **campos são variáveis**, mas **nem todas as variáveis são campos**. Variáveis podem existir apenas dentro de métodos, enquanto campos pertencem a objetos ou classes.
+*** 2.2) atributos final são variáveis (pergunto pelo fato de seu valor "não variar")? tipos primitivos são variáveis?

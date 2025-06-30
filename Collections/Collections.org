@@ -94,6 +94,7 @@ Com isso a lista passa a aceitar apenas valores do tipo String, e não passa a d
 Para manter a ordem em que foram adicionados os elementos:
  Set<String> lista = new LinkedHashSet<>(); //Lista que respeita ordem de inserção
 
+ (AP: dúvida: aceitam lista.set(1, "valor") como a List aceita? 
 -----
  Set<String> lista = new TreeSet<>(); //Respeita a ordem do menor pro maior (número), ou a ordem alfabética (String)
 ou

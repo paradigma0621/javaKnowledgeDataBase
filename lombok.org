@@ -1,0 +1,15 @@
+Você está usando @AllArgsConstructor, mas o Spring precisa de @Autowired
+
+O Lombok gera automaticamente um construtor com todos os argumentos para os campos private final, mas você não definiu os campos como final. Isso pode impedir o Spring de fazer a injeção corretamente.
+
+✅ Solução: Defina os campos como final
+
+@AllArgsConstructor
+@Service
+public class VectorDbService {
+
+    private final ChatClient chatClient;
+    private final VectorStore vectorStore;
+}
+
+Agora o Spring saberá que esses campos devem ser injetados.

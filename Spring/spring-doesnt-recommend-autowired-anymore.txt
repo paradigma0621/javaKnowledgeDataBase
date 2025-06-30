@@ -1,0 +1,89 @@
+https://medium.com/@dulanjayasandaruwan1998/spring-doesnt-recommend-autowired-anymore-05fc05309dad
+
+
+In the world of Spring development, particularly Spring Boot, the @Autowired annotation has long been a staple for injecting dependencies into Spring-managed beans. However, with the evolution of Spring’s best practices and the introduction of new features, @Autowired is no longer the recommended approach for dependency injection. This shift can be surprising for developers familiar with older versions of Spring. In this blog, we'll dive into why @Autowired is falling out of favor, the alternatives Spring recommends, and how you can modernize your Spring codebase.
+
+What is @Autowired?
+Before we discuss why Spring no longer recommends @Autowired, let's take a quick look at what it does. @Autowired is used in Spring to inject dependencies into a class. It can be applied to fields, constructors, and setter methods, letting Spring automatically inject the required bean when your application starts.
+
+For example:
+
+@Service
+public class MyService {
+
+    @Autowired
+    private MyRepository myRepository;
+}
+In this scenario, Spring injects an instance of MyRepository when it creates an instance of MyService.
+
+While this approach works fine, it has some drawbacks, especially in larger, more complex applications. Let’s explore why.
+
+The Problem with @Autowired
+1. Hidden Dependencies: When using @Autowired on fields, dependencies are injected behind the scenes, which can lead to hidden dependencies. This practice makes it difficult to know what a class needs to function correctly, complicating testing and debugging.
+2. Immutability Issues: Field injection allows dependencies to be mutable, making it easier for a class to change them later. This reduces the immutability of your components, which can lead to bugs that are hard to track down.
+3. Testing Difficulties: Testing components that rely on field injection can be tricky. Since dependencies are not passed through constructors, you need to mock or inject these fields manually in your test setup, which can add unnecessary boilerplate code.
+4. Constructor-Based Injection is Cleaner: With constructor-based injection, dependencies are explicitly declared in the constructor, making it clear which components are needed for the class to work. This approach makes the class more readable, easier to test, and improves overall maintainability.
+   
+*Why Spring Recommends Constructor Injection*
+In recent years, the Spring team has shifted toward constructor injection as the preferred way of handling dependency injection, moving away from field injection using @Autowired. Here are some reasons why:
+
+1.Mandatory Dependencies: Constructor injection forces you to provide all required dependencies when creating an instance of a class. This ensures that the class is always in a valid state, with all its necessary dependencies set at the time of creation.
+
+@Service
+public class MyService {
+
+    private final MyRepository myRepository;
+
+    public MyService(MyRepository myRepository) {
+        this.myRepository = myRepository;
+    }
+}
+
+In this example, Spring will automatically inject MyRepository into the constructor, ensuring that MyService is always initialized with a valid repository.
+
+2.Immutability: Constructor injection encourages the use of final fields, which enforces immutability. Once a dependency is injected, it cannot be changed, reducing the risk of accidental modification and bugs in the code.
+
+3.Improved Testability: Testing components with constructor injection is much easier. You can simply pass mock dependencies directly into the constructor in your tests, without needing to rely on Spring’s internal wiring.
+
+4.No Need for @Autowired: If a class has only one constructor, Spring can automatically inject its dependencies without the need for the @Autowired annotation. This simplifies the code and reduces annotation clutter.
+
+*The Rise of @RequiredArgsConstructor*
+For classes that use constructor injection, another helpful tool is Lombok’s @RequiredArgsConstructor annotation. This annotation automatically generates a constructor with required fields (i.e., those marked as final), further reducing boilerplate code.
+
+@Service
+@RequiredArgsConstructor
+public class MyService {
+
+    private final MyRepository myRepository;
+}
+
+With @RequiredArgsConstructor, Spring will inject the dependencies without needing to explicitly write the constructor, keeping your code clean and concise.
+
+@Autowired Is Still Useful, But Use it Wisely
+It’s important to note that @Autowired is not deprecated or completely discouraged by Spring. It’s still useful in specific scenarios, such as:
+
+Setter Injection: In some cases, you may want to use setter injection when dependencies are optional or when you need to inject values after object creation. However, this should be used sparingly and only when necessary.
+
+@Service
+public class MyService {
+
+    private MyRepository myRepository;
+
+    @Autowired
+    public void setMyRepository(MyRepository myRepository) {
+        this.myRepository = myRepository;
+    }
+}
+
+Legacy Code: If you’re working on legacy codebases, you’ll likely encounter @Autowired. There's no immediate need to refactor all instances of @Autowired, but consider transitioning to constructor injection as you update and refactor your code.
+
+Conclusion: Moving Forward Without @Autowired
+In modern Spring development, constructor injection is considered the best practice for dependency injection, providing cleaner, more maintainable, and testable code. While @Autowired is still valid, it’s important to understand its limitations and why Spring recommends moving away from it.
+
+Here are the key takeaways:
+
+- Constructor injection promotes immutability and clarity in your code.
+- Testing is easier with constructor injection, as you can directly inject mocks or stubs.
+- Lombok’s @RequiredArgsConstructor simplifies constructor-based dependency injection.
+- Use @Autowired sparingly, and only when other injection methods are less suitable.
+By embracing these practices, you can write cleaner, more robust Spring applications that are easier to maintain and test over time.

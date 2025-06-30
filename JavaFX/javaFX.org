@@ -1,0 +1,10 @@
+* instalar SceneBuilder
+instalar pacote clicando com o mouse direito e escolher a opção "Open with App Center"
+/media/paradigma0621/drive_docs/all/programacao/scenebuilder
+* para especificar caret (ponteiro/cursor do teclado) como invisível
+textField.setStyle("-fx-display-caret: false;");
+textArea.setStyle("-fx-display-caret: false;");
+
+* para conseguir rodar um app pelo intelliJ talvez seja preciso instalar
+sudo apt install openjfx
+
