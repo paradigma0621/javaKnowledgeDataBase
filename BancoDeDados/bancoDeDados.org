@@ -1,3 +1,7 @@
+* Indexação da tabela
+SELECT * FROM tabela AS tab WHERE tab.customer_id = 123 AND tab.id in (1, 2, 3, 4, 5)
+Podemos tirar essa condicional do customer_id, uma vez que já temos os ids da tab.id? Depende: considerando na query acima o campo customer_id é indexado, a consulta com a condição tab.customer_id = 123 é ainda mais rápida.
+
 * HAVING
 Nesse vídeo, conheceremos o HAVING, que é um filtro que se aplica ao resultado de um agregação. Ou seja, não o usamos no SELECT em si, mas sobre o resultado de um SELECT que é agrupado (AP: quando ele diz aqui que é "agrupado", quer dizer apenas quando usamos GROUP BY?? veja resposta no tópico ChatGPT).
 
