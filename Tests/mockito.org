@@ -77,3 +77,25 @@ Sendo que na classe testada está:
 * verificar 
 ** AP: ao que tudo indica o que faz todas as chamadas de métodos externos à outras  classes que não a em teste retornarem null: não é o @Mock dessas outras classes, mas o @InjectMocks
 ** quando dizemos que um método é static: o que especificamente não conseguimos fazer com ele? Nada? No caso do SecurityContextHolder.getContext() citado num exemplo acima foi possível quando ele estava mockado
+* mockagem via PersonDto personDto = mock(PersonDto.class);
+AP: Com esse código eu talvez consiga mockar a classe só pro método em questão, caso os outros testes precisem ver o método/classe de outra forma.
+Pro:
+    @Test
+    void validateWorkplaceVacancyScheduleTurnComParametrosNulos() {
+        Workplace workplace = null;
+        WorkplaceVacancyDto vacancyDto = mock(WorkplaceVacancyDto.class);
+
+        PersonDto personDto = mock(PersonDto.class);
+
+        assertFalse(service.validateWorkplaceVacancyScheduleTurn(workplace, vacancyDto, personDto));   // aqui quando verificado: if (isNull(workplace)): isNull(workplace) = true
+
+        workplace = mock(Workplace.class);  // aqui quando verificado: if (isNull(workplace)): isNull(workplace) = false
+        		// e tem mais: é possível acessar os campos de workplace (ex: workplace.isActive() retornar false. Os campo não booleanos retornam null, e os booleanos primitivos false
+        when(workplace.getCustomer()).thenReturn(null);
+
+        		
+        assertFalse(service.validateWorkplaceVacancyScheduleTurn(workplace, vacancyDto, personDto));
+        assertFalse(service.validateWorkplaceVacancyScheduleTurn(workplace, null, personDto));
+        assertFalse(service.validateWorkplaceVacancyScheduleTurn(workplace, vacancyDto, null));
+    }
+** 
