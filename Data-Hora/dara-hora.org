@@ -1,3 +1,42 @@
+* Considerações
+Instant é similar em propósito a java.util.Date (um timestamp), mas muito mais claro e com nanosegundos (Date tem apenas milissegundos).
+* Boas práticas
+- Prefira `java.time` no domínio da aplicação
+- Converta manualmente para `java.sql.*` na camada de persistência
+- Especifique `Types.X` ao usar `null` ou para controle explícito
+- Armazene `Instant` em colunas `TIMESTAMP` para garantir UTC
+
+  
+## Armadilhas Comuns e Boas Práticas
+
+Trabalhar com datas e horas é notoriamente desafiador. A seguir, listamos algumas armadilhas frequentes e como evitá-las ao usar Java 8 e MySQL:
+
+**Confundir instantes absolutos com datas locais:** Decida se uma informação representa um instante exato no timeline (por exemplo, "quando uma transação ocorreu no mundo real") ou um horário relativo/local (por exemplo, "reunião às 9:00 no horário local de São Paulo"). Use os tipos adequados: `Instant`/`OffsetDateTime`/`ZonedDateTime` para eventos absolutos, e `LocalDateTime` para eventos locais que não devem mudar com fuso. Muitos bugs acontecem por usar `LocalDateTime` para timestamps globais ou vice-versa. Lembre-se: `LocalDateTime` **não** contém fuso – comparar dois `LocalDateTime` de sistemas diferentes pode ser comparar maçãs com laranjas. Já `Instant` é diretamente comparável e ordenável globalmente.
+
+**Timezone do MySQL e da conexão descoordenados:** Conforme visto, o MySQL TIMESTAMP converte dados conforme o timezone da sessão. É boa prática fixar o timezone da conexão para UTC (ou o mesmo em toda a aplicação) para evitar surpresas. No JDBC URL do MySQL, especifique `serverTimezone=UTC` (e configure o server para UTC preferencialmente). Assim, um TIMESTAMP sempre armazenará/em UTC e retornará em UTC. Se precisar trabalhar em outro fuso, converta no aplicativo, mas mantenha o armazenamento consistente. Se não fizer isso, pode ocorrer de um mesmo valor ser interpretado diferentemente em contextos distintos (por exemplo, backups ou queries ad-hoc por administradores em outra timezone).
+
+**Uso inadvertido de `java.util.Date` em APIs modernas:** Às vezes bibliotecas ou métodos antigos ainda usam `java.util.Date`. Como visto, você pode convertê-los imediatamente para `java.time` (ex: `instant = date.toInstant()`) e daí em diante usar somente as classes novas. É tentador continuar usando Date out of habit, mas evite – até mesmo em código novo alguns devs criam `Date.from(Instant.now())` só para representar "agora", o que é desnecessário e retrógrado.
+
+**Mutabilidade e thread safety:** As classes java.time são imutáveis. Isso elimina problemas de concorrência comuns com `Calendar` e `DateFormat`. Porém, se você ver código antigo reutilizando instâncias de `Calendar` ou `SimpleDateFormat` em múltiplas threads, saiba que isso é bug. Solução: trocar por java.time (`LocalDateTime` e `DateTimeFormatter`, este último também thread-safe) ou sincronizar apropriadamente (não recomendado). Em suma, prefira sempre as novas classes e formatação via `java.time.format.DateTimeFormatter` (que tem instâncias pré-definidas para ISO, RFC\_1123, etc., ou permita customizar padrões).
+
+**Formatação e parsing inadequados:** Falando em `DateTimeFormatter`, evite misturar APIs – por exemplo, não use `SimpleDateFormat` em `LocalDateTime` (até dá para fazer convertendo para util Date, mas desnecessário). Use `DateTimeFormatter` para qualquer formatação ou parsing de strings de data/hora. Ele sabe lidar com `LocalDateTime`, `ZonedDateTime`, etc., e possui suporte a padrões e a estilos predefinidos. Além disso, é imutável e thread-safe, ao contrário de `SimpleDateFormat`.
+
+**Perda de informação ao usar tipos errados:** Exemplos: usar `java.sql.Date` (que zera o tempo) para algo que tinha componente de hora – você perderá a hora. Usar `java.sql.Timestamp` para algo que precisava reter fuso de origem – você perderá o offset. Ou, no lado do MySQL, usar TIMESTAMP para datas históricas antes de 1970 ou futuras pós-2038 – elas podem não ser representáveis corretamente. **Boa prática:** escolher o tipo de coluna adequado e o tipo Java correspondente, conforme tabela anterior, para não truncar ou estourar valores.
+
+**Comparações e cálculos incorretos:** Ao comparar duas datas ou timestamps, certifique-se de estar comparando coisas compatíveis. Ex: não compare `LocalDateTime` de fusos diferentes sem normalizar; se precisar, converta ambos para `Instant` antes (pois Instant representa em comum denominador). Para diferenças, use as classes apropriadas (`ChronoUnit.between`, `Duration` ou `Period` conforme o caso). Não tente calcular diferenças de datas manualmente contando milissegundos, pois fusos e horário de verão podem complicar.
+
+**Uso de APIs legadas no JDBC por hábito:** Por exemplo, muitas pessoas usam `preparedStatement.setTimestamp(...)` e `resultSet.getTimestamp(...)` por costume. No Java 8+, você pode usar `setObject(..., LocalDateTime)` e `getObject(..., LocalDateTime.class)`, o que torna o código mais claro e elimina a necessidade de conversão manual. A **boa prática** é abraçar as melhorias do JDBC 4.2: trabalhar diretamente com as classes java.time sempre que possível, deixando o driver fazer as conversões necessárias.
+
+**Ignorar nanosegundos:** O Java 8 trouxe nanosegundos, mas nem todos os bancos suportam 9 dígitos de precisão. O MySQL por padrão (até a v5.6) não armazenava nanos em TIME/DATETIME (só até segundos). A partir do MySQL 5.7+, colunas definidas como DATETIME(fractional\_seconds) podem guardar microssegundos (6 dígitos). O Java Timestamp guarda nanos, mas o MySQL TIMESTAMP guarda até microssegundos também. Fique atento se sua aplicação depende de nanos precisos – possivelmente essa precisão extra será truncada no banco. Boas práticas seriam: ou evitar confiar em nanos (usar millis como base) ou certificar-se de usar tipos de coluna com precisão suficiente e talvez normalizar/truncar as instâncias de Instant/LocalDateTime no envio.
+
+**`equals()` de java.time:** Saiba que classes como `LocalDateTime` não consideram timezone, então `LocalDateTime.now(ZoneOffset.UTC).equals(LocalDateTime.now(ZoneId.of("America/New_York"))` pode ser falso mesmo que representem o mesmo instante, porque um é 10:00 UTC e outro 05:00-04:00. Para comparar instantes, converta para Instant ou use `ZonedDateTime` normalizados no mesmo fuso. Só compare diretamente objetos do mesmo tipo e contexto.
+
+Em aplicações reais, recomendamos:
+
+**Armazenar em UTC sempre que viável:** Isso simplifica bastante o raciocínio. Ou armazenar a informação de fuso separadamente se precisar reconstruir o contexto local original.
+**Usar classes java.time de mais alto nível possível:** Por exemplo, se você lida apenas com datas sem tempo, use LocalDate end-to-end. Se lida com instantes absolutos, use Instant. Evite usar `LocalDateTime` para tudo "só porque sim"; escolha conscientemente.
+**Documentar as escolhas de fuso no banco:** novos desenvolvedores devem saber se a coluna DATETIME está em hora local do usuário, ou se TIMESTAMP está sempre em UTC. Uma pequena nota no schema ou no código de acesso ajuda a evitar confusão futura.
+
 * Trabalhando com tempo
 Segundo o site da Loiane: https://github.com/loiane/java8-tutorial/blob/master/README.md
 tudo dessa seção foi introdutido no Java 8
