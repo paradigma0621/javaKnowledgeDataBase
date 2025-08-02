@@ -52,6 +52,20 @@ que antes estando na mesma classe `@Autowired CustomerService` e `@Async` não f
             PowerMockito.when(CompletableFuture.allOf(any(),any())).thenReturn(ans);
 
         when(ans.join()).thenReturn(null);
+* Usando @Async
+confirmei que preciso de 
+** AsyncConfig.java
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+}
+** Não cheguei a confirmar se esse é estritamente necessário, mas o ChatGPT diz que sim
+deixar o método que tem o @Async em outra classe que não o seu requisitor
+** Usar @Transactional
+Pode ser que perca contexto do id do Tenant na  query JPA
+nesse caso tem que ressetar o Tenant 
+** declarar métodos envolvidos como public
+não sei se de fato precisa, nem se são todos métodos (inclusive os que chamam a @Async)
 * Jeito confirmado de fazer processamento paralelo, que não com @Async
 ** confirmado como efetivo
 List<CompletableFuture<JasperPrint>> threads = new ArrayList<>();
@@ -212,3 +226,51 @@ protected CompletableFuture<Void> processPersonsAvatarAsync(List<PersonDto> pers
 	return CompletableFuture.runAsync(() -> persons.forEach(this::processAvatarInPerson));
 }
 
+* ao eu chamar 7 vezes um método ao mesmo tempo:  findValuesUsing(Long customerId, Long workplaceId, Long personId, LocalDate referenceDate) { ... }
+à pertir de 7 métodos assíncronos usando CompletableFutute, sendo que cada um possui valores para os parâmetros acima diferente entre eles - o java 8 pode se confundir e usar os valores de uma chamada no meio de uma outra?
+** resposta
+Não, o **Java 8 não vai se confundir nem misturar os valores entre chamadas diferentes** de métodos, mesmo que eles sejam chamados simultaneamente via `CompletableFuture`. Isso acontece porque:
+
+### ✅ Cada chamada tem sua própria pilha de execução
+
+Quando você faz:
+
+```java
+CompletableFuture.supplyAsync(() -> findValuesUsing(...));
+```
+
+Cada invocação de `findValuesUsing(...)` é **independente**, com seus próprios valores de parâmetros. O Java aloca uma **pilha de execução separada** para cada chamada, e os argumentos **não são compartilhados** entre elas.
+
+---
+
+### ✅ Parâmetros são passados por valor (mesmo para objetos)
+
+No Java:
+
+ Para tipos primitivos (`Long`, `int`, etc.), o valor é copiado.
+ Para objetos (`LocalDate`, etc.), é copiado o **referencial**, mas como você está apenas lendo os valores (não modificando os objetos compartilhados dentro do método), **não há interferência**.
+
+---
+
+### 🧪 A única exceção seria:
+
+Se você usasse **variáveis compartilhadas mutáveis** *fora* do método, como campos estáticos ou singletons, **sem sincronização**. Exemplo ruim:
+
+```java
+private static LocalDate referenceDate;
+
+CompletableFuture.runAsync(() -> {
+    referenceDate = ...;
+    findValuesUsing(...); // usa a variável estática
+});
+```
+
+Nesse caso sim, as chamadas poderiam interferir umas nas outras.
+
+---
+
+### ✅ Conclusão
+
+Se os parâmetros são **passados diretamente no método** e você **não está usando estado global compartilhado**, então **não há qualquer risco de "confusão" entre os valores de uma chamada e outra**, mesmo que 7 chamadas ocorram simultaneamente via `CompletableFuture`.
+
+Se quiser posso revisar seu código para garantir que ele esteja seguro para execução concorrente.

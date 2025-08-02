@@ -1,0 +1,78 @@
+* qual a sintaxe padrão para: Collectors.toMap() no java 8?
+No Java 8, a sintaxe padrão do `Collectors.toMap(...)` depende de quantos argumentos você fornece. Há **três formas principais**:
+
+---
+
+###  **1. Dois argumentos (sem duplicatas esperadas):**
+
+```java
+Collectors.toMap(
+    keyMapper,   // função que extrai a chave
+    valueMapper  // função que extrai o valor
+)
+```
+
+**Exemplo:**
+
+```java
+Map<Long, String> map = list.stream()
+    .collect(Collectors.toMap(
+        obj -> obj.getId(),
+        obj -> obj.getName()
+    ));
+```
+
+ *Lança exceção (`IllegalStateException`) se houver chaves duplicadas.*
+
+---
+
+###  **2. Três argumentos (resolvendo duplicatas com função de merge):**
+
+```java
+Collectors.toMap(
+    keyMapper,
+    valueMapper,
+    mergeFunction // o que fazer se a chave já existir
+)
+```
+
+**Exemplo:**
+
+```java
+Map<Long, String> map = list.stream()
+    .collect(Collectors.toMap(
+        obj -> obj.getId(),
+        obj -> obj.getName(),
+        (existing, replacement) -> existing // ou replacement, dependendo do que quiser manter
+    ));
+```
+
+ *Evita exceções em caso de chave duplicada, resolvendo o conflito com a função de merge.*
+
+---
+
+###  **3. Quatro argumentos (inclui tipo específico de Map):**
+
+```java
+Collectors.toMap(
+    keyMapper,
+    valueMapper,
+    mergeFunction,
+    mapSupplier
+)
+```
+
+**Exemplo:**
+
+```java
+Map<Long, String> map = list.stream()
+    .collect(Collectors.toMap(
+        obj -> obj.getId(),
+        obj -> obj.getName(),
+        (existing, replacement) -> existing,
+        LinkedHashMap::new // ou TreeMap::new, etc.
+    ));
+```
+
+ *Permite controlar a implementação do `Map` final (ordem, ordenação, etc).*
+

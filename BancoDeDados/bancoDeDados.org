@@ -1,3 +1,7 @@
+* Indexação da tabela
+SELECT * FROM tabela AS tab WHERE tab.customer_id = 123 AND tab.id in (1, 2, 3, 4, 5)
+Podemos tirar essa condicional do customer_id, uma vez que já temos os ids da tab.id? Depende: considerando na query acima o campo customer_id é indexado, a consulta com a condição tab.customer_id = 123 é ainda mais rápida.
+
 * cadastro de senha do mysql
 ** entrar no terminal de mysql como root
 //Para instalar o container
