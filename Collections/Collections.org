@@ -166,7 +166,10 @@ Para alterar valor de uma ArrayList:
         movimentos.set(1,"jkl");  //Muda o valor do índice 1 = 2o elemento
 
         for(String mov: movimentos)      System.out.println(mov);
-
+** converter para Map
+		final Map<Long, QuestionDto> questionMap = questionDtos.stream()
+				.filter(question -> NextiUtil.isNotNull(question.getId()))
+				.collect(Collectors.toMap(QuestionDto::getId, question -> question));
 * Queue (Fila)
 Queue<String> fila = new LinkedList<String>();
 //ou, o que da na mesma: Queue<String> fila = new LinkedList<>();

@@ -61,3 +61,57 @@ Note: the order of the result list may not match the order in the objects list.
 ** exemplo 2
 (fonte: https://stackoverflow.com/questions/30802463/how-many-threads-are-spawned-in-parallelstream-in-java-8)
 list.parallelStream().forEach(/** Do Something */);
+* ObjectMapper
+** código da main
+    public List<PersonDto> convertJsonToMarkingList(String json) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule()); // Caso estejamos usando algum tipo de data do java 8 (ex: LocalDateTime) pode ser que seja necessário, dependendo das configurações
+        try {
+            return mapper.readValue(json, new TypeReference<List<PersonDto>>(){});
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+** teste
+    @Test
+    void deveTetarObjectMapper() {
+        LocalDateTime d1 = LocalDateTime.of(2025, 03, 02, 11, 11, 11);
+        LocalDateTime d2 = LocalDateTime.of(2029, 03, 04, 1, 2, 3);
+        List<PersonDto> expected = List.of(new PersonDto(1L, "João Pedro", d1, "123A", 0L, 11L, false),
+                                            new PersonDto(2L, "Paula", d2, "B001", 6L, 5L, true));
+
+        String json  = """
+            [{
+                "id": 1, 
+                "name": "João Pedro",
+                "registerDate": "2025-03-02T11:11:11",
+                "enrollment": "123A",
+                "customerId": 0,
+                "profileId": 11,
+                "removed": false
+            }, 
+            {
+                "id": 2, 
+                "name":  "Paula",
+                "registerDate": "2029-03-04T01:02:03",
+                "enrollment": "B001",
+                "customerId": 6,
+                "profileId": 5,
+                "removed": true
+             }
+         ]                
+        """;
+        PermissionService permissionService = new PermissionService();
+        List<PersonDto> actual = permissionService.convertJsonToMarkingList(json);
+        assertEquals(expected, actual);
+    }
+** pom.xml
+<dependency>
+    <groupId>com.fasterxml.jackson.datatype</groupId>
+    <artifactId>jackson-datatype-jsr310</artifactId>
+    <version>2.15.0</version> <!-- ou a versão compatível com seu projeto -->
+</dependency>
+
+
+ Dica: Se estiver usando Spring Boot, o registro do JavaTimeModule já é feito automaticamente a partir da versão 2.1+, desde que a dependência jackson-datatype-jsr310 esteja presente no classpath.

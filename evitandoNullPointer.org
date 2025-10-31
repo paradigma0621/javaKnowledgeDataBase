@@ -1,0 +1,33 @@
+* Fugindo do Optional e do if: Opções mais simples para lidar com nullability
+** Null-coalescing com o utilitário Objects (Java 9+)
+
+A partir do Java 9, dois novos métodos utilitários com o objetivo de permitir null-coalescing de forma simples foram adicionados à classe utilitária Objects, presente no JDK: Objects#requireNonNullElse, Objects#requireNonNullElseGet.
+
+Ambos tem o mesmo objetivo: Irão retornar o valor passado por parâmetro caso o mesmo não seja nulo, ou então irão retornar um valor “fallback”:
+
+// Valor de safeString será "Hello, Medium!"
+var safeString = Objects.requireNonNullElse("Hello, Medium!", "Fallback");
+
+// Valor de safeString será "Fallback"
+safeString = Objects.requireNonNullElse(null, "Fallback");
+
+// Valor de safeString será o resultado da execução do lambda function
+// Nesse caso, "Lambda Fallback"
+safeString = Objects.requireNonNullElseGet(null, () -> "Lambda Fallback");
+** Existe também um utilitário mais antigo: Objects#toString, presente desde o Java 7, e que permite fazer uma chamada null-safe ao método toString() de algum objeto e, caso o objeto seja nulo, retornar um texto fallback parametrizável no lugar:
+// Se "nullableObject" não for nulo, retornará o resultado
+// de nullableObject#toString; Caso contrário, retornará "Fallback toString()"
+var safeToString = Objects.toString(nullableObject, "Fallback toString()");
+** UsandoObjects#requireNonNullElse, Objects#requireNonNullElseGet e Objects#toString, você evita o uso e a verbosidade excessíva do Optional em pelo menos três casos:
+// Pode ser substituído por "Objects#requireNonNullElse"
+var safeString = Optional.ofNullable(nullableString)
+    .orElse("Fallback");
+
+// Pode ser substituído por "Objects#requireNonNullElseGet"
+safeString = Optional.ofNullable(nullableString)
+    .orElseGet(() -> "Fallback");
+
+// Pode ser substituído por "Objects#toString"
+var safeToString = Optional.ofNullable(nullableObject)
+    .map(Object::toString)
+    .orElse("Fallback toString()");
