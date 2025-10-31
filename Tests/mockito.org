@@ -73,6 +73,47 @@ Sendo que na classe testada está:
         return (String) authentication.getPrincipal();
     }
 
+* spy
+** porque é preciso o uso de spy?
+Porque o **spy** (mock parcial) te permite rodar **o método real que você quer testar** (`exportReportToXls`) e, ao mesmo tempo, **neutralizar apenas um pedaço** dele (`addComment(...)`) que:
+
+ não é o foco do teste (o foco é a `IOException` em `response.getOutputStream()`), e
+ pode introduzir NPE/efeitos colaterais se o XLSX ou as âncoras/células não estiverem exatamente como o método espera.
+
+Sem spy você teria que:
+
+ montar todo o cenário para o `addComment(...)` (linhas, células, anchors etc.) só para **conseguir** chegar na parte que lança a `IOException`, **ou**
+ refatorar o design para injetar um colaborador para comentários.
+
+Em outras palavras, o **spy isola a unidade sob teste**: você executa o fluxo real do export (que é o que quer verificar) e “desliga” o detalhe que não é alvo do teste.
+
+### Quando o spy é a melhor escolha?
+
+ Quando você **não quer** (ou não pode) refatorar agora.
+ Quando o método a neutralizar é **não estático** e **público/protected/package-private**.
+ Quando precisa **rodar o resto do código “de verdade”**.
+
+> Dica: ao usar spy, prefira `doNothing()/doReturn()` (e não `when(...).then...`) para evitar executar o método real durante o stubbing.
+
+Resumindo: usa-se **spy** para **parcialmente** “mockar” só o que atrapalha, mantendo o restante do fluxo real — e assim o teste foca no que importa (a tradução da `IOException` em `BusinessException`).
+** código final do exemplo acima
+@Test
+void deveLancarBusinessExceptionQuandoIOExceptionNoResponse() throws Exception {
+    ExportService service = spy(new ExportService());
+
+    JasperPrint jp = new JasperPrint();
+    jp.setPageWidth(595); jp.setPageHeight(842);
+    jp.addPage(new JRBasePrintPage());
+
+    doNothing().when(service).addComment(any(), any(), any(), anyInt(), anyInt(), anyString());
+
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    when(response.getOutputStream()).thenThrow(new IOException("Erro simulado"));
+
+    BusinessException ex = assertThrows(BusinessException.class,
+            () -> service.exportReportToXls(jp, response));
+    assertEquals(Translate.use("GENERATE_REPORT_ERROR"), ex.getMessage());
+}
 
 * verificar 
 ** AP: ao que tudo indica o que faz todas as chamadas de métodos externos à outras  classes que não a em teste retornarem null: não é o @Mock dessas outras classes, mas o @InjectMocks

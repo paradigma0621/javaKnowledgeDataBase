@@ -1,0 +1,6 @@
+Em Java, não existe passagem "por referência real" (como em C++).
+Então você não consegue fazer dentro de um método: quantity = productService.getQuantity(paramDto); 
+fazer com que a variável a do chamador mude de endereço.
+
+Para mais informações ver: Passagem de Parâmetros em Java_ Valor vs Referência.pdf (salvo nessa pasta).
+

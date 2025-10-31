@@ -342,6 +342,14 @@ class ClockingTypeEnumTest extends TestUnitHelper {
                 Arguments.arguments(new PersonLoadDto(id, name, personConditionEnum, 10L, enrolment))
         );
     }
+* ParameterizedTest com ValueSource
+    @ParameterizedTest
+    @ValueSource(strings = {"SYSTEM", "USER", "ADMINISTRATOR"})
+    void shouldAllowWhenProfileDoesNotExistInRBAC(String profile) {
+        configuration.setRbac(Collections.emptyMap());
+        assertThatCode(() -> runFilter("/users/1", HttpMethod.GET, profile, true))
+                .doesNotThrowAnyException();
+    }
 * Exemplo de teste de dto
 
     @Test
