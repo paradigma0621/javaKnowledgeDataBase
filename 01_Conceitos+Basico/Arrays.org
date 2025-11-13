@@ -1,0 +1,46 @@
+* Sabendo que a indexação de um Array é limitida por um índice inteiro, qual o maior valor de elementos que podemos alocar num array?
+Obs: o que é dito abaixo é valido para qualquer tipo de Array: seja de objeto ou de primitivo.
+The "java.lang.OutOfMemoryError: Requested array size exceeds VM limit" error, particularly when attempting to allocate an array of size Integer.MAX_VALUE - 1, indicates a specific limitation within the Java Virtual Machine (JVM) regarding array allocation.
+
+** Síntese de anotação pessoal
+Inteiros: 32 bits, sendo que:
+	1 bit é para o sinal
+	31 bits são para o valor
+
+Mínimo → Integer.MIN_VALUE = −2.147.483.648 (−2^31)
+Máximo → Integer.MAX_VALUE = 2.147.483.647 (2^31 − 1)
+
+Em muitas JVMs modernas, podemos alocar (Integer.MAX_VALUE - 2) elementos, sendo que o índice do último elemento será: (Integer.MAX_VALUE-3)
+
+Ou seja:
+Maior tamanho possível de ser alocado para um array:
+Byte[] myNumbers = new Byte[Integer.MAX_VALUE-2];  // OK... esse é o myNumbers.length máximo = Integer.MAX_VALUE - 2 = 2^31 − 3 = 2147483645
+Byte[] myNumbers = new Byte[Integer.MAX_VALUE-1];  // Erro
+
+Byte value = myNumbers[Integer.MAX_VALUE-3];  // OK... esse é o maior índice que pode ser usado = Integer.MAX_VALUE - 3 = 2^31 − 4 = 2147483644
+Byte value = myNumbers[Integer.MAX_VALUE-2]; // Erro
+
+Obs: VMOption a ser parametrizada no IntelliJ para alocar 29 GiB para rodar algo que aloque bastante memória:
+-Xmx29g -XX:MaxDirectMemorySize=29g
+
+
+** Explanation:
+*** Integer.MAX_VALUE and Array Indexing:
+Integer.MAX_VALUE (which is 2^31 - 1) represents the largest positive integer that can be stored in a 32-bit signed integer. Java arrays use int for indexing, so, **in theory** the maximum index an array can have is Integer.MAX_VALUE - 1. The total number of elements would then be Integer.MAX_VALUE.
+**In practice, this is not achievable** — see the topics above.
+
+*** JVM Internal Limits:
+While Integer.MAX_VALUE is the theoretical maximum for array size based on indexing, the JVM itself imposes a slightly smaller practical limit. This limit is not solely determined by available heap memory but also by internal JVM structures and calculations. For instance, in many 64-bit JVMs from Java 8 onwards, the maximum array length is often Integer.MAX_VALUE - 2. This difference arises from internal JVM overheads and the way object headers and array metadata are handled in memory.
+
+*** Why -2?
+The specific -2 offset (or sometimes other small values like -8 for collections that resize) is related to how the JVM manages memory internally. This includes factors like:
+**** Header Size
+Objects in Java, including arrays, have a header that stores metadata (like class pointer, garbage collection information, hash code). This header consumes a small amount of memory, and its size can impact the maximum addressable space for array elements.
+**** Internal Calculations
+The JVM's memory management and array allocation routines might use int types for internal calculations related to object size in words, which could lead to overflow if the total size, including headers, exceeds Integer.MAX_VALUE. The -2 limit helps prevent such overflows in these internal calculations.
+
+** Heap vs. VM Limit:
+It is important to distinguish this "VM limit" from simply running out of heap memory. While insufficient heap can also lead to OutOfMemoryError, the "Requested array size exceeds VM limit" specifically indicates that the requested size itself is beyond the JVM's hard-coded maximum for array length, even if ample heap memory is available. 
+
+** In summary,
+attempting to allocate an array with a size like Integer.MAX_VALUE - 1 (or similar values very close to Integer.MAX_VALUE) can trigger this error because it exceeds a specific, internal maximum array length limit enforced by the JVM, which is slightly less than the theoretical maximum dictated by int indexing.

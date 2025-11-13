@@ -1,0 +1,307 @@
+* estrutura do banco de dados
+register_date		datetime(6)
+birth_date		date
+deletion_date		timestamp
+
+Estudo dos casos:
+** Caso 1
+*** PersonDto
+public record PersonDto(Long id, String name, String enrollment, Long customerId, Long profileId, boolean removed,
+
+                        Date registerDate, Date birthDate, Date deletionDate) { }
+*** RepositoryImpl
+                var personDto = new PersonDto(
+                   ...
+                        result.getTimestamp(REGISTER_DATE),
+                        result.getTimestamp(BIRTH_DATE),
+                        result.getTimestamp(DELETION_DATE)
+                );
+*** response
+        {
+        	...
+            
+            "registerDate": "2025-01-14T06:22:00.000+00:00",
+            "birthDate": "2025-08-08T03:00:00.000+00:00",
+            "deletionDate": "2025-08-09T16:08:23.000+00:00"
+        },
+
+** Caso 2
+*** PersonDto
+public record PersonDto(Long id, String name, String enrollment, Long customerId, Long profileId, boolean removed,
+
+                        Timestamp registerDate, Timestamp birthDate, Timestamp deletionDate) { } 
+*** RepositoryImpl
+                var personDto = new PersonDto(
+                        result.getLong(ID),
+                        result.getString(NAME),
+                        result.getString(ENROLLMENT),
+                        result.getLong(PROFILE_ID),
+                        result.getLong(CUSTOMER_ID),
+                        result.getBoolean(REMOVED),
+                        
+                        result.getTimestamp(REGISTER_DATE),
+                        result.getTimestamp(BIRTH_DATE),
+                        result.getTimestamp(DELETION_DATE)
+                );
+*** response
+            {
+			...
+            "registerDate": "2025-01-14T06:22:00.000+00:00",
+            "birthDate": "2025-08-08T03:00:00.000+00:00",
+            "deletionDate": "2025-08-09T16:08:23.000+00:00"
+        },
+** Caso 3
+*** PersonDto
+public record PersonDto(Long id, String name, String enrollment, Long customerId, Long profileId, boolean removed,
+
+                        Date registerDate, Date birthDate, Date deletionDate) { }  // Obs: esses 3 Date's são do tipo java.util.Date
+*** RepositoryImpl
+                var personDto = new PersonDto(
+                        result.getLong(ID),
+                        result.getString(NAME),
+                        result.getString(ENROLLMENT),
+                        result.getLong(PROFILE_ID),
+                        result.getLong(CUSTOMER_ID),
+                        result.getBoolean(REMOVED),
+                        
+                        result.getDate(REGISTER_DATE),
+                        result.getDate(BIRTH_DATE),
+                        result.getDate(DELETION_DATE)
+                );
+*** response
+            {
+			...
+            "registerDate": "2025-01-14",                   // Ou seja: está retornando java.sql.Date
+            "birthDate": "2025-08-08",
+            "deletionDate": "2025-08-09"
+        },
+
+* Conclusão
+Pouco importa o tipo da data no banco (datetime/date/timestamp): a não ser que seja requerido o:
+	result.getDate("data_referida")  (que retorna tipo java.sql.Date
+o outro tipo de get: result.getTimestamp(), que pode ser usada para qualquer dos tipos do banco (datetime/date/timestamp), atribui o mesmo formato de data para campos java.util.Date e java.sql.Timestamp: "2025-08-09T16:08:23.000+00:00"
+
+* Pergunta chatGPT para remover o final ".000+00:00" das datas
+** pergunta 1
+como configuro para que as datas:
+            "registerDate": "2025-01-14T06:22:00.000+00:00",
+            "birthDate": "2025-08-08T03:00:00.000+00:00",
+            "deletionDate": "2025-08-09T16:08:23.000+00:00"
+venham sem o ".000+00:00", considerando que no banco de dados elas são do tipo
+register_date		datetime(6)
+birth_date			date
+deletion_date		timestamp
+e no java são ambas tipo java.util.Date
+*** resposta 1
+Entendi — no seu caso o MySQL não tem milissegundos gravados (o `date` e o `timestamp` não precisam deles), mas o **Jackson**, ao serializar `java.util.Date`, está gerando o padrão ISO 8601 com precisão de milissegundos (`.000`) e offset (`+00:00`).
+
+Se você quer que saiam **sem `.000+00:00`**, tem que **alterar o formato de serialização** no lado Java, porque o banco não controla isso.
+
+---
+
+## **1️⃣ Configuração global no Spring Boot**
+
+No `application.yml`:
+
+```yaml
+spring:
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    time-zone: UTC
+```
+
+Ou no `application.properties`:
+
+```properties
+spring.jackson.date-format=yyyy-MM-dd'T'HH:mm:ss
+spring.jackson.time-zone=UTC
+```
+
+Isso vai gerar:
+
+```json
+"birthDate": "2025-08-08T03:00:00",
+"deletionDate": "2025-08-09T16:08:23"
+```
+
+📌 Remove os milissegundos e também o `+00:00`.
+📌 `time-zone=UTC` mantém o valor coerente com o que o MySQL retorna.
+
+---
+
+## **2️⃣ Configuração por campo**
+
+Se quiser mudar apenas para atributos específicos:
+
+```java
+@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
+private Date birthDate;
+
+@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
+private Date deletionDate;
+```
+AP: Vi um assim também:
+@JsonFormat(shape =JsonFormat.Shape.STRING, pattern = "ddMMyyyy")
+private java.util.Date someDate;
+
+---
+
+## **3️⃣ Configurando via `ObjectMapper`**
+
+Se você registra o `ObjectMapper` manualmente:
+
+```java
+@Bean
+public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
+    mapper.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return mapper;
+}
+```
+
+---
+
+💡 **Resumo**
+
+ `.000` → vem da formatação padrão ISO 8601 com milissegundos.
+ `+00:00` → vem do fato do Jackson serializar no formato com offset por padrão.
+ Para remover, defina explicitamente o **pattern** sem frações de segundo e, se quiser, sem offset.
+
+** pergunta 2
+essa configuração: spring.jackson.date-format=yyyy-MM-dd'T'HH:mm:ss
+será aplicada apenas campos tipo java.util.Date ou para os outros tipos também?
+*** resposta 2
+Essa configuração:
+
+```properties
+spring.jackson.date-format=yyyy-MM-dd'T'HH:mm:ss
+```
+
+no Spring Boot **afeta todos os tipos de data que Jackson trata como "java.util.Date compatíveis"**, ou seja:
+
+ ✅ **Afeta**
+
+  * `java.util.Date`
+  * `java.sql.Date`
+  * `java.sql.Timestamp`
+
+ ❌ **Não afeta diretamente** os tipos do Java 8+ (`java.time.*`) como:
+
+  * `LocalDate`
+  * `LocalDateTime`
+  * `OffsetDateTime`
+  * `ZonedDateTime`
+  * `Instant`
+
+Isso acontece porque os tipos `java.time` são tratados pelo **módulo `JavaTimeModule`** do Jackson, que tem formatação separada.
+
+---
+
+📌 **Se no seu projeto só usa `java.util.Date` nos DTOs**, essa config global resolve e aplica para todos os campos de data.
+
+📌 **Se tiver também `java.time.*`**, aí você precisa configurar formatação extra, por exemplo:
+
+```java
+@Bean
+public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    mapper.configOverride(LocalDateTime.class)
+          .setFormat(JsonFormat.Value.forPattern("yyyy-MM-dd'T'HH:mm:ss"));
+    return mapper;
+}
+```
+** pergunta 3
+para o java 8, com mysql 8, temos o result.getTimestamp(), e o result.getDate() - temos algum outro?
+*** reposta 3
+Sim ✅
+No Java 8, com MySQL 8 (e driver JDBC compatível com JDBC 4.2), além de `resultSet.getTimestamp()` e `resultSet.getDate()`, você tem outras formas de obter valores de colunas de data/hora, incluindo métodos mais antigos e também a API nova com `getObject(...)`.
+
+---
+
+## **1️⃣ Métodos clássicos (API antiga)**
+
+ **`getTimestamp(String col)`** → retorna `java.sql.Timestamp` (data + hora + nanos).
+ **`getDate(String col)`** → retorna `java.sql.Date` (apenas data, hora zerada).
+ **`getTime(String col)`** → retorna `java.sql.Time` (apenas hora).
+
+Esses três existem desde o JDBC inicial.
+
+---
+
+## **2️⃣ API moderna (Java 8+, JDBC 4.2)**
+
+Com `ResultSet.getObject(...)` você pode receber diretamente nos tipos `java.time` da nova API:
+
+```java
+// Data + hora sem fuso
+LocalDateTime ldt = resultSet.getObject("coluna", LocalDateTime.class);
+
+// Somente data
+LocalDate ld = resultSet.getObject("coluna", LocalDate.class);
+
+// Somente hora
+LocalTime lt = resultSet.getObject("coluna", LocalTime.class);
+
+// Instante absoluto UTC
+Instant instant = resultSet.getObject("coluna", Instant.class);
+
+// Data/hora com offset
+OffsetDateTime odt = resultSet.getObject("coluna", OffsetDateTime.class);
+
+// Data/hora com zona completa
+ZonedDateTime zdt = resultSet.getObject("coluna", ZonedDateTime.class);
+```
+
+Esses métodos permitem pular a conversão manual de `java.sql.Timestamp` → `java.time.*`.
+
+---
+
+## **3️⃣ Conversões manuais a partir de `getTimestamp`**
+
+Mesmo com a API antiga, você pode converter:
+
+```java
+Timestamp ts = resultSet.getTimestamp("coluna");
+LocalDateTime ldt = ts.toLocalDateTime();
+Instant instant = ts.toInstant();
+```
+
+---
+
+## **📌 Resumo prático**
+
+| Tipo no MySQL          | Método clássico  | API moderna recomendada                                              |
+| ---------------------- | ---------------- | -------------------------------------------------------------------- |
+| `DATE`                 | `getDate()`      | `getObject(..., LocalDate.class)`                                    |
+| `TIME`                 | `getTime()`      | `getObject(..., LocalTime.class)`                                    |
+| `DATETIME`/`TIMESTAMP` | `getTimestamp()` | `getObject(..., LocalDateTime.class)` / `Instant` / `OffsetDateTime` |
+
+---
+
+Se você quiser, posso te montar **uma tabela completa** mostrando:
+
+ Tipo da coluna no MySQL
+ Método JDBC recomendado (Java 8)
+ Tipo Java retornado
+ Como o valor aparece no JSON do Jackson.
+
+Quer que eu prepare?
+* Obs final
+** Caso de implementação final
+*** PersonDto
+public record PersonDto(Long id, String name, String enrollment, Long customerId, Long profileId, boolean removed,
+                        LocalDateTime registerDate, LocalDate birthDate,
+                        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
+                        Date deletionDate) { }
+*** RepositoryImpl
+                        result.getTimestamp(REGISTER_DATE).toLocalDateTime(),
+                        nonNull(result.getDate(BIRTH_DATE)) ? result.getDate(BIRTH_DATE).toLocalDate() : null,
+                        result.getTimestamp(DELETION_DATE)
+*** response
+            "registerDate": "2025-01-14T03:22:00",
+            "birthDate": "2025-08-08",
+            "deletionDate": "2025-08-09 16:08:23"

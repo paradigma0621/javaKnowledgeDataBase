@@ -191,3 +191,61 @@ Em relação às **ferramentas de desenvolvimento**, as IDEs oferecem suporte a 
 
 > **Resumo:** O uso de `final` pode ajudar na legibilidade e segurança do código (ao evitar reatribuições indesejadas) e as IDEs modernas suportam isso com inspeções automáticas. Todavia, seu uso deve ser avaliado em conjunto com a clareza do código, pois muitos `final` podem atrapalhar a leitura.
 
+* Modificadores de acesso para classes
+tem sentido declarar um modificar de acesso para uma classe?
+exemplo: public class DatabaseWrapper ?
+
+Sim, **faz sentido** declarar um modificador de acesso para uma classe, mas o impacto depende de **onde** essa classe está definida e **qual** modificador você escolhe.
+
+---
+
+## 1️⃣ Classes de **nível superior** (fora de outra classe)
+
+No Java, para classes top-level (no mesmo nível de `public class MeuApp { ... }`), só existem **dois modificadores possíveis**:
+
+| Modificador                   | Quem pode acessar                   |
+| ----------------------------- | ----------------------------------- |
+| `public`                      | Qualquer classe, de qualquer pacote |
+| *default* (sem escrever nada) | Apenas classes do **mesmo pacote**  |
+
+📌 Exemplo:
+
+```java
+// Arquivo DatabaseWrapper.java
+public class DatabaseWrapper { } // acessível de qualquer pacote
+
+class InternalHelper { } // acessível só dentro do mesmo pacote
+```
+
+Se você **não** colocar `public`, a classe só é visível no **mesmo pacote**.
+
+---
+
+## 2️⃣ Classes **internas** (dentro de outra classe)
+
+Quando uma classe está dentro de outra, aí sim você pode usar **todos** os modificadores (`public`, `protected`, *default*, `private`), e isso afeta a visibilidade **dentro ou fora da classe que contém**.
+
+📌 Exemplo:
+
+```java
+public class Outer {
+    private class PrivateInner { }   // só a Outer acessa
+    protected class ProtectedInner { } // Outer + subclasses + mesmo pacote
+    public class PublicInner { }     // qualquer um acessa
+}
+```
+
+---
+
+## 3️⃣ Por que declarar `public` explicitamente?
+
+ **Para classes top-level**: você declara `public` quando quer que a classe seja **usada por código de outros pacotes**.
+ Se você omitir o `public`, a classe ficará **restrita ao pacote**, o que é útil para classes utilitárias internas à implementação.
+
+---
+
+💡 **Resumo rápido:**
+
+ Classe top-level → só `public` ou *default* são permitidos.
+ Classe interna → pode usar qualquer modificador.
+ Declarar `public` para uma top-level é útil quando ela precisa ser **API pública** do seu módulo/pacote.

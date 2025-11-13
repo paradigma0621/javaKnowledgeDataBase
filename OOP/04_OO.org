@@ -351,6 +351,10 @@ Quando definimos métodos abstratos, em alguma hora temos que implementar os mé
 //Nesse caso, a implementação de mover() ficaria sendo apenas a de Mamifero.java, e seria a usada por todas as suas
 //sub-classes.
 
+* perguntas:
+** o uso de @Override é opcional?
+Sempre opcional, nunca obrigatório.
+Porém sempre recomendável usar.
 * Livros: 
 	- Formas padrões de projetos:
 	- Arquitetura: "A linguagem dos padrões" -  Christofer Alessander

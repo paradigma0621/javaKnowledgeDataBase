@@ -524,6 +524,7 @@ Ambas as consultas são equivalentes em termos de resultado e eficiência. A esc
 
 	
 ** Em quais classes devo colocar a annotation @Repository? Diga em relação à TesteRepositoryCustom, TesteInterface e TesteRepositoryImpl
+
 A anotação `@Repository` no Spring é usada para marcar classes que interagem diretamente com a base de dados. Ela serve como uma especialização de `@Component`, ajudando o Spring a detectar e registrar essas classes automaticamente no contexto da aplicação. Além disso, adiciona funcionalidades relacionadas ao tratamento de exceções específicas de persistência.
 
 Vamos analisar a aplicação da `@Repository` em relação às classes mencionadas:
@@ -608,3 +609,92 @@ public class TesteRepositoryImpl implements TesteRepositoryCustom {
 
 ### **Conclusão**
 Você só precisa adicionar `@Repository` na classe que realmente implementa a lógica de persistência customizada (`TesteRepositoryImpl`) se não for usada automaticamente pelo Spring Data JPA. Classes que estendem interfaces Spring Data JPA (`TesteInterface`) não precisam explicitamente da anotação, mas podem ser anotadas se você quiser maior clareza.
+* Quais os tipos de campos no mysql que comportam data?
+No MySQL (incluindo a versão 8), os tipos de campos que podem armazenar **datas** ou **datas e horas** são:
+
+---
+
+## **1. Somente data**
+
+ **`DATE`**
+
+  * Formato: `YYYY-MM-DD` (ex.: `2025-08-09`).
+  * Armazena apenas ano, mês e dia.
+  * Ideal para datas de nascimento, feriados, validade de documentos, etc.
+  * Intervalo válido: `'1000-01-01'` até `'9999-12-31'`.
+
+---
+
+## **2. Data e hora**
+
+ **`DATETIME`**
+
+  * Formato: `YYYY-MM-DD HH:MM:SS` (ex.: `2025-08-09 14:35:20`).
+  * Armazena data e hora, mas **não** guarda fuso horário.
+  * Usado para registrar eventos com precisão, como `created_at`, `updated_at`.
+  * Intervalo: `'1000-01-01 00:00:00'` até `'9999-12-31 23:59:59'`.
+
+ **`TIMESTAMP`**
+
+  * Também armazena `YYYY-MM-DD HH:MM:SS`.
+  * Guarda em UTC internamente e converte para o fuso horário da sessão.
+  * Ocupa menos espaço (4 bytes vs. 8 do `DATETIME`).
+  * Intervalo menor: `'1970-01-01 00:00:01 UTC'` até `'2038-01-19 03:14:07 UTC'`.
+  * Útil para **auditoria** (ex.: quando um registro foi criado/alterado).
+  * Pode ser configurado para atualizar automaticamente na inserção/alteração.
+
+---
+
+## **3. Apenas hora**
+
+ **`TIME`**
+
+  * Formato: `HH:MM:SS` (ex.: `14:35:20`).
+  * Pode armazenar valores negativos para representar diferenças de tempo (`-02:15:00`).
+  * Intervalo: `-838:59:59` até `838:59:59`.
+
+---
+
+## **4. Apenas ano**
+
+ **`YEAR`**
+
+  * Formato: `YYYY` (ex.: `2025`).
+  * Ideal para representar apenas o ano de um evento.
+  * Intervalo: `1901` até `2155`.
+
+---
+
+ **Resumo de uso recomendado:**
+
+ **`DATE`** → quando só precisa da data (nascimento, feriado, vencimento).
+ **`DATETIME`** → eventos com data e hora fixa, sem fuso horário.
+ **`TIMESTAMP`** → eventos com data/hora ajustados para UTC, úteis para auditoria.
+ **`TIME`** → duração ou hora específica do dia.
+ **`YEAR`** → apenas ano.
+* gravação/leitura de registros em campo TIMESTAMP... timezone o sql usa como base para armazena-los
+**Uso de `TIMESTAMP` no MySQL**
+O tipo `TIMESTAMP` armazena data e hora **sempre em UTC**, mas converte automaticamente conforme o fuso horário da sessão (`SET time_zone`).
+
+Quando você **passa um valor manual** (ex.: `'2025-08-09 15:30:00'`), o MySQL interpreta essa data/hora no **fuso horário definido por `SET time_zone`**, converte para UTC para armazenar, e na leitura converte de volta para o fuso horário da sessão atual.
+
+Exemplo:
+
+```sql
+SET time_zone = 'America/Sao_Paulo'; -- UTC-3
+INSERT INTO teste (ts) VALUES ('2025-08-09 15:30:00');
+```
+
+Armazena internamente `2025-08-09 18:30:00 UTC`, mas exibe `2025-08-09 15:30:00` para sessões em UTC-3.
+
+--------------------------------------
+*Leitura de TIMESTAMP no MySQL*
+Ao fazer SELECT em um campo TIMESTAMP, o MySQL pega o valor armazenado em UTC e converte automaticamente para o fuso horário definido na sessão (SET time_zone).
+SET time_zone = 'UTC';
+
+Assim, a mesma data/hora pode aparecer diferente para usuários com fusos distintos, mesmo sendo o mesmo instante real armazenado.
+Ou seja: se for setado
+    SET time_zone = 'UTC';
+e executado o SELECT de uma tabela que tem um campo TIMESTAMP, quando fizer:
+    SET time_zone = 'America/Sao_Paulo';
+e fizer o mesmo SELECT, vai trazer o campo timestamp com 3 horas à menos.    
