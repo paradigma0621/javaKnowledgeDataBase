@@ -1,0 +1,7 @@
+* exemplo
+na chamada abaixo:
+	generateAndSaveInBatches(workplaceIds, batch ->	workplaceHolidayRepository.insertWorkplaceHolidayInBatch(holiday.getId(), batch, holiday.getCustomer().getId()));
+	...
+	protected void generateAndSaveInBatches(Set<Long> ids, Consumer<Set<Long>> batchProcessor) { ... }
+apenas conhecemos os campos workplaceIds e holiday (não conhecemos "batch")
+

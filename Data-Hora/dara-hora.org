@@ -1,3 +1,68 @@
+* posso atribuir a campos do tipo java.util.Date ou java.sql.Date uma data do banco de dados nesse formato: "2025-07-29 18:39:30"?
+Sim, **tanto `java.util.Date` quanto `java.sql.Timestamp`** (não `java.sql.Date`) conseguem **representar corretamente** a data com hora `"2025-07-29 18:39:30"`, mas há diferenças importantes:
+
+---
+
+## ✅ O que funciona corretamente:
+
+Se a sua coluna no banco é `DATETIME` ou `TIMESTAMP` e você usar:
+
+```java
+private java.util.Date lastUpdate;
+```
+
+ou
+
+```java
+private java.sql.Timestamp lastUpdate;
+```
+
+### Então:
+
+-* O valor `"2025-07-29 18:39:30"` será carregado corretamente com **data e hora**.
+-* Funciona em JDBC, JPA, Hibernate, etc.
+
+---
+
+## ⚠️ O que **não** funciona corretamente:
+
+Se você usar:
+
+```java
+private java.sql.Date lastUpdate;
+```
+
+### Acontece o seguinte:
+
+-* `java.sql.Date` **trunca o horário** — representa **apenas a data**.
+-* Resultado: `"2025-07-29 00:00:00"` (perde o horário).
+
+---
+
+## ✅ Recomendação prática
+
+| Tipo no banco de dados | Tipo Java antigo seguro        | Tipo Java 8 moderno recomendado |
+| ---------------------- | ------------------------------ | ------------------------------- |
+| DATE                   | `java.sql.Date`                | `LocalDate`                     |
+| DATETIME / TIMESTAMP   | `java.sql.Timestamp` ou `Date` | `LocalDateTime`                 |
+
+---
+
+## ✅ Exemplo correto com `ResultSet`:
+
+```java
+// Com java.util.Date
+Date lastUpdate = resultSet.getTimestamp("lastUpdate");
+
+// Ou com java.time:
+LocalDateTime lastUpdate = resultSet.getTimestamp("lastUpdate").toLocalDateTime();
+```
+
+---
+
+Se estiver modernizando sua aplicação, **prefira `java.time.LocalDateTime`** — mais seguro, imutável e livre de problemas de fuso horário herdados da `java.util.Date`.
+
+Deseja que eu mostre como fazer um `RowMapper` que converte corretamente para `LocalDateTime` e `LocalDate`?
 * Considerações
 Instant é similar em propósito a java.util.Date (um timestamp), mas muito mais claro e com nanosegundos (Date tem apenas milissegundos).
 * Boas práticas
@@ -216,6 +281,53 @@ E se quiser receber direto com Java 8 moderno (em drivers JDBC compatíveis com 
 ```java
 LocalDateTime ldt = resultSet.getObject("coluna", LocalDateTime.class);
 Instant instant = resultSet.getObject("coluna", Instant.class);
+
+* exemplo de construção de mock para testes
+** pergunta
+Tenho o seguinte formato de dados armazenados na tabela do banco de dados:
+register_date: 2025-07-29 18:39:30
+last_update: 2025-07-29 18:39:30
+holiday_date: 2025-07-20
+
+eles possuem a seguinte especificação no dto:
+	private Date registerDate;
+	private Date lastUpdate;
+private Date holidayDate;
+
+Como posso construir os mocks dos when's no meu teste de modo a antes criar uma variável local para cada campos, e no when atribuir esse valor?
+** resposta
+Você pode criar variáveis locais com valores fixos para cada campo de data (incluindo os que têm hora e os que não têm) e depois usar esses valores nas chamadas `when(...)` do `Mockito`.
+
+Como você está usando `java.util.Date` no DTO, o tipo ideal para as variáveis locais é `java.util.Date`, e o valor pode ser construído usando `SimpleDateFormat` ou `Calendar`.
+
+---
+
+### ✅ Exemplo completo de mocks com variáveis locais:
+
+```java
+import static org.mockito.Mockito.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.sql.ResultSet;
+
+...
+
+// 1. Criar variáveis locais para as datas
+SimpleDateFormat fullDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+Date registerDate = fullDateTimeFormat.parse("2025-07-29 18:39:30");
+Date lastUpdate = fullDateTimeFormat.parse("2025-07-29 18:39:30");
+Date holidayDate = dateOnlyFormat.parse("2025-07-20");
+
+// 2. Criar o mock do ResultSet
+ResultSet resultSet = mock(ResultSet.class);
+
+// 3. Configurar o mock do ResultSet para retornar as datas
+when(resultSet.next()).thenReturn(true);
+when(resultSet.getTimestamp("registerDate")).thenReturn(new java.sql.Timestamp(registerDate.getTime()));
+when(resultSet.getTimestamp("lastUpdate")).thenReturn(new java.sql.Timestamp(lastUpdate.getTime()));
+when(resultSet.getDate("holidayDate")).thenReturn(new java.sql.Date(holidayDate.getTime()));
 ```
 
 ---
@@ -271,3 +383,83 @@ Eles refletem o **fuso horário do banco no momento da leitura**.
 
 Se quiser preservar o fuso original de um evento, você precisa **salvar o time zone explicitamente** em outra coluna.
 * quais tipos de 
+### ✅ Explicação:
+
+-* Mesmo usando `java.util.Date` no DTO, o `ResultSet` retorna:
+
+  * `getTimestamp(...)` → para valores com hora (`DATETIME`, `TIMESTAMP`)
+  * `getDate(...)` → para valores apenas com data (`DATE`)
+-* Por isso, usamos `new java.sql.Timestamp(date.getTime())` e `new java.sql.Date(date.getTime())` nos mocks.
+
+---
+
+### Dica extra:
+
+Se estiver usando `LocalDateTime` ou `LocalDate` no DTO, você usaria:
+
+```java
+LocalDateTime registerDate = LocalDateTime.of(2025, 7, 29, 18, 39, 30);
+when(resultSet.getTimestamp("registerDate")).thenReturn(Timestamp.valueOf(registerDate));
+```
+** nova pergunta sobre o mesmo assunto: como poderia escrever os mocks se não usasse a declaração de variáveis locais?
+Se você **não quiser declarar variáveis locais** e quiser escrever os `mocks` diretamente no `when(...)`, você pode fazer tudo inline. Isso deixa o código um pouco mais enxuto, embora menos reutilizável.
+
+---
+
+### ✅ Exemplo sem variáveis locais:
+
+```java
+import static org.mockito.Mockito.*;
+import java.sql.*;
+import java.time.*;
+import java.util.*;
+
+...
+
+ResultSet resultSet = mock(ResultSet.class);
+when(resultSet.next()).thenReturn(true);
+
+when(result.getDate("holidayDate")).thenReturn(Date.valueOf("2025-12-25"));
+when(result.getTimestamp("registerDate")).thenReturn(Timestamp.valueOf("2025-07-30 10:15:30"));
+when(result.getTimestamp("lastUpdate")).thenReturn(Timestamp.valueOf("2025-07-31 12:00:00"));
+
+(outra opção:
+when(resultSet.getTimestamp("registerDate")).thenReturn(Timestamp.valueOf(LocalDateTime.of(2025, 7, 29, 18, 39, 30)));
+when(resultSet.getTimestamp("lastUpdate")).thenReturn(Timestamp.valueOf(LocalDateTime.of(2025, 7, 29, 18, 39, 30)));
+when(resultSet.getDate("holidayDate")).thenReturn(Date.valueOf(LocalDate.of(2025, 7, 20)));
+```
+
+---
+
+### ✅ Alternativa mais explícita usando `new Timestamp(...)`:
+
+Se quiser manter a semântica de `java.util.Date`, pode fazer assim:
+
+```java
+when(resultSet.getTimestamp("registerDate"))
+    .thenReturn(new Timestamp(
+        Date.from(LocalDateTime.of(2025, 7, 29, 18, 39, 30)
+               .atZone(ZoneId.systemDefault())
+               .toInstant()).getTime()
+    ));
+```
+
+Mas **isso é redundante** se você já sabe que quer `Timestamp` — prefira `Timestamp.valueOf(...)` direto.
+
+---
+
+### ✅ Dica de estilo
+
+Use mocks inline se:
+
+-* É um teste pequeno e simples
+-* Não há repetição do valor
+
+Use variáveis locais se:
+
+-* Reutilizará os valores
+-* Precisa fazer `assert` depois usando os mesmos valores
+
+---
+
+Se quiser, posso montar um exemplo completo com `assertEquals(...)` no final do teste, comparando o DTO retornado. Deseja isso também?
