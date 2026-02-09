@@ -4,3 +4,8 @@ fazer com que a variável a do chamador mude de endereço.
 
 Para mais informações ver: Passagem de Parâmetros em Java_ Valor vs Referência.pdf (salvo nessa pasta).
 
+* exemplos
+        String str1 = "str1";
+        String str2 = str1;
+        str2 = "outra";
+        System.out.println(str1); //str1

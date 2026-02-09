@@ -488,6 +488,93 @@ Boolean var2;   ///var2 = objeto
 Integer, Boolean, Double,...  = Wrappers
 int, double,... = tipos primitivos
 
+** Unboxing / Autoboxing
+Aqui está a definição **precisa, técnica e ao mesmo tempo clara** de **unboxing em Java**, conforme a Java Language Specification (JLS §5.1.8).
+
+---
+
+# ✅ **Definição curta e correta:**
+
+> **Unboxing é o processo automático pelo qual o Java converte um objeto wrapper (como `Integer`, `Double`, `Boolean`) para o seu tipo primitivo correspondente (`int`, `double`, `boolean`).**
+
+É o inverso de **autoboxing**.
+
+---
+
+# 🧩 Exemplos de unboxing
+
+## ✔ 1. Uma variável wrapper sendo convertida para primitivo
+
+```java
+Integer a = 10;
+int x = a;   // unboxing automático
+```
+
+## ✔ 2. Em operações aritméticas
+
+```java
+Integer a = 5;
+int b = a + 2;   // `a` é desempacotado para `int`
+```
+
+## ✔ 3. Em comparações
+
+```java
+Integer n = 20;
+if (n > 10) { }   // unboxing para `int` antes da comparação
+```
+
+## ✔ 4. Passando wrapper onde se espera primitivo
+
+```java
+void process(int value) { ... }
+
+Integer obj = 7;
+process(obj);  // unboxing automático
+```
+
+---
+
+# 🔍 Como o Java faz isso?
+
+Quando Java vê algo como:
+
+```java
+Integer a = 10;
+int x = a;
+```
+
+O compilador transforma internamente em:
+
+```java
+int x = a.intValue();
+```
+
+Esse método (`intValue()`) é o responsável pelo unboxing.
+
+---
+
+# ⚠️ Atenção: unboxing pode causar NullPointerException
+
+```java
+Integer n = null;
+int x = n;   // NPE aqui: n.intValue()
+```
+
+Porque você está tentando extrair um valor primitivo de um objeto nulo.
+
+---
+
+# 🧠 Resumo final
+
+### **Unboxing = converter automaticamente um wrapper → tipo primitivo.**
+
+### **Exemplos: Integer → int, Double → double, Boolean → boolean.**
+
+### **Implementado chamando métodos como `intValue()`, `doubleValue()`.**
+
+### **Pode causar NullPointerException se o wrapper for null.**
+
 ** Arquivo Dto (Data Transfer Object)
 DTO stands for Data Transfer Object, which is a design pattern. It is one of the EPA patterns which we call when we need to use such objects that encapsulate and aggregate data for transfer. A DTO is similar to a data structure, but like a data structure, it doesn't contain any business logic.
 	
@@ -516,6 +603,250 @@ Quando alguém quer uma plataforma para desenvolver em Java, deve instalar o JDK
 
 ** pacote
 	br.com.cod3r.cm.modelo // onde "cm" = projeto de campo minado, e "modelo" é o nome de um pacote desse projeto
+** side effects (efeito colateral)
+Em Java (e em ciência da computação no geral), um **efeito colateral** (*side effect*) é **qualquer mudança observável no estado do programa** que ocorre quando uma instrução ou expressão é executada.
+
+Essa definição é extremamente importante porque divide o mundo entre:
+
+-* **código puro** (sem efeitos colaterais)
+-* **código com efeitos colaterais** (que altera algo além do valor de retorno)
+
+---
+
+# ✅ **Definição formal (e curta):**
+
+> **Efeito colateral é qualquer alteração de estado do programa causada pela execução de uma expressão ou instrução.**
+
+---
+
+# 🎯 Exemplos claros de efeitos colaterais em Java
+
+### ✔ 1. Modificar variáveis
+
+```java
+x = 10;
+i++;
+obj.count--;
+```
+
+### ✔ 2. Alterar objetos mutáveis
+
+```java
+list.add("A");
+map.put(1, "Lucas");
+user.setName("Lucas");
+```
+
+### ✔ 3. Gravar em disco
+
+```java
+Files.write(...);
+```
+
+### ✔ 4. Imprimir no console
+
+```java
+System.out.println("oi");
+```
+
+### ✔ 5. Enviar dados pela rede
+
+```java
+socket.send(...);
+```
+
+### ✔ 6. Lançar exceções
+
+```java
+throw new RuntimeException();
+```
+
+### ✔ 7. Sincronização e locks
+
+```java
+synchronized(obj) { ... }
+```
+
+Tudo isso altera o "mundo externo" visível ao programa.
+
+---
+
+# 🚫 O que *não* é efeito colateral?
+
+Expressões puras que apenas **calculam valores sem alterar nada**, por exemplo:
+
+```java
+int z = x + y;     // sem efeito colateral
+double w = Math.sqrt(a); // sem efeito colateral
+```
+
+Não mudam nenhum estado externo; apenas retornam valores.
+
+---
+
+# 📌 Por que isso é importante?
+
+### **1) Para entender expressões, principalmente o operador ternário**
+
+Ele *pode* ter efeitos colaterais, mas não deveria.
+
+### **2) Para programação funcional (Streams, lambdas, collector)**
+
+Ex. lambdas em `map()` **não devem ter efeitos colaterais**.
+
+### **3) Para evitar bugs complexos**
+
+Efeitos colaterais escondidos tornam o código imprevisível.
+
+### **4) Otimizações do compilador e da JVM**
+
+Expressões puras podem ser reordenadas, cacheadas etc.
+
+### **5) Concorrência**
+
+Efeitos colaterais introduzem condições de corrida.
+
+---
+
+# 📌 Exemplos de efeitos colaterais escondidos
+
+### Exemplo 1 — no operador ternário
+
+```java
+x = cond ? foo() : bar();
+```
+
+Se `foo()` ou `bar()` alterarem estado → há side effects.
+
+---
+
+### Exemplo 2 — em streams
+
+```java
+list.stream().map(x -> list2.add(x * 2));
+```
+
+Adicionar itens em outra lista dentro do `map()` é um **péssimo uso**
+(seu programa pode quebrar em paralelo, violar imutabilidade etc.)
+
+---
+
+# 🧠 Resumo do resumo
+
+### **Efeito colateral = quando executar algo altera o estado do programa ou do mundo externo.**
+
+### **Exemplos: alterar variáveis, objetos, I/O, exceções, sincronização.**
+
+### **Sem side effects = expressões puras (cálculo apenas).**
+** Expressão inline
+Uma **expressão inline** não é um termo formal da linguagem Java (não aparece na JLS), mas é um termo **amplamente usado na prática** para descrever um conceito simples:
+
+# ✅ **Definição prática de expressão inline**
+
+> **Expressão inline é qualquer expressão escrita diretamente no lugar onde seu valor é necessário, sem criar variáveis intermediárias.**
+
+Ou seja:
+**é uma expressão usada “no meio do código”, dentro de outra instrução, sem declaração separada.**
+
+---
+
+# 📌 Exemplos de expressões inline em Java
+
+## ✔ 1. Literal inline
+
+```java
+int x = 10;   // "10" é uma expressão inline
+```
+
+## ✔ 2. Chamada de método inline
+
+```java
+int size = list.size();  // size() é usado inline
+```
+
+## ✔ 3. Operação aritmética inline
+
+```java
+double area = (width * height) / 2.0;
+```
+
+## ✔ 4. Operador ternário inline
+
+```java
+String msg = ok ? "Sucesso" : "Erro";
+```
+
+## ✔ 5. Criar objeto inline
+
+```java
+process(new Person("Lucas"));
+```
+
+## ✔ 6. Função lambda inline
+
+```java
+list.sort((a, b) -> a.compareTo(b));
+```
+
+Isso é inline porque você não escreveu:
+
+```java
+Comparator<String> c = (a, b) -> a.compareTo(b);
+list.sort(c);
+```
+
+---
+
+# 📌 Explicação simples e intuitiva
+
+Uma **expressão inline** é quando você coloca a expressão *direto no lugar* onde ela é usada, em vez de guardá-la antes em uma variável.
+
+Compare:
+
+### ❌ Não-inline
+
+```java
+int tmp = a + b;
+int total = tmp * 2;
+```
+
+### ✔ Inline
+
+```java
+int total = (a + b) * 2;
+```
+
+---
+
+# 📌 Por que usamos o termo “inline”?
+
+Porque significa “em linha”, “no próprio local”, “embutido”, “diretamente no fluxo do código”.
+É a mesma ideia de:
+
+-* CSS inline
+-* estilos inline
+-* SQL inline
+-* comentários inline
+
+…
+
+Tudo significa: **escrito diretamente no ponto de uso**.
+
+---
+
+# 📌 É um termo formal da linguagem?
+
+**Não.**
+Você não encontrará “inline expression” na Java Language Specification.
+
+É um termo **informal, da engenharia de software**, usado para descrever estilo de escrita.
+
+---
+
+# 📌 Resumo final (1 frase)
+
+### **Expressão inline é uma expressão usada diretamente no ponto onde o valor é necessário, sem variável intermediária.**
+
 * Básico
 ** Valores iniciais de variáveis
 Variáveis que são inicializadas com valor padrão (zero para variáveis numéricas, false para o boolean) só valem para variáveis de classe ou variáveis de instância. Para variáveis locais obrigatoriamente devemos especificar algum valor.
